@@ -209,6 +209,42 @@
             color: #64748b;
         }
 
+        .credits {
+            margin-top: clamp(30px, 4vh, 40px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(10px, 2vh, 15px);
+        }
+
+        .credits-logo {
+            width: clamp(50px, 8vw, 80px);
+            height: auto;
+            opacity: 0.9;
+            transition: opacity 0.3s ease;
+        }
+
+        .credits-logo:hover {
+            opacity: 1;
+        }
+
+        .credits-text {
+            font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+            color: #64748b;
+            text-align: center;
+        }
+
+        .credits-text a {
+            color: #94a3b8;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .credits-text a:hover {
+            color: #cbd5e1;
+            text-decoration: underline;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .buttons-container {
@@ -273,6 +309,13 @@
                 </div>
 
                 <p class="version">v1.0 Lite</p>
+
+                <div class="credits">
+                    <img src="assets/m3-logo.png" alt="M3 Logo" class="credits-logo">
+                    <p class="credits-text">
+                        Provided by M3. Please direct feedback to <a href="mailto:aaron@m3simplymagic.com">aaron@m3simplymagic.com</a>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
