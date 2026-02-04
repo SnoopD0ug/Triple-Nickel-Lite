@@ -245,26 +245,100 @@
             text-decoration: underline;
         }
 
-        /* Responsive */
+        /* Responsive - Tablet and Mobile */
         @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+
+            .main-container {
+                flex-direction: column;
+                min-height: auto;
+            }
+
+            .content-wrapper {
+                margin-left: 0;
+                min-height: auto;
+                padding: 30px 20px;
+                justify-content: flex-start;
+            }
+
+            .logo-icon {
+                font-size: 3.5rem;
+                margin-bottom: 15px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .tagline {
+                font-size: 1.1rem;
+                margin-bottom: 20px;
+            }
+
+            .description {
+                font-size: 0.95rem;
+                margin-bottom: 25px;
+                padding: 0 10px;
+            }
+
             .buttons-container {
                 flex-direction: column;
                 align-items: center;
+                gap: 15px;
             }
 
             .dashboard-btn {
                 width: 100%;
                 max-width: 300px;
+                padding: 20px 25px;
             }
 
-            .content-wrapper {
-                margin-left: 0;
+            .button-icon {
+                font-size: 2.5rem;
+            }
+
+            .button-label {
+                font-size: 1.2rem;
+            }
+
+            .button-desc {
+                font-size: 0.85rem;
+            }
+
+            .version {
+                margin-top: 30px;
+            }
+
+            .credits {
+                margin-top: 25px;
+                margin-bottom: 20px;
+            }
+
+            .credits-logo {
+                width: 50px;
+            }
+
+            .credits-text {
+                font-size: 0.75rem;
+                padding: 0 10px;
             }
         }
 
+        /* Small phones */
         @media (max-width: 480px) {
             .content-wrapper {
-                padding: 20px;
+                padding: 20px 15px;
+            }
+
+            .title {
+                font-size: 1.8rem;
+            }
+
+            .dashboard-btn {
+                max-width: 280px;
+                padding: 18px 20px;
             }
         }
 
