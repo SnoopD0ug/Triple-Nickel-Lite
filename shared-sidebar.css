@@ -201,8 +201,8 @@
         flex-direction: row;
         flex-wrap: wrap;
         justify-content: center;
-        gap: 10px;
-        padding: 15px;
+        gap: 8px;
+        padding: 12px;
         transform: none !important;
     }
     
@@ -216,16 +216,36 @@
     
     .sidebar-header {
         width: 100%;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
+        margin-bottom: 10px;
+        padding-bottom: 8px;
+    }
+
+    .sidebar-title {
+        font-size: 1.2rem;
+    }
+
+    .sidebar-subtitle {
+        font-size: 0.75rem;
     }
     
     .nav-button {
-        flex: 1;
-        min-width: 120px;
-        max-width: 150px;
-        padding: 12px;
-        font-size: 0.9rem;
+        flex: 0 1 auto;
+        min-width: 70px;
+        max-width: 100px;
+        padding: 10px 8px;
+        font-size: 0.75rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 4px;
+    }
+
+    .nav-button .nav-icon {
+        font-size: 1.2rem;
+        min-width: auto;
+    }
+
+    .nav-button .nav-text {
+        font-size: 0.7rem;
     }
     
     .main-content {
@@ -235,5 +255,27 @@
     
     .main-content.expanded {
         margin-left: 0;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 400px) {
+    .sidebar {
+        padding: 10px 8px;
+        gap: 6px;
+    }
+
+    .nav-button {
+        min-width: 60px;
+        max-width: 80px;
+        padding: 8px 6px;
+    }
+
+    .nav-button .nav-icon {
+        font-size: 1rem;
+    }
+
+    .nav-button .nav-text {
+        font-size: 0.65rem;
     }
 } 
