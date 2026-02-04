@@ -1,0 +1,3220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources - Triple Nickel</title>
+    <link rel="stylesheet" href="shared-sidebar.css">
+    <script src="shared-functions.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: clamp(10px, 2vw, 20px);
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 100vw;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+
+        /* Page-specific styles for Resources */
+
+        /* Nav button and sidebar header styles handled by shared-sidebar.css */
+
+        .back-button {
+            background: hsl(215, 19%, 35%);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 40px;
+        }
+
+        .back-button:hover {
+            background: #64748b;
+            text-decoration: none;
+            color: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .title {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .emoji {
+            background: none !important;
+            background-clip: unset !important;
+            -webkit-background-clip: unset !important;
+            -webkit-text-fill-color: initial !important;
+            color: initial !important;
+            font-style: normal !important;
+            text-shadow: none !important;
+            filter: none !important;
+            display: inline-block;
+        }
+
+
+
+        .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .resource-card {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid #475569;
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .resource-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            transition: left 0.6s ease;
+            z-index: 0;
+        }
+
+        .resource-card:hover::before {
+            left: 100%;
+        }
+
+        .resource-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .resource-card:hover {
+            border-color: #10b981;
+            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .resource-card::before {
+            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+        }
+
+        .resource-icon {
+            font-size: 3rem;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .resource-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .resource-description {
+            font-size: 1rem;
+            color: #e2e8f0;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .resource-button {
+            background: linear-gradient(45deg, #10b981, #059669);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .resource-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #3b82f6 20%, #1e293b 100%);
+            margin: 2% auto;
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #475569;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: white;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .close {
+            color: #94a3b8;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: white;
+        }
+
+        .modal h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #10b981, #34d399);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .score-sheet-generator {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 1px solid #475569;
+        }
+
+        .generator-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            margin-bottom: 5px;
+            color: #cbd5e1;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 10px 12px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(30, 41, 59, 0.8);
+            color: white;
+            transition: border-color 0.3s ease;
+            width: 100%;
+            min-width: 0;
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #10b981;
+        }
+
+        .game-rules {
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        .game-rules h3 {
+            color: #10b981;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .game-rules ul, .game-rules ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .game-rules li {
+            margin-bottom: 8px;
+        }
+
+        .game-rules strong {
+            color: #34d399;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .resources-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+
+            .resource-card {
+                padding: 25px;
+                min-height: 260px;
+            }
+
+            .resource-title {
+                font-size: 1.8rem;
+            }
+
+            .resource-icon {
+                font-size: 2.5rem;
+            }
+
+
+
+            .modal-content {
+                width: 95%;
+                margin: 5% auto;
+                padding: 20px;
+            }
+
+            .generator-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Medium screens and smaller */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: clamp(200px, 25vw, 250px);
+            }
+            
+            .sidebar-toggle {
+                left: clamp(200px, 25vw, 250px);
+            }
+            
+            .main-content {
+                margin-left: clamp(200px, 25vw, 250px);
+            }
+            
+            .container {
+                justify-content: flex-start;
+                padding-top: clamp(20px, 3vh, 40px);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .resources-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .title {
+                font-size: 2.5rem;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 2px solid #475569;
+                flex-direction: row;
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px;
+                padding: 15px;
+                transform: none !important;
+            }
+            
+            .sidebar.collapsed {
+                transform: none !important;
+            }
+            
+            .sidebar-toggle {
+                display: none;
+            }
+            
+            .sidebar-header {
+                width: 100%;
+                margin-bottom: 15px;
+                padding-bottom: 10px;
+            }
+            
+            .nav-button {
+                flex: 1;
+                min-width: 120px;
+                max-width: 150px;
+                padding: 12px;
+                font-size: 0.9rem;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+            
+            .main-content.expanded {
+                margin-left: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .resource-card {
+                padding: 20px;
+            }
+        }
+
+        /* Height-based media queries for better vertical scaling */
+        @media (max-height: 800px) {
+            .container {
+                justify-content: flex-start;
+                padding-top: 20px;
+            }
+            
+            .header {
+                margin-bottom: 30px;
+            }
+        }
+
+        @media (max-height: 600px) {
+            .title {
+                font-size: clamp(2rem, 6vw, 3rem);
+            }
+            
+            .subtitle {
+                font-size: clamp(1rem, 2.5vw, 1.2rem);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Shared Navigation will be loaded here -->
+        <div id="shared-navigation"></div>
+        
+        <div class="main-content">
+            <div class="header">
+            <h1 class="title">
+                <span class="emoji">📚</span>
+                <span style="background: linear-gradient(45deg, #10b981, #34d399, #10b981); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;"> Resources </span>
+                <span class="emoji">📚</span>
+            </h1>
+            <p class="subtitle">Everything You Need for Competition Success</p>
+            <p class="description">
+                Comprehensive guides, tools, and references for mastering knife throwing competitions. 
+                From score sheets to tournament management, we've got you covered.
+            </p>
+        </div>
+
+
+
+        <div class="resources-grid">
+            <div class="resource-card">
+                <div class="resource-icon"><span class="emoji">📄</span></div>
+                <h3 class="resource-title">Score Sheet Generator</h3>
+                <p class="resource-description">
+                    Generate custom score sheets for your knife throwing games and tournaments. Choose from various formats, customize max points per throw, and set your own distances.
+                </p>
+                <button class="resource-button" onclick="openModal('scoreSheetModal')">Generate Score Sheet</button>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon"><span class="emoji">📖</span></div>
+                <h3 class="resource-title">Game Rules</h3>
+                <p class="resource-description">
+                    Complete rules and explanations for all game modes including Custom Games, Quick Draw Tournaments, Walk Back, and more.
+                </p>
+                <button class="resource-button" onclick="openModal('gameRulesModal')">View Rules</button>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon"><span class="emoji">🎯</span></div>
+                <h3 class="resource-title">How to Use the App</h3>
+                <p class="resource-description">
+                    Step-by-step guides on how to use all features of the dart scoring app, from basic scoring to advanced tournament management.
+                </p>
+                <button class="resource-button" onclick="openModal('howToModal')">View Guide</button>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon"><span class="emoji">🏆</span></div>
+                <h3 class="resource-title">Tournament Formats</h3>
+                <p class="resource-description">
+                    Learn about different tournament formats including Single Elimination, Double Elimination, Round Robin, and Conference style.
+                </p>
+                <button class="resource-button" onclick="openModal('tournamentModal')">Learn More</button>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon"><span class="emoji">📝</span></div>
+                <h3 class="resource-title">Change Log</h3>
+                <p class="resource-description">
+                    View recent program updates, known issues, and report bugs. Stay informed about the latest improvements and fixes.
+                </p>
+                <button class="resource-button" onclick="openModal('changeLogModal')">View Updates</button>
+            </div>
+
+            <div class="resource-card">
+                <div class="resource-icon"><span class="emoji">📋</span></div>
+                <h3 class="resource-title">Terms & Conditions</h3>
+                <p class="resource-description">
+                    Read the complete terms and conditions for using Triple Nickel software, including licensing, distribution rights, and usage restrictions.
+                </p>
+                <button class="resource-button" onclick="openModal('termsModal')">View Terms</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- Score Sheet Generator Modal -->
+    <div id="scoreSheetModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('scoreSheetModal')">&times;</span>
+            <h2><span class="emoji">📄</span> Score Sheet Generator</h2>
+            <p>Generate custom score sheets for your knife throwing competitions.</p>
+            
+            <div class="score-sheet-generator">
+                <div class="generator-form">
+                    <div class="form-group">
+                        <label for="eventName">Event Name</label>
+                        <input type="text" id="eventName" placeholder="Enter event name" value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="gameName">Game Name</label>
+                        <input type="text" id="gameName" placeholder="Enter game name" value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="weaponType">Game Type</label>
+                        <select id="weaponType">
+                            <option value="Knife">Knife</option>
+                            <option value="Hawk">Hawk</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="discipline">Discipline</label>
+                        <select id="discipline">
+                            <option value="Rotational">Rotational</option>
+                            <option value="No Spin">No Spin</option>
+                            <option value="Half Spin">Half Spin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="roundCount">Number of Rounds</label>
+                        <input type="number" id="roundCount" min="1" max="20" value="4">
+                    </div>
+                    <div class="form-group">
+                        <label for="throwsPerRound">Throws per Round</label>
+                        <input type="number" id="throwsPerRound" min="1" max="10" value="3">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxScore">Max Points per Throw</label>
+                        <select id="maxScore" style="background: rgba(30, 41, 59, 0.8); border: 1px solid #475569; color: white; padding: 10px 12px; border-radius: 8px; font-size: 14px;">
+                            <option value="1">1 Point</option>
+                            <option value="2">2 Points</option>
+                            <option value="3">3 Points</option>
+                            <option value="4">4 Points</option>
+                            <option value="5" selected>5 Points</option>
+                            <option value="6">6 Points</option>
+                            <option value="7">7 Points</option>
+                            <option value="8">8 Points</option>
+                            <option value="9">9 Points</option>
+                            <option value="10">10 Points</option>
+                            <option value="11">11 Points</option>
+                            <option value="12">12 Points</option>
+                            <option value="13">13 Points</option>
+                            <option value="14">14 Points</option>
+                            <option value="15">15 Points</option>
+                            <option value="16">16 Points</option>
+                            <option value="17">17 Points</option>
+                            <option value="18">18 Points</option>
+                            <option value="19">19 Points</option>
+                            <option value="20">20 Points</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="numDistances">Number of Distances/Cards</label>
+                        <input type="number" id="numDistances" min="1" max="10" value="5" onchange="updateDistanceInputs()">
+                    </div>
+                    <div class="form-group">
+                        <label for="distancePreset">Game Preset</label>
+                        <div style="display: flex; gap: 10px; align-items: flex-end; width: 100%; min-width: 0;">
+                            <select id="distancePreset" onchange="updateDistanceInputs()" style="flex: 1; min-width: 0; max-width: 100%;">
+                                <option value="" disabled selected>Select Game Preset</option>
+                                <option value="" disabled>────────── Default Presets ──────────</option>
+                                <option value="dangerfest_am_knife">Dangerfest Am Knife (2m, 3m, 4m, 5m, 6m)</option>
+                                <option value="dangerfest_pro_knife">Dangerfest Pro Knife (3m, 4m, 5m, 6m, 7m)</option>
+                                <option value="dangerfest_am_hawk">Dangerfest Am Hawk (3m, 4m, 5m, 7m)</option>
+                                <option value="dangerfest_pro_hawk">Dangerfest Pro Hawk (3m, 4m, 5m, 7m, 9m)</option>
+                                <option value="akta">AKTA (7ft, 10ft, 13ft, 16ft)</option>
+                                <option value="blade_aces_am_knife">Blade Aces Am Knife (2m, 3m, 4m, 5m)</option>
+                                <option value="blade_aces_pro_knife">Blade Aces Pro Knife (3m, 4m, 5m, 6m, 7m)</option>
+                                <option value="blade_aces_am_hawk">Blade Aces Am Hawk (3m, 4m, 5m)</option>
+                                <option value="blade_aces_pro_hawk">Blade Aces Pro Hawk (3m, 4m, 5m, 7m, 9m)</option>
+                                <option value="" disabled>────────── Legacy Presets ──────────</option>
+                                <option value="amateur">Amateur Knife (2m, 3m, 4m, 5m, 6m)</option>
+                                <option value="professional">Pro Knife (3m, 4m, 5m, 6m, 7m)</option>
+                            </select>
+                            <button id="deletePresetBtn" onclick="deleteCustomPreset()" style="display: none; background: linear-gradient(45deg, #ef4444, #dc2626); border: none; color: white; padding: 10px 15px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; white-space: nowrap; flex-shrink: 0;" title="Delete Custom Preset">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Custom Distance Inputs (Collapsible) -->
+                <div style="margin-top: 20px;">
+                    <button type="button" id="toggleCustomDistances" onclick="toggleCustomDistances()" style="width: 100%; background: rgba(16, 185, 129, 0.1); border: 2px solid #10b981; border-radius: 10px; padding: 12px 20px; color: #10b981; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; justify-content: space-between; align-items: center;">
+                        <span>📐 Distance/Card Labels</span>
+                        <span id="customDistancesToggleIcon" style="font-size: 1.2rem; transition: transform 0.3s ease;">▼</span>
+                    </button>
+                    <div id="customDistanceInputs" style="display: none; margin-top: 15px; padding: 20px; background: rgba(16, 185, 129, 0.05); border: 1px solid #10b981; border-radius: 10px;">
+                        <div id="distanceInputs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                            <!-- Distance inputs will be generated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Save as Custom Preset Button -->
+                <div id="savePresetContainer" style="display: none; margin-top: 20px; text-align: center;">
+                    <button id="savePresetBtn" onclick="showSavePresetModal()" style="background: linear-gradient(45deg, #3b82f6, #2563eb); border: none; color: white; padding: 12px 24px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;">
+                        💾 Save as Custom Preset
+                    </button>
+                </div>
+                
+                <button class="resource-button" onclick="generateScoreSheet()" style="margin-top: 20px;">Generate Score Sheet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Rules Modal -->
+    <div id="gameRulesModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('gameRulesModal')">&times;</span>
+            <h2><span class="emoji">📖</span> Game Rules</h2>
+            <div class="game-rules">
+                <h3>Custom Game</h3>
+                <ul>
+                    <li>Players take turns throwing knives at the target</li>
+                    <li>Each player gets a set number of throws per round</li>
+                    <li>Scores are based on where the knife lands (0 = miss, 5 = bullseye by default)</li>
+                    <li>Special achievements: <strong>Bullseyes</strong> and <strong>Triple Nickels</strong> (three 5s in a row)</li>
+                    <li>Tiebreaker modes available for tied games</li>
+                </ul>
+
+                <h3>Tournament Formats</h3>
+                <ul>
+                    <li><strong>Single Elimination:</strong> Lose once, you're out</li>
+                    <li><strong>Double Elimination:</strong> Must lose twice to be eliminated</li>
+                    <li><strong>Round Robin:</strong> Everyone plays everyone once</li>
+                    <li><strong>Conference:</strong> NFL-style with Red and Blue conferences</li>
+                </ul>
+
+                <h3>Walk Back Game</h3>
+                <ul>
+                    <li>Players start at a close distance and move back after each round</li>
+                    <li>Distances and maximum scores can be customized</li>
+                    <li>Great for skill building and practice</li>
+                </ul>
+
+                <h3>Scoring System</h3>
+                <ul>
+                    <li>Configurable max score (default: 5 for bullseye)</li>
+                    <li>Miss = 0 points</li>
+                    <li>Bullseye = Maximum score (usually 5)</li>
+                    <li><strong>Triple Nickel</strong> = Three maximum scores in a row (bonus achievement)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- How To Modal -->
+    <div id="howToModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('howToModal')">&times;</span>
+            <h2><span class="emoji">🎯</span> How to Use the App</h2>
+            <div class="game-rules">
+                <h3>Getting Started</h3>
+                <ol>
+                    <li>Choose your game type from the main menu</li>
+                    <li>Add players by clicking <strong>"Add Player"</strong></li>
+                    <li>Configure game settings (rounds, throws, max score)</li>
+                    <li>Click <strong>"Start Game"</strong> to begin</li>
+                </ol>
+
+                <h3>During the Game</h3>
+                <ol>
+                    <li>Players take turns in order</li>
+                    <li>Click the appropriate score button for each throw</li>
+                    <li>The app automatically tracks totals and statistics</li>
+                    <li>Use the leaderboard to see current standings</li>
+                </ol>
+
+                <h3>Key Features</h3>
+                <ul>
+                    <li><strong>Edit Scores:</strong> Click on any score to modify it</li>
+                    <li><strong>Player Names:</strong> Click on player names to edit them</li>
+                    <li><strong>Statistics:</strong> View detailed stats during and after games</li>
+                    <li><strong>Export:</strong> Save game results to a text file</li>
+                    <li><strong>Tiebreakers:</strong> Automatic tiebreaker modes for tied games</li>
+                </ul>
+
+                <h3>Tournament Management</h3>
+                <ul>
+                    <li>Brackets are automatically generated</li>
+                    <li>Winners advance automatically</li>
+                    <li>Track all matches and results</li>
+                    <li>Export tournament results</li>
+                </ul>
+
+                <h3>Physical Setup Configurations</h3>
+                <p style="margin-bottom: 20px; color: #cbd5e1;">Choose the setup that best fits your competition needs:</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+                    <div style="background: linear-gradient(135deg, rgba(168, 237, 234, 0.2), rgba(254, 214, 227, 0.2)); border: 1px solid #10b981; border-radius: 10px; padding: 15px;">
+                        <h4 style="color: #10b981; margin-bottom: 10px; font-size: 1rem;">📱 Good - Laptop Only</h4>
+                        <ul style="font-size: 0.9rem; color: #e2e8f0; margin: 0; padding-left: 15px;">
+                            <li>Basic scoring functionality</li>
+                            <li>Portable and simple</li>
+                            <li>Perfect for getting started</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(116, 185, 255, 0.2), rgba(9, 132, 227, 0.2)); border: 1px solid #3b82f6; border-radius: 10px; padding: 15px;">
+                        <h4 style="color: #3b82f6; margin-bottom: 10px; font-size: 1rem;">💻 Better - Laptop + 1 Monitor</h4>
+                        <ul style="font-size: 0.9rem; color: #e2e8f0; margin: 0; padding-left: 15px;">
+                            <li>Extended screen real estate</li>
+                            <li>Portrait monitor for Live Leaderboard</li>
+                            <li>Ideal for practice sessions</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(253, 121, 168, 0.2), rgba(232, 67, 147, 0.2)); border: 1px solid #ec4899; border-radius: 10px; padding: 15px;">
+                        <h4 style="color: #ec4899; margin-bottom: 10px; font-size: 1rem;">🖥️ Best - Laptop + 2 Monitors</h4>
+                        <ul style="font-size: 0.9rem; color: #e2e8f0; margin: 0; padding-left: 15px;">
+                            <li>Dedicated screens for all functions</li>
+                            <li>Professional competition setup</li>
+                            <li>Optimal for tournaments</li>
+                        </ul>
+                    </div>
+                    
+                    <div style="background: linear-gradient(135deg, rgba(253, 203, 110, 0.2), rgba(225, 112, 85, 0.2)); border: 1px solid #f59e0b; border-radius: 10px; padding: 15px;">
+                        <h4 style="color: #f59e0b; margin-bottom: 10px; font-size: 1rem;">⭐ Ultimate - Touchscreen + 2 Monitors</h4>
+                        <ul style="font-size: 0.9rem; color: #e2e8f0; margin: 0; padding-left: 15px;">
+                            <li>Touch-friendly score entry</li>
+                            <li>Maximum efficiency and speed</li>
+                            <li>Professional tournament standard</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; border-left: 4px solid #10b981;">
+                    <p style="margin: 0; font-size: 0.9rem; color: #cbd5e1;">
+                        <strong>💡 Pro Tip:</strong> Portrait-oriented monitors work best for displaying leaderboards and victory screens. 
+                        The app automatically detects multiple monitors and optimizes window placement.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tournament Modal -->
+    <div id="tournamentModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('tournamentModal')">&times;</span>
+            <h2><span class="emoji">🏆</span> Tournament Formats</h2>
+            <div class="game-rules">
+                <h3>Single Elimination</h3>
+                <p>Classic tournament format where one loss eliminates a player.</p>
+                <ul>
+                    <li>Fast and decisive</li>
+                    <li>Works well for large groups</li>
+                    <li>Creates exciting do-or-die moments</li>
+                </ul>
+
+                <h3>Double Elimination</h3>
+                <p>Players get a second chance with winners and losers brackets.</p>
+                <ul>
+                    <li>More forgiving format</li>
+                    <li>Players must lose twice to be eliminated</li>
+                    <li>Grand finals between bracket winners</li>
+                </ul>
+
+                <h3>Round Robin</h3>
+                <p>Everyone plays everyone else exactly once.</p>
+                <ul>
+                    <li>Most comprehensive format</li>
+                    <li>Fair for all participants</li>
+                    <li>Rankings based on win-loss records</li>
+                </ul>
+
+                <h3>Conference Style</h3>
+                <p>NFL-inspired format with Red and Blue conferences.</p>
+                <ul>
+                    <li>Divides players into two conferences</li>
+                    <li>Conference champions meet in finals</li>
+                    <li>Great for large tournaments</li>
+                </ul>
+
+                <h3>Best 2 of 3</h3>
+                <p>Each match requires winning 2 out of 3 rounds.</p>
+                <ul>
+                    <li>Reduces impact of lucky throws</li>
+                    <li>More thorough competition</li>
+                    <li>Better for determining true skill</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('statsModal')">&times;</span>
+            <h2>📊 Statistics & Tracking</h2>
+            <div class="game-rules">
+                <h3>Basic Statistics</h3>
+                <ul>
+                    <li><strong>Total Score:</strong> Sum of all throws</li>
+                    <li><strong>Average Score:</strong> Total score divided by number of throws</li>
+                    <li><strong>Bullseyes:</strong> Number of maximum scores achieved</li>
+                    <li><strong>Triple Nickels:</strong> Three maximum scores in a row</li>
+                </ul>
+
+                <h3>Game Statistics</h3>
+                <ul>
+                    <li><strong>Highest Score:</strong> Best performing player</li>
+                    <li><strong>Lowest Score:</strong> Needs improvement</li>
+                    <li><strong>Perfect Rounds:</strong> Rounds with all maximum scores</li>
+                    <li><strong>Zero Rounds:</strong> Rounds with no successful throws</li>
+                </ul>
+
+                <h3>Tiebreaker Tracking</h3>
+                <ul>
+                    <li>Separate statistics for tiebreaker rounds</li>
+                    <li>Multiple tiebreaker modes available</li>
+                    <li>Detailed round-by-round breakdown</li>
+                </ul>
+
+                <h3>Export Options</h3>
+                <ul>
+                    <li>Complete game summary</li>
+                    <li>Individual player statistics</li>
+                    <li>Round-by-round breakdown</li>
+                    <li>Text file format for easy sharing</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tips Modal -->
+    <div id="tipsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('tipsModal')">&times;</span>
+            <h2>⚙️ Tips & Tricks</h2>
+            <div class="game-rules">
+                <h3>App Usage Tips</h3>
+                <ul>
+                    <li>Use descriptive player names to avoid confusion</li>
+                    <li>Configure game settings before starting</li>
+                    <li>Take advantage of the edit feature for corrections</li>
+                    <li>Export results for record keeping</li>
+                </ul>
+
+                <h3>Tournament Organization</h3>
+                <ul>
+                    <li>Choose tournament format based on time available</li>
+                    <li>Consider skill levels when seeding players</li>
+                    <li>Use Round Robin for fair competition</li>
+                    <li>Double Elimination gives everyone a second chance</li>
+                </ul>
+
+                <h3>Competition Management</h3>
+                <ul>
+                    <li>Keep games moving with clear throwing order</li>
+                    <li>Use the leaderboard to build excitement</li>
+                    <li>Celebrate achievements like bullseyes and triple nickels</li>
+                    <li>Save results for future reference</li>
+                </ul>
+
+                <h3>Skill Development</h3>
+                <ul>
+                    <li>Use Walk Back games for skill development</li>
+                    <li>Track improvement over time</li>
+                    <li>Focus on consistency over occasional high scores</li>
+                    <li>Practice different distances and targets</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Log Modal -->
+    <div id="changeLogModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('changeLogModal')">&times;</span>
+            <h2><span class="emoji">📝</span> Change Log & Updates</h2>
+            <div class="game-rules">
+                <h3>Recent Updates</h3>
+                <div id="changelogContent" style="background: rgba(16, 185, 129, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <p style="color: #94a3b8; font-style: italic;">Loading recent updates...</p>
+                </div>
+
+                <h3>Known Issues</h3>
+                <div id="knownIssuesContent" style="background: rgba(239, 68, 68, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 20px; border-left: 4px solid #ef4444;">
+                    <p style="color: #94a3b8; font-style: italic;">Loading known issues...</p>
+                </div>
+
+
+
+                <h3>Report Issues & Feedback</h3>
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 10px; text-align: center;">
+                    <p style="margin-bottom: 15px; font-size: 1.1rem;">
+                        Found a bug or have a feature request? We'd love to hear from you!
+                    </p>
+                    
+                    <div style="background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h4 style="color: #10b981; margin-bottom: 10px;">Contact Information</h4>
+                        <p><strong>Developer:</strong> Aaron Shour</p>
+                        <p><strong>Company:</strong> Modern Methods and Materials</p>
+                        <p><strong>Email:</strong> <a href="mailto:aaron@m3simplymagic.com" style="color: #34d399; text-decoration: none;">aaron@m3simplymagic.com</a></p>
+                    </div>
+                    
+                    <div style="background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                        <h4 style="color: #10b981; margin-bottom: 10px;">When Reporting Issues, Please Include:</h4>
+                        <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                            <li>Operating system and version</li>
+                            <li>Browser type and version</li>
+                            <li>Steps to reproduce the issue</li>
+                            <li>Expected vs. actual behavior</li>
+                            <li>Screenshots if applicable</li>
+                        </ul>
+                    </div>
+                    
+                    <p style="margin-top: 15px; font-style: italic; color: #94a3b8;">
+                        Your feedback helps make Triple Nickel better for everyone!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal for Score Sheet Generation -->
+    <div id="successModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; text-align: center;">
+            <span class="close" onclick="closeModal('successModal')">&times;</span>
+            <div style="margin-bottom: 20px;">
+                <div style="font-size: 4rem; color: #10b981; margin-bottom: 15px;">✅</div>
+                <h2 style="color: #10b981; margin-bottom: 15px; font-size: 1.8rem;">Score Sheet Generated!</h2>
+            </div>
+            
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 2px solid #10b981;">
+                <p style="font-size: 1.1rem; color: #e2e8f0; margin-bottom: 15px; font-weight: 500;">
+                    Your score sheet has been successfully generated and downloaded.
+                </p>
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <p style="color: #cbd5e1; margin-bottom: 8px; font-size: 0.9rem;">
+                        <strong>📄 File Name:</strong>
+                    </p>
+                    <p id="generatedFileName" style="color: #34d399; font-family: monospace; font-size: 0.9rem; word-break: break-all; margin: 0;">
+                        <!-- Filename will be inserted here -->
+                    </p>
+                </div>
+            </div>
+            
+                            <div id="fileLocationInfo" style="background: rgba(59, 130, 246, 0.1); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 2px solid #3b82f6;">
+                    <h3 style="color: #3b82f6; margin-bottom: 15px; font-size: 1.2rem;">📁 Find Your Score Sheet</h3>
+                    <div style="text-align: left; color: #e2e8f0;">
+                        <p style="margin-bottom: 0; font-size: 0.95rem;">
+                            <strong>💻 Windows:</strong> Check your Downloads folder or look for the download notification in your browser.
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 2px solid #10b981;">
+                    <h3 style="color: #10b981; margin-bottom: 15px; font-size: 1.2rem;">⚙️ Score Sheet Configuration</h3>
+                    <div style="text-align: left; color: #e2e8f0;">
+                        <p style="margin-bottom: 8px; font-size: 0.95rem;">
+                            <strong>🎯 Max Points per Throw:</strong> <span id="generatedMaxScore">5</span>
+                        </p>
+                                                 <p style="margin-bottom: 8px; font-size: 0.95rem;">
+                             <strong>📊 Score Range:</strong> 0 to <span id="generatedMaxScoreRange">5</span> points per throw
+                         </p>
+                        <p style="margin-bottom: 8px; font-size: 0.95rem;">
+                            <strong>📐 Layout:</strong> <span id="generatedLayout">Standard grid layout</span>
+                        </p>
+                        <p style="margin-bottom: 0; font-size: 0.95rem;">
+                            <strong>📝 Format:</strong> <span id="generatedFormatRange">0-5</span> selection boxes for each throw at each distance
+                        </p>
+                    </div>
+                </div>
+            
+            <div style="display: flex; justify-content: center;">
+                <button onclick="closeModal('successModal')" style="background: linear-gradient(45deg, #10b981, #059669); border: none; color: white; padding: 12px 24px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ✅ Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Custom Preset Confirmation Modal -->
+    <div id="savePresetModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeModal('savePresetModal')">&times;</span>
+            <h2 style="margin-bottom: 20px;"><span class="emoji">💾</span> Save Custom Preset</h2>
+            
+            <div style="background: rgba(16, 185, 129, 0.1); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 2px solid #10b981;">
+                <p style="color: #e2e8f0; margin-bottom: 15px;">
+                    Save your current settings as a custom preset named:
+                </p>
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center;">
+                    <p id="presetNameDisplay" style="color: #34d399; font-size: 1.2rem; font-weight: bold; margin: 0;"></p>
+                </div>
+                <div id="presetNameError" style="color: #ef4444; font-size: 0.9rem; margin-top: 8px; display: none;"></div>
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button onclick="closeModal('savePresetModal')" style="background: #64748b; border: none; color: white; padding: 12px 24px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    Cancel
+                </button>
+                <button onclick="saveCustomPreset()" style="background: linear-gradient(45deg, #10b981, #059669); border: none; color: white; padding: 12px 24px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    💾 Save Preset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Preset Confirmation Modal -->
+    <div id="deletePresetModal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <span class="close" onclick="closeModal('deletePresetModal')">&times;</span>
+            <h2 style="margin-bottom: 20px;"><span class="emoji">🗑️</span> Delete Custom Preset</h2>
+            
+            <div style="background: rgba(239, 68, 68, 0.1); padding: 20px; border-radius: 15px; margin-bottom: 25px; border: 2px solid #ef4444;">
+                <p style="color: #e2e8f0; margin-bottom: 15px; font-size: 1.1rem;">
+                    Are you sure you want to delete the preset:
+                </p>
+                <div style="background: rgba(15, 23, 42, 0.8); padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; border: 1px solid #ef4444;">
+                    <p id="deletePresetName" style="color: #fca5a5; font-size: 1.2rem; font-weight: bold; margin: 0;"></p>
+                </div>
+                <p style="color: #fca5a5; font-size: 0.95rem; text-align: center; margin: 0;">
+                    ⚠️ This action cannot be undone.
+                </p>
+            </div>
+            
+            <div style="display: flex; justify-content: center; gap: 15px;">
+                <button onclick="closeModal('deletePresetModal')" style="background: #64748b; border: none; color: white; padding: 12px 24px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    Cancel
+                </button>
+                <button onclick="confirmDeletePreset()" style="background: linear-gradient(45deg, #ef4444, #dc2626); border: none; color: white; padding: 12px 24px; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease;">
+                    🗑️ Delete Preset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms and Conditions Modal -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal('termsModal')">&times;</span>
+            <h2><span class="emoji">📋</span> Terms and Conditions</h2>
+            <div class="game-rules" style="max-height: 60vh; overflow-y: auto; padding-right: 10px;">
+                <h3># TRIPLE NICKEL SOFTWARE</h3>
+                <h4>## TERMS AND CONDITIONS OF USE</h4>
+                
+                <p><strong>Effective Date:</strong> January 1, 2025<br>
+                <strong>Last Updated:</strong> January 1, 2025</p>
+                
+                <hr style="border: 1px solid #475569; margin: 20px 0;">
+                
+                <h4>## 1. ACCEPTANCE OF TERMS</h4>
+                <p>By downloading, installing, or using Triple Nickel software ("Software"), you ("User") agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, do not download, install, or use the Software.</p>
+                
+                <h4>## 2. LICENSE GRANT</h4>
+                <p>Subject to compliance with these Terms, Modern Methods and Materials ("Licensor") grants you a limited, non-exclusive, non-transferable, revocable license to use the Software for personal, educational, or commercial purposes at no charge.</p>
+                
+                <h4>## 3. FREE USE</h4>
+                <p>The Software is provided free of charge. You may use the Software without payment of any licensing fees or royalties to the Licensor.</p>
+                
+                <h4>## 4. DISTRIBUTION RESTRICTIONS</h4>
+                <h5>### 4.1 Exclusive Distribution Rights</h5>
+                <p>Modern Methods and Materials retains exclusive rights to distribute the Software. Only Modern Methods and Materials is authorized to:</p>
+                <ul>
+                    <li>Distribute copies of the Software</li>
+                    <li>Make the Software available for download</li>
+                    <li>Provide the Software to third parties</li>
+                </ul>
+                
+                <h5>### 4.2 Prohibited Distribution</h5>
+                <p>You are strictly prohibited from:</p>
+                <ul>
+                    <li>Redistributing the Software in any form</li>
+                    <li>Making the Software available for download from any server, website, or platform</li>
+                    <li>Sharing copies of the Software with others</li>
+                    <li>Including the Software in any software package or bundle</li>
+                </ul>
+                
+                <h4>## 5. PROHIBITED USES</h4>
+                <p>You are expressly prohibited from:</p>
+                
+                <h5>### 5.1 Commercial Exploitation</h5>
+                <ul>
+                    <li>Charging any fee for access to or use of the Software</li>
+                    <li>Selling, renting, leasing, or licensing the Software</li>
+                    <li>Including the Software in any paid service or product offering</li>
+                    <li>Monetizing the Software in any manner</li>
+                </ul>
+                
+                <h5>### 5.2 Modification and Alteration</h5>
+                <ul>
+                    <li>Modifying, altering, or adapting the Software in any way</li>
+                    <li>Reverse engineering, decompiling, or disassembling the Software</li>
+                    <li>Creating derivative works based on the Software</li>
+                    <li>Removing or altering any copyright notices, trademarks, or other proprietary markings</li>
+                </ul>
+                
+                <h5>### 5.3 Other Prohibited Activities</h5>
+                <ul>
+                    <li>Using the Software for any illegal or unauthorized purpose</li>
+                    <li>Circumventing any security features or access controls</li>
+                    <li>Interfering with the Software's operation or performance</li>
+                </ul>
+                
+                <h4>## 6. INTELLECTUAL PROPERTY RIGHTS</h4>
+                <h5>### 6.1 Ownership</h5>
+                <p>The Software and all intellectual property rights therein are and remain the exclusive property of Modern Methods and Materials. This license does not transfer any ownership rights to you.</p>
+                
+                <h5>### 6.2 Trademarks</h5>
+                <p>"Triple Nickel" and any associated trademarks, service marks, and logos are proprietary to Modern Methods and Materials.</p>
+                
+                <h4>## 7. WARRANTY DISCLAIMER</h4>
+                <p>THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. MODERN METHODS AND MATERIALS DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO:</p>
+                <ul>
+                    <li>MERCHANTABILITY</li>
+                    <li>FITNESS FOR A PARTICULAR PURPOSE</li>
+                    <li>NON-INFRINGEMENT</li>
+                    <li>ACCURACY OR RELIABILITY OF RESULTS</li>
+                </ul>
+                
+                <h4>## 8. LIMITATION OF LIABILITY</h4>
+                <p>IN NO EVENT SHALL MODERN METHODS AND MATERIALS BE LIABLE FOR ANY:</p>
+                <ul>
+                    <li>DIRECT, INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES</li>
+                    <li>LOSS OF DATA, PROFITS, OR BUSINESS INTERRUPTION</li>
+                    <li>DAMAGES ARISING FROM USE OR INABILITY TO USE THE SOFTWARE</li>
+                </ul>
+                <p>This limitation applies regardless of the legal theory upon which the claim is based.</p>
+                
+                <h4>## 9. INDEMNIFICATION</h4>
+                <p>You agree to indemnify and hold harmless Modern Methods and Materials from any claims, damages, losses, or expenses arising from your use of the Software or violation of these Terms.</p>
+                
+                <h4>## 10. TERMINATION</h4>
+                <h5>### 10.1 Automatic Termination</h5>
+                <p>This license terminates automatically if you violate any provision of these Terms.</p>
+                
+                <h5>### 10.2 Effect of Termination</h5>
+                <p>Upon termination, you must immediately cease all use of the Software and delete all copies in your possession or control.</p>
+                
+                <h4>## 11. COMPLIANCE WITH LAWS</h4>
+                <p>You agree to use the Software in compliance with all applicable local, state, national, and international laws and regulations.</p>
+                
+                <h4>## 12. UPDATES AND MODIFICATIONS</h4>
+                <p>Modern Methods and Materials reserves the right to:</p>
+                <ul>
+                    <li>Update or modify the Software at any time</li>
+                    <li>Change these Terms with or without notice</li>
+                    <li>Discontinue the Software at any time</li>
+                </ul>
+                
+                <h4>## 13. GOVERNING LAW</h4>
+                <p>These Terms shall be governed by and construed in accordance with the laws of the United States, without regard to conflict of law principles.</p>
+                
+                <h4>## 14. SEVERABILITY</h4>
+                <p>If any provision of these Terms is found to be invalid or unenforceable, the remaining provisions shall remain in full force and effect.</p>
+                
+                <h4>## 15. ENTIRE AGREEMENT</h4>
+                <p>These Terms constitute the entire agreement between you and Modern Methods and Materials regarding the Software and supersede all prior agreements and understandings.</p>
+                
+                <h4>## 16. CONTACT INFORMATION</h4>
+                <p>For questions regarding these Terms or the Software, contact:</p>
+                <p><strong>Modern Methods and Materials</strong><br>
+                Email: aaron@m3simplymagic.com</p>
+                
+                <hr style="border: 1px solid #475569; margin: 20px 0;">
+                
+                <p style="text-align: center; font-weight: bold; color: #10b981; margin-top: 30px;">
+                    <strong>BY USING THE SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS AND CONDITIONS.</strong>
+                </p>
+            </div>
+            
+            <!-- Accept Terms Button (only shown if not already accepted) -->
+            <div id="acceptTermsSection" style="text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #475569;">
+                <button id="acceptTermsBtn" onclick="acceptTermsAndConditions()" style="background: #10b981; border: none; color: white; padding: 12px 30px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">
+                    Accept Terms & Conditions
+                </button>
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-top: 10px;">
+                    You must accept the terms to continue using Triple Nickel
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+            
+            // If opening score sheet modal, reset form to defaults
+            if (modalId === 'scoreSheetModal') {
+                resetScoreSheetForm();
+            }
+            
+            // If opening terms modal, check if terms have been accepted
+            if (modalId === 'termsModal') {
+                const termsAccepted = localStorage.getItem('tripleNickelTermsAccepted');
+                const acceptSection = document.getElementById('acceptTermsSection');
+                const acceptBtn = document.getElementById('acceptTermsBtn');
+                
+                if (termsAccepted) {
+                    // Terms already accepted - hide accept button
+                    if (acceptSection) acceptSection.style.display = 'none';
+                } else {
+                    // Terms not accepted - show accept button
+                    if (acceptSection) acceptSection.style.display = 'block';
+                }
+            }
+            
+            // If opening change log modal, load the changelog and known issues
+            if (modalId === 'changeLogModal') {
+                loadChangelogData();
+            }
+        }
+
+        function getEventNameFromManagement() {
+            try {
+                // First, check for tournament name (this is what the user sets in Management)
+                const tournamentName = localStorage.getItem('tournamentName');
+                console.log('Tournament name from localStorage:', tournamentName);
+                
+                if (tournamentName && tournamentName.trim() !== '') {
+                    console.log('Using tournament name:', tournamentName);
+                    return tournamentName.trim();
+                }
+                
+                // Fallback: Check for events if no tournament name is set
+                const eventsData = localStorage.getItem('tournamentEvents');
+                console.log('No tournament name found, checking events...');
+                console.log('Raw eventsData from localStorage:', eventsData);
+                
+                if (!eventsData || eventsData === '[]' || eventsData === 'null') {
+                    console.log('No tournamentEvents found or array is empty');
+                    return '';
+                }
+                
+                const events = JSON.parse(eventsData);
+                console.log('Parsed events:', events);
+                console.log('Number of events:', events ? events.length : 0);
+                
+                if (!events || !Array.isArray(events) || events.length === 0) {
+                    console.log('Events array is empty or invalid');
+                    return '';
+                }
+                
+                // Helper function to get sort value for an event
+                const getSortValue = (event) => {
+                    if (event.dateCreated) {
+                        const date = new Date(event.dateCreated);
+                        if (!isNaN(date.getTime())) {
+                            return date.getTime();
+                        }
+                    }
+                    // If id is a number (timestamp), use it directly
+                    if (typeof event.id === 'number') {
+                        return event.id;
+                    }
+                    // If id is a string that might contain a timestamp, try to extract it
+                    if (typeof event.id === 'string') {
+                        const numId = parseFloat(event.id);
+                        if (!isNaN(numId) && numId > 1000000000000) { // Likely a timestamp
+                            return numId;
+                        }
+                        // Try to extract timestamp from string like "1234567890.123"
+                        const parts = event.id.split('.');
+                        if (parts.length > 0) {
+                            const mainId = parseFloat(parts[0]);
+                            if (!isNaN(mainId) && mainId > 1000000000000) {
+                                return mainId;
+                            }
+                        }
+                    }
+                    return 0;
+                };
+                
+                // Get the most recently created event (regardless of status)
+                const sortedEvents = [...events].sort((a, b) => {
+                    const valA = getSortValue(a);
+                    const valB = getSortValue(b);
+                    return valB - valA; // Most recent first
+                });
+                
+                const selectedEvent = sortedEvents[0];
+                console.log('Selected event:', selectedEvent);
+                
+                if (selectedEvent && selectedEvent.name) {
+                    console.log('Using event name:', selectedEvent.name);
+                    return selectedEvent.name;
+                }
+                
+                return '';
+            } catch (error) {
+                console.error('Error loading event name from Management:', error);
+                console.error('Error details:', error.message, error.stack);
+                return '';
+            }
+        }
+
+        function resetScoreSheetForm() {
+            console.log('resetScoreSheetForm called');
+            
+            // Load Event Name from Management if available
+            const eventName = document.getElementById('eventName');
+            console.log('Event name field found:', !!eventName);
+            
+            if (eventName) {
+                const managementEventName = getEventNameFromManagement();
+                console.log('Event name retrieved from Management:', managementEventName);
+                console.log('Setting eventName.value to:', managementEventName || '');
+                eventName.value = managementEventName || '';
+                console.log('Event name field value after setting:', eventName.value);
+            } else {
+                console.error('Event name field not found!');
+            }
+            
+            // Reset Game Name to blank
+            const gameName = document.getElementById('gameName');
+            if (gameName) {
+                gameName.value = '';
+            }
+            
+            // Reset Game Preset to placeholder
+            const distancePreset = document.getElementById('distancePreset');
+            if (distancePreset) {
+                distancePreset.value = '';
+                // Reset the tracking variable so presets can be configured again
+                lastConfiguredPreset = null;
+            }
+            
+            // Hide delete button
+            const deleteBtn = document.getElementById('deletePresetBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'none';
+            }
+            
+            // Hide custom distance inputs section
+            const customInputs = document.getElementById('customDistanceInputs');
+            const toggleIcon = document.getElementById('customDistancesToggleIcon');
+            if (customInputs) {
+                customInputs.style.display = 'none';
+            }
+            if (toggleIcon) {
+                toggleIcon.textContent = '▼';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            }
+            
+            // Clear custom distance inputs
+            const distanceInputs = document.getElementById('distanceInputs');
+            if (distanceInputs) {
+                distanceInputs.innerHTML = '';
+            }
+            
+            // Reset manual changes flag
+            hasManualChanges = false;
+            
+            // Hide save preset button
+            const saveContainer = document.getElementById('savePresetContainer');
+            if (saveContainer) {
+                saveContainer.style.display = 'none';
+            }
+            
+            // Update distance inputs to reflect the reset
+            updateDistanceInputs();
+        }
+
+        async function loadChangelogData() {
+            // For Tauri apps, use embedded content directly for reliability
+            loadChangelogDirect();
+            loadKnownIssuesDirect();
+        }
+
+        function loadChangelogDirect() {
+            const changelogContent = document.getElementById('changelogContent');
+            if (!changelogContent) return;
+            
+            // Clear any existing content completely
+            changelogContent.innerHTML = '';
+            changelogContent.style.background = 'rgba(16, 185, 129, 0.1)';
+            changelogContent.style.padding = '15px';
+            changelogContent.style.borderRadius = '10px';
+            changelogContent.style.marginBottom = '20px';
+            
+            // Current changelog content - updated to match changelog.txt exactly
+            changelogContent.innerHTML = `
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.9
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Management now shows when an active tournament is in Progress</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated Walkback Settings Play Mode</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Refinements to player card and score editing in Walkback</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated Archive report handling</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.8
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Score sheet generation refinements</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Custom game mode with import feature added in Side Games</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Visual updates to align with current aesthetic</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Walkback after game report now shows the round by round breakdown according to play mode - consecutive/sequential</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added event type Side Game</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Resolved an issue where the Leaderboard in Walkback would fail to update if the Walkback tab was navigated away from during an active game</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.7
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Menu Bar</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Export/Import data feature to Qualifier</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added ability to create an event directly from Qualifier results</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added ability to import players from QD events to Qualifier</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Walkback Leaderboard enhancements</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.6
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Time less than one second represented correctly on QD leaderboard and bracket</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Round indicators not changing color issue in Consecutive play mode issue corrected</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.5
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Walkback Tiebreaker logic updated</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Improved mobile compatibility with Walkback after game report</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.4
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Double elimination now generates a correct bracket for 4,8,16,32 players</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Qualifier requires unique player names</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.3
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed an issue in Walkback where the Score Finalization modal requires two clicks</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed an issue where Victory screen appeared behind main window</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Walkback Leaderboard UI enhancements</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Three way tie is now handled correctly in Walkback</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.2
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Walkback Live Leaderboard now shows top 20</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Walkback Progress tracker UI optimizations</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">QD Double elimination Leaderboard enhancements</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Progress Tracker in Walkback now closes automatically when scores/players are cleared</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Import by event modal in Quick Draw now shows current event status</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Duel mode after game report issue fixed</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated Duel after game report</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.1
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Progress Tracker to Walkback - onscreen visual of active throwers and players on deck</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Duel mode in double elimination now uses time as a secondary scoring mechanism</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Duel mode in double elimination now handles tiebreaker correctly</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added distance presets for Dangerfest, Blade Aces, and AKTA events in Score Sheet Generator</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated bracket UI Duel mode in double elimination to clearly show winner</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed bug in Duel where a match ending in a tie would award points</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Score of immediately completed match now editable until score is entered in the proceeding match in double elimination duel mode</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Duel mode Double Elimination quick draw leaderboard updates</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Best of Three Double elimination UI and logic updates</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.2.0
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Combined Game Preset drop down and Distance Preset dropdown in Walkback</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added distance presets for Dangerfest, Blade Aces, and AKTA events in Walkback</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Max points per throw option to Score Sheet Generator</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Resolved an issue with score sheet generation not using page space efficiently</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Duel QD game option to Single and Double Elimination</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Resolved issue where Single and Double elimination QD games weren't exporting reports</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed seed position showing as N/A when importing from qualifier in duel mode</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed issue with Qualifier missing sidebar</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed bug where mode could be changed during active qualifier</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated Quick Draw Qualifier UI</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Corrected multiple graphical consistency issues</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.1.9
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated score/game finalization and tiebreaker logic</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed issue with Review Scores button in Finalization modal requiring two clicks to close</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed Finalize Game button remaining visible after clearing scores</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Enhanced modal removal logic with multiple fallback methods for better reliability</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Resolved issue with Finalize Game button being visible after Clear Scores button had been clicked after all scores had been entered</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.1.8
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fix Score Sheet Generator issue not generating the correct number of rounds</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Updated confirmation modal with instructions where to find the score sheet</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.1.7
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Best of Three option to Quick Draw Qualifier</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Best of Three option to Single Elimination Quick Draw</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Best of Three option to Double elimination Quick Draw</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Two of Three option to Single elimination Quick Draw</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Two of Three option to Double elimination Quick Draw</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Removed Setup navigation button from Double Elimination</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">added Physical configuration options in Resources</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Teams box to Setup Tab in Management</li>
+                    </ul>
+                </div>
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version 1.1.6
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Removed Setup nav button in Single Elimination Quick Draw</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Reports in Archive from Walkback games now generate correct reports</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Added Change Log tile in Resources</li>
+                        <li style="margin-bottom: 6px; color: #e2e8f0;">Fixed Walkback and Side Games side bar collapse button issue</li>
+                    </ul>
+                </div>
+            `;
+        }
+
+        function loadKnownIssuesDirect() {
+            const knownIssuesContent = document.getElementById('knownIssuesContent');
+            if (!knownIssuesContent) return;
+            
+            // Force clear and replace all content
+            knownIssuesContent.innerHTML = '';
+            knownIssuesContent.style.background = 'rgba(239, 68, 68, 0.1)';
+            knownIssuesContent.style.padding = '15px';
+            knownIssuesContent.style.borderRadius = '10px';
+            knownIssuesContent.style.marginBottom = '20px';
+            knownIssuesContent.style.borderLeft = '4px solid #ef4444';
+            
+            // Content from knownissues.txt - updated to match current file
+            knownIssuesContent.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">📋 Menu Bar</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Options don't work</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">🏢 Management</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <!-- Management section is empty in current knownissues.txt -->
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">📚 Resources</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Game Rules, How to Use the App, and Tournament Format content incomplete</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">🚶 Walkback</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <!-- Walkback section is empty in current knownissues.txt -->
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">⚡ Quick Draw</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Tournaments only accept 4,8,16,32 players - no byes</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">🏁 Qualifier</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Exported report txt</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">🎯 Single Elimination</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Bracket generation and seeding logic broken</li>
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Duel mode - Matches are editable after the proceeding match has a score entered</li>
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Duel mode needs to use time as a secondary scoring mechanism when present</li>
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Duel mode scoring modal issue in matches after 1</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">⚔️ Double Elimination</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Best of three edit scores not working right</li>
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">bracket generation and seeding logic only works for games with 4,8,16,32 players</li>
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">time under 1 sec may be shown wrong</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #ef4444; margin-bottom: 10px; font-size: 1rem;">📁 Archive</h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">Quick Draw reports from Archive are missing AVG stat</li>
+                        <li style="margin-bottom: 8px; color: #e2e8f0;">QD games are only saved if players are imported from an event. If imported from qualifier no record is made.</li>
+                    </ul>
+                </div>
+                
+                <p style="margin-top: 15px; font-style: italic; color: #cbd5e1;">
+                    <strong>Note:</strong> These issues are being actively addressed in upcoming updates.
+                </p>
+            `;
+        }
+
+        async function loadChangelog() {
+            // This function is kept for compatibility but not used in Tauri
+            // Tauri apps use the direct loading method
+            loadChangelogDirect();
+        }
+
+        async function loadKnownIssues() {
+            // This function is kept for compatibility but not used in Tauri
+            // Tauri apps use the direct loading method
+            loadKnownIssuesDirect();
+        }
+
+        async function loadChangelogFromFile() {
+            try {
+                let text = '';
+                
+                // In Tauri, try to read the changelog file
+                if (window.__TAURI__) {
+                    const { readTextFile } = window.__TAURI__.fs;
+                    
+                    console.log('Available Tauri APIs:', Object.keys(window.__TAURI__));
+                    
+                    // Try multiple path strategies
+                    const pathsToTry = [
+                        'changelog.txt',
+                        './changelog.txt',
+                        '../changelog.txt',
+                        '../../changelog.txt',
+                        'resources/changelog.txt',
+                        './resources/changelog.txt'
+                    ];
+                    
+                    // If we have path APIs, try those too
+                    if (window.__TAURI__.path) {
+                        try {
+                            const { resourceDir, appDataDir, appDir, join } = window.__TAURI__.path;
+                            
+                            // Try app directory
+                            try {
+                                const appDirPath = await appDir();
+                                pathsToTry.push(await join(appDirPath, 'changelog.txt'));
+                                console.log('Added app dir path:', await join(appDirPath, 'changelog.txt'));
+                            } catch (e) {
+                                console.log('Could not get app directory');
+                            }
+                            
+                            // Try resource directory
+                            try {
+                                const resourceDirPath = await resourceDir();
+                                pathsToTry.push(await join(resourceDirPath, 'changelog.txt'));
+                                console.log('Added resource dir path:', await join(resourceDirPath, 'changelog.txt'));
+                            } catch (e) {
+                                console.log('Could not get resource directory');
+                            }
+                            
+                        } catch (e) {
+                            console.log('Path APIs not available:', e);
+                        }
+                    }
+                    
+                    let lastError = null;
+                    for (const path of pathsToTry) {
+                        try {
+                            console.log(`Trying to read: ${path}`);
+                            text = await readTextFile(path);
+                            console.log(`SUCCESS: Read changelog from ${path}`);
+                            console.log(`File content preview: ${text.substring(0, 100)}...`);
+                            break;
+                        } catch (error) {
+                            console.log(`Failed to read ${path}:`, error.message);
+                            lastError = error;
+                        }
+                    }
+                    
+                    if (!text) {
+                        throw lastError || new Error('All file read attempts failed');
+                    }
+                } else {
+                    // Fallback for non-Tauri environments
+                    const response = await fetch('changelog.txt');
+                    text = await response.text();
+                }
+                
+                const changelogContent = document.getElementById('changelogContent');
+                if (changelogContent) {
+                    changelogContent.style.background = 'rgba(16, 185, 129, 0.1)';
+                    changelogContent.style.padding = '15px';
+                    changelogContent.style.borderRadius = '10px';
+                    changelogContent.style.marginBottom = '20px';
+                    // Try the complex parser first, fallback to simple parser
+                    let parsedHtml = parseChangelog(text);
+                    if (parsedHtml.includes('No recent updates found')) {
+                        console.log('Complex parser failed, trying simple parser...');
+                        parsedHtml = parseChangelogSimple(text);
+                    }
+                    
+                    const successIndicator = `
+                        <div style="margin-bottom: 15px; padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 5px; border: 1px solid #10b981;">
+                            <p style="color: #10b981; font-size: 0.9rem; margin: 0;">✅ Successfully loaded from changelog.txt file</p>
+                        </div>
+                    `;
+                    // Check if we got HTML content instead of changelog content
+                    if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+                        throw new Error('Read HTML file instead of changelog.txt');
+                    }
+                    
+                    changelogContent.innerHTML = successIndicator + parsedHtml;
+                    console.log('Successfully loaded changelog from file');
+                } else {
+                    console.error('changelogContent element not found');
+                }
+            } catch (error) {
+                console.error('Error loading changelog from file:', error);
+                throw error;
+            }
+        }
+
+        async function loadKnownIssuesFromFile() {
+            try {
+                let text = '';
+                
+                // In Tauri, try to read the known issues file
+                if (window.__TAURI__) {
+                    const { readTextFile } = window.__TAURI__.fs;
+                    
+                    // Try multiple path strategies for known issues
+                    const pathsToTry = [
+                        'knownissues.txt',
+                        './knownissues.txt',
+                        '../knownissues.txt',
+                        '../../knownissues.txt',
+                        'resources/knownissues.txt',
+                        './resources/knownissues.txt'
+                    ];
+                    
+                    // Add Tauri-specific paths if available
+                    if (window.__TAURI__.path) {
+                        try {
+                            const { resourceDir, appDir, join } = window.__TAURI__.path;
+                            
+                            try {
+                                const appDirPath = await appDir();
+                                pathsToTry.push(await join(appDirPath, 'knownissues.txt'));
+                            } catch (e) {
+                                console.log('Could not get app directory for known issues');
+                            }
+                            
+                            try {
+                                const resourceDirPath = await resourceDir();
+                                pathsToTry.push(await join(resourceDirPath, 'knownissues.txt'));
+                            } catch (e) {
+                                console.log('Could not get resource directory for known issues');
+                            }
+                        } catch (e) {
+                            console.log('Path APIs not available for known issues:', e);
+                        }
+                    }
+                    
+                    let lastError = null;
+                    for (const path of pathsToTry) {
+                        try {
+                            console.log(`Trying to read known issues: ${path}`);
+                            text = await readTextFile(path);
+                            console.log(`SUCCESS: Read known issues from ${path}`);
+                            break;
+                        } catch (error) {
+                            console.log(`Failed to read ${path}:`, error.message);
+                            lastError = error;
+                        }
+                    }
+                    
+                    if (!text) {
+                        throw lastError || new Error('All known issues file read attempts failed');
+                    }
+                } else {
+                    // Fallback for non-Tauri environments
+                    const response = await fetch('knownissues.txt');
+                    text = await response.text();
+                }
+                
+                // Check if we got HTML content instead of known issues content
+                if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+                    throw new Error('Read HTML file instead of knownissues.txt');
+                }
+                
+                const knownIssuesContent = document.getElementById('knownIssuesContent');
+                if (knownIssuesContent) {
+                    knownIssuesContent.style.background = 'rgba(239, 68, 68, 0.1)';
+                    knownIssuesContent.style.padding = '15px';
+                    knownIssuesContent.style.borderRadius = '10px';
+                    knownIssuesContent.style.marginBottom = '20px';
+                    knownIssuesContent.style.borderLeft = '4px solid #ef4444';
+                    knownIssuesContent.innerHTML = parseKnownIssues(text);
+                } else {
+                    console.error('knownIssuesContent element not found');
+                }
+            } catch (error) {
+                console.error('Error loading known issues:', error);
+                throw error;
+            }
+        }
+
+        function parseChangelogSimple(text) {
+            // Simple parser designed for the exact format in changelog.txt
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            
+            if (lines.length < 2) {
+                return '<p style="color: #94a3b8; font-style: italic;">No updates found in file.</p>';
+            }
+            
+            // Find version (should be after "Change Log" header)
+            let versionIndex = -1;
+            for (let i = 0; i < lines.length; i++) {
+                if (/^\d+\.\d+/.test(lines[i])) {
+                    versionIndex = i;
+                    break;
+                }
+            }
+            
+            if (versionIndex === -1) {
+                return '<p style="color: #94a3b8; font-style: italic;">No version found in changelog.</p>';
+            }
+            
+            const version = lines[versionIndex];
+            const changes = lines.slice(versionIndex + 1);
+            
+            console.log('Simple parser found version:', version, 'with', changes.length, 'changes');
+            
+            if (changes.length === 0) {
+                return '<p style="color: #94a3b8; font-style: italic;">No changes found for version.</p>';
+            }
+            
+            // Format the output
+            let html = `
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version ${version}
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+            `;
+            
+            changes.forEach(change => {
+                if (change.trim()) {
+                    html += `<li style="margin-bottom: 6px; color: #e2e8f0;">${change}</li>`;
+                }
+            });
+            
+            html += `
+                    </ul>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function parseChangelog(text) {
+            const lines = text.split('\n');
+            let html = '';
+            let currentVersion = '';
+            let changes = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Skip empty lines and the header "Change Log"
+                if (!line || line === 'Change Log') {
+                    continue;
+                }
+                
+                // Check if this line looks like a version number (starts with number and contains dots)
+                if (/^\d+\.\d+/.test(line)) {
+                    // If we have a previous version, output it
+                    if (currentVersion && changes.length > 0) {
+                        html += formatVersionSection(currentVersion, changes);
+                    }
+                    
+                    // Start new version
+                    currentVersion = line;
+                    changes = [];
+                } else if (currentVersion && line) {
+                    // This is a change entry for the current version
+                    changes.push(line);
+                }
+            }
+            
+            // Don't forget the last version
+            if (currentVersion && changes.length > 0) {
+                html += formatVersionSection(currentVersion, changes);
+            }
+            
+            return html || '<p style="color: #94a3b8; font-style: italic;">No recent updates found.</p>';
+        }
+
+        function formatVersionSection(version, changes) {
+            const currentDate = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            
+            let html = `
+                <div style="margin-bottom: 25px; padding: 15px; background: rgba(15, 23, 42, 0.6); border-radius: 8px; border-left: 4px solid #10b981;">
+                    <h4 style="color: #10b981; margin-bottom: 12px; font-size: 1.1rem;">
+                        Version ${version}
+                    </h4>
+                    <ul style="margin: 0; padding-left: 20px;">
+            `;
+            
+            changes.forEach(change => {
+                html += `<li style="margin-bottom: 6px; color: #e2e8f0;">${change}</li>`;
+            });
+            
+            html += `
+                    </ul>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function parseKnownIssues(text) {
+            const lines = text.split('\n');
+            let issues = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Skip empty lines and the header "Known Issues"
+                if (!line || line === 'Known Issues') {
+                    continue;
+                }
+                
+                // Add non-empty lines as issues
+                issues.push(line);
+            }
+            
+            if (issues.length === 0) {
+                return `
+                    <div style="text-align: center; padding: 20px;">
+                        <p style="color: #10b981; font-size: 1.1rem;"><strong>✅ No Known Issues!</strong></p>
+                        <p style="color: #cbd5e1; margin-top: 10px;">All systems are currently running smoothly.</p>
+                    </div>
+                `;
+            }
+            
+            let html = '<ul style="margin: 0; padding-left: 20px;">';
+            issues.forEach(issue => {
+                html += `<li style="margin-bottom: 8px; color: #e2e8f0;">${issue}</li>`;
+            });
+            html += '</ul>';
+            
+            html += `
+                <p style="margin-top: 15px; font-style: italic; color: #cbd5e1;">
+                    <strong>Note:</strong> These issues are being actively addressed in upcoming updates.
+                </p>
+            `;
+            
+            return html;
+        }
+
+        function closeModal(modalId) {
+            // If trying to close terms modal, check if terms have been accepted
+            if (modalId === 'termsModal') {
+                const termsAccepted = localStorage.getItem('tripleNickelTermsAccepted');
+                if (!termsAccepted) {
+                    // Terms not accepted - prevent closing
+                    return;
+                }
+            }
+            
+            // If closing delete preset modal, clear the preset to delete
+            if (modalId === 'deletePresetModal') {
+                presetToDelete = null;
+            }
+            
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Close modal when clicking outside of it
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    // Check if this is the terms modal and terms haven't been accepted
+                    if (modal.id === 'termsModal') {
+                        const termsAccepted = localStorage.getItem('tripleNickelTermsAccepted');
+                        if (!termsAccepted) {
+                            // Terms not accepted - prevent closing
+                            return;
+                        }
+                    }
+                    
+                    // If closing delete preset modal, clear the preset to delete
+                    if (modal.id === 'deletePresetModal') {
+                        presetToDelete = null;
+                    }
+                    
+                    modal.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize distance inputs on page load
+        window.onload = function() {
+            updateDistanceInputs();
+            // Check terms acceptance
+            checkTermsAcceptance();
+            // Initialize custom presets
+            loadCustomPresets();
+            initializePresetChangeTracking();
+        };
+
+        function updateDistanceInputs() {
+            const distancePreset = document.getElementById('distancePreset').value;
+            let numDistances = parseInt(document.getElementById('numDistances').value) || 5;
+            const customInputs = document.getElementById('customDistanceInputs');
+            const distanceInputs = document.getElementById('distanceInputs');
+            const deleteBtn = document.getElementById('deletePresetBtn');
+            
+            // Show/hide delete button based on preset type
+            if (deleteBtn) {
+                if (distancePreset && distancePreset.startsWith('custom_')) {
+                    deleteBtn.style.display = 'block';
+                } else {
+                    deleteBtn.style.display = 'none';
+                }
+            }
+            
+            // Check if this is a custom preset
+            if (distancePreset && distancePreset.startsWith('custom_')) {
+                // Reset tracking when loading custom preset
+                lastConfiguredPreset = null;
+                loadCustomPreset(distancePreset);
+                return;
+            }
+            
+            // Set loading flag for built-in presets
+            if (distancePreset && !distancePreset.startsWith('custom_') && distancePreset !== '') {
+                isLoadingPreset = true;
+                // Only configure if this is a different preset
+                configurePresetSettings(distancePreset);
+                // Re-read numDistances after preset configuration (it may have been updated)
+                numDistances = parseInt(document.getElementById('numDistances').value) || 5;
+            }
+            
+            // Update distance inputs if the section is visible
+            if (customInputs && customInputs.style.display !== 'none' && distanceInputs) {
+                const currentInputCount = distanceInputs.children.length;
+                
+                // Get preset distances if a preset is selected
+                let presetDistances = [];
+                if (distancePreset && !distancePreset.startsWith('custom_') && distancePreset !== '') {
+                    presetDistances = getDefaultDistances(distancePreset, numDistances);
+                }
+                
+                // If count doesn't match, recreate all inputs
+                if (currentInputCount !== numDistances) {
+                    // Clear existing inputs
+                    distanceInputs.innerHTML = '';
+                    
+                    // Create the correct number of inputs
+                    for (let i = 0; i < numDistances; i++) {
+                        const inputDiv = document.createElement('div');
+                        inputDiv.style.cssText = 'display: flex; flex-direction: column;';
+                        
+                        const label = document.createElement('label');
+                        label.style.cssText = 'font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;';
+                        label.textContent = 'Variable ' + (i + 1);
+                        
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = 'distance' + (i + 1);
+                        input.placeholder = 'e.g., ' + (i + 2) + ' Meters';
+                        input.maxLength = 20;
+                        input.style.cssText = 'background: #475569; border: 1px solid #64748b; color: white; padding: 8px; border-radius: 6px; font-size: 0.8rem; outline: none;';
+                        
+                        // Use preset distance if available, otherwise use default
+                        if (presetDistances[i]) {
+                            input.value = presetDistances[i];
+                        } else {
+                            input.value = (i + 2) + ' Meters';
+                        }
+                        
+                        // Add event listener for change tracking
+                        input.addEventListener('input', checkForFieldChanges);
+                        input.addEventListener('change', checkForFieldChanges);
+                        
+                        inputDiv.appendChild(label);
+                        inputDiv.appendChild(input);
+                        distanceInputs.appendChild(inputDiv);
+                    }
+                    
+                    // Mark that user has made manual changes
+                    hasManualChanges = true;
+                } else if (presetDistances.length > 0 && isLoadingPreset) {
+                    // If preset is being loaded and inputs already exist, update their values
+                    for (let i = 0; i < numDistances && i < presetDistances.length; i++) {
+                        const input = document.getElementById('distance' + (i + 1));
+                        if (input && presetDistances[i]) {
+                            input.value = presetDistances[i];
+                        }
+                    }
+                }
+            }
+            
+            // Re-check for field changes after updating
+            setTimeout(() => {
+                isLoadingPreset = false;
+                if (!distancePreset || distancePreset === '') {
+                    hasManualChanges = false;
+                }
+                checkForFieldChanges();
+            }, 100);
+        }
+        
+        // Track the last preset that was configured to avoid resetting on every call
+        let lastConfiguredPreset = null;
+
+        function configurePresetSettings(preset) {
+            // Only configure if this is a different preset than last time
+            // This prevents resetting values when user is just interacting with other fields
+            if (preset === lastConfiguredPreset || !preset || preset === '') {
+                return;
+            }
+            
+            lastConfiguredPreset = preset;
+            
+            // Get the distances for this preset to determine the number of distances
+            const distances = getDefaultDistances(preset, 10); // Get up to 10 distances
+            const numDistances = distances.length;
+            
+            // Update number of distances
+            const numDistancesInput = document.getElementById('numDistances');
+            if (numDistancesInput && numDistances > 0) {
+                numDistancesInput.value = numDistances;
+            }
+            
+            // Set game name based on preset
+            const gameNameInput = document.getElementById('gameName');
+            if (gameNameInput) {
+                const presetNames = {
+                    'dangerfest_am_knife': 'Dangerfest Am Knife',
+                    'dangerfest_pro_knife': 'Dangerfest Pro Knife',
+                    'dangerfest_am_hawk': 'Dangerfest Am Hawk',
+                    'dangerfest_pro_hawk': 'Dangerfest Pro Hawk',
+                    'akta': 'AKTA',
+                    'blade_aces_am_knife': 'Blade Aces Am Knife',
+                    'blade_aces_pro_knife': 'Blade Aces Pro Knife',
+                    'blade_aces_am_hawk': 'Blade Aces Am Hawk',
+                    'blade_aces_pro_hawk': 'Blade Aces Pro Hawk',
+                    'amateur': 'Amateur Knife',
+                    'professional': 'Professional Knife'
+                };
+                
+                if (presetNames[preset]) {
+                    gameNameInput.value = presetNames[preset];
+                }
+            }
+            
+            // Configure preset-specific settings
+            if (preset.startsWith('dangerfest_')) {
+                // Dangerfest presets: 4 rounds, 3 throws per round, 5 max score
+                document.getElementById('roundCount').value = 4;
+                document.getElementById('throwsPerRound').value = 3;
+                document.getElementById('maxScore').value = 5;
+            } else if (preset === 'akta') {
+                // AKTA preset: 4 rounds, 5 throws per round, 5 max score
+                document.getElementById('roundCount').value = 4;
+                document.getElementById('throwsPerRound').value = 5;
+                document.getElementById('maxScore').value = 5;
+            } else if (preset.startsWith('blade_aces_')) {
+                // Blade Aces presets: 4 rounds, 3 throws per round, 5 max score
+                document.getElementById('roundCount').value = 4;
+                document.getElementById('throwsPerRound').value = 3;
+                document.getElementById('maxScore').value = 5;
+            } else if (preset === 'amateur' || preset === 'professional') {
+                // Legacy presets: keep current values or use defaults
+                // Don't change existing values for legacy presets
+            }
+        }
+
+        function getDefaultDistances(preset, count) {
+            if (preset === 'dangerfest_am_knife') {
+                return ['2 Meters', '3 Meters', '4 Meters', '5 Meters', '6 Meters'].slice(0, count);
+            } else if (preset === 'dangerfest_pro_knife') {
+                return ['3 Meters', '4 Meters', '5 Meters', '6 Meters', '7 Meters'].slice(0, count);
+            } else if (preset === 'dangerfest_am_hawk') {
+                return ['3 Meters', '4 Meters', '5 Meters', '7 Meters'].slice(0, count);
+            } else if (preset === 'dangerfest_pro_hawk') {
+                return ['3 Meters', '4 Meters', '5 Meters', '7 Meters', '9 Meters'].slice(0, count);
+            } else if (preset === 'akta') {
+                return ['7 Feet', '10 Feet', '13 Feet', '16 Feet'].slice(0, count);
+            } else if (preset === 'blade_aces_am_knife') {
+                return ['2 Meters', '3 Meters', '4 Meters', '5 Meters'].slice(0, count);
+            } else if (preset === 'blade_aces_pro_knife') {
+                return ['3 Meters', '4 Meters', '5 Meters', '6 Meters', '7 Meters'].slice(0, count);
+            } else if (preset === 'blade_aces_am_hawk') {
+                return ['3 Meters', '4 Meters', '5 Meters'].slice(0, count);
+            } else if (preset === 'blade_aces_pro_hawk') {
+                return ['3 Meters', '4 Meters', '5 Meters', '7 Meters', '9 Meters'].slice(0, count);
+            } else if (preset === 'amateur') {
+                return ['2 Meters', '3 Meters', '4 Meters', '5 Meters', '6 Meters'].slice(0, count);
+            } else if (preset === 'professional') {
+                return ['3 Meters', '4 Meters', '5 Meters', '6 Meters', '7 Meters'].slice(0, count);
+            }
+            return [];
+        }
+
+        // Custom Preset Functions
+        function loadCustomPresets() {
+            const presets = JSON.parse(localStorage.getItem('tripleNickel_customPresets') || '[]');
+            const presetSelect = document.getElementById('distancePreset');
+            
+            if (!presetSelect) return;
+            
+            // Remove existing custom presets and separator from dropdown (keep default ones)
+            const existingOptions = Array.from(presetSelect.options);
+            existingOptions.forEach(option => {
+                if ((option.value && option.value.startsWith('custom_')) || 
+                    (option.disabled && option.textContent && option.textContent.includes('Custom Presets'))) {
+                    option.remove();
+                }
+            });
+            
+            // Add custom presets to dropdown at the end
+            if (presets.length > 0) {
+                // Add a separator if there are custom presets
+                const separator = document.createElement('option');
+                separator.value = '';
+                separator.disabled = true;
+                separator.textContent = '────────── Custom Presets ──────────';
+                presetSelect.appendChild(separator);
+                
+                // Add custom presets
+                presets.forEach((preset, index) => {
+                    const option = document.createElement('option');
+                    option.value = 'custom_' + preset.id;
+                    option.textContent = preset.name;
+                    presetSelect.appendChild(option);
+                });
+            }
+        }
+
+        function loadCustomPreset(presetId) {
+            isLoadingPreset = true;
+            
+            // Show delete button for custom presets
+            const deleteBtn = document.getElementById('deletePresetBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'block';
+            }
+            
+            const presets = JSON.parse(localStorage.getItem('tripleNickel_customPresets') || '[]');
+            const preset = presets.find(p => 'custom_' + p.id === presetId);
+            
+            if (!preset) {
+                isLoadingPreset = false;
+                if (deleteBtn) {
+                    deleteBtn.style.display = 'none';
+                }
+                return;
+            }
+            
+            // Load all preset values
+            document.getElementById('gameName').value = preset.gameName || '';
+            document.getElementById('weaponType').value = preset.gameType || 'Knife';
+            document.getElementById('discipline').value = preset.discipline || 'Rotational';
+            document.getElementById('roundCount').value = preset.roundCount || 4;
+            document.getElementById('throwsPerRound').value = preset.throwsPerRound || 3;
+            document.getElementById('maxScore').value = preset.maxScore || 5;
+            document.getElementById('numDistances').value = preset.numDistances || 5;
+            
+            // Handle distances
+            const customInputs = document.getElementById('customDistanceInputs');
+            const distanceInputs = document.getElementById('distanceInputs');
+            
+            if (preset.distances && preset.distances.length > 0) {
+                // Show the custom distance inputs section
+                customInputs.style.display = 'block';
+                const toggleIcon = document.getElementById('customDistancesToggleIcon');
+                if (toggleIcon) {
+                    toggleIcon.textContent = '▲';
+                    toggleIcon.style.transform = 'rotate(180deg)';
+                }
+                
+                distanceInputs.innerHTML = '';
+                
+                preset.distances.forEach((distance, i) => {
+                    const inputDiv = document.createElement('div');
+                    inputDiv.style.cssText = 'display: flex; flex-direction: column;';
+                    
+                    const label = document.createElement('label');
+                    label.style.cssText = 'font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;';
+                    label.textContent = 'Distance ' + (i + 1);
+                    
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = 'distance' + (i + 1);
+                    input.placeholder = 'e.g., ' + (i + 2) + ' Meters';
+                    input.maxLength = 20;
+                    input.style.cssText = 'background: #475569; border: 1px solid #64748b; color: white; padding: 8px; border-radius: 6px; font-size: 0.8rem; outline: none;';
+                    input.value = distance;
+                    
+                    // Add event listener for change tracking
+                    input.addEventListener('input', checkForFieldChanges);
+                    input.addEventListener('change', checkForFieldChanges);
+                    
+                    inputDiv.appendChild(label);
+                    inputDiv.appendChild(input);
+                    distanceInputs.appendChild(inputDiv);
+                });
+            } else {
+                // Keep section hidden but reset toggle icon
+                customInputs.style.display = 'none';
+                const toggleIcon = document.getElementById('customDistancesToggleIcon');
+                if (toggleIcon) {
+                    toggleIcon.textContent = '▼';
+                    toggleIcon.style.transform = 'rotate(0deg)';
+                }
+            }
+            
+            // Hide save button since we're loading a preset
+            setTimeout(() => {
+                isLoadingPreset = false;
+                hasManualChanges = false;
+                checkForFieldChanges();
+            }, 100);
+        }
+
+        function initializePresetChangeTracking() {
+            // Track changes on all fields except Event Name
+            const fieldsToTrack = [
+                'gameName', 'weaponType', 'discipline', 'roundCount', 
+                'throwsPerRound', 'maxScore', 'numDistances', 'distancePreset'
+            ];
+            
+            fieldsToTrack.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    field.addEventListener('change', checkForFieldChanges);
+                    field.addEventListener('input', checkForFieldChanges);
+                }
+            });
+            
+            // Also track custom distance inputs
+            const distanceInputs = document.getElementById('distanceInputs');
+            if (distanceInputs) {
+                distanceInputs.addEventListener('input', function(e) {
+                    if (e.target.tagName === 'INPUT') {
+                        checkForFieldChanges();
+                    }
+                }, true);
+            }
+        }
+
+        // Track if we're currently loading a preset (to prevent showing save button)
+        let isLoadingPreset = false;
+        let hasManualChanges = false;
+
+        function checkForFieldChanges() {
+            const saveContainer = document.getElementById('savePresetContainer');
+            if (!saveContainer) return;
+            
+            // Don't show save button if we're currently loading a preset
+            if (isLoadingPreset) {
+                saveContainer.style.display = 'none';
+                hasManualChanges = false;
+                return;
+            }
+            
+            // Mark that user has made manual changes
+            hasManualChanges = true;
+            
+            // Check if any field (except Event Name) has been changed from default
+            const distancePreset = document.getElementById('distancePreset').value;
+            const customInputs = document.getElementById('customDistanceInputs');
+            const hasCustomInputsVisible = customInputs && customInputs.style.display !== 'none';
+            
+            // Show save button if:
+            // 1. User has made manual changes, OR
+            // 2. Custom preset is selected, OR
+            // 3. Custom distance inputs are visible
+            if (hasManualChanges || (distancePreset && distancePreset.startsWith('custom_')) || hasCustomInputsVisible) {
+                saveContainer.style.display = 'block';
+            } else if (distancePreset && !distancePreset.startsWith('custom_') && distancePreset !== '') {
+                // Built-in preset selected and no manual changes - hide button
+                saveContainer.style.display = 'none';
+            } else {
+                // No preset selected or empty - show button if there are manual changes
+                saveContainer.style.display = hasManualChanges ? 'block' : 'none';
+            }
+        }
+
+        function getDefaultPresetNames() {
+            return [
+                'Dangerfest Am Knife',
+                'Dangerfest Pro Knife',
+                'Dangerfest Am Hawk',
+                'Dangerfest Pro Hawk',
+                'AKTA',
+                'Blade Aces Am Knife',
+                'Blade Aces Pro Knife',
+                'Blade Aces Am Hawk',
+                'Blade Aces Pro Hawk',
+                'Amateur Knife',
+                'Professional Knife'
+            ];
+        }
+
+        function generatePresetName() {
+            const gameName = document.getElementById('gameName').value.trim();
+            if (!gameName) {
+                return 'Custom Preset';
+            }
+            
+            const defaultNames = getDefaultPresetNames();
+            const isDefault = defaultNames.some(name => name.toLowerCase() === gameName.toLowerCase());
+            
+            return isDefault ? gameName + ' Copy' : gameName;
+        }
+
+        function showSavePresetModal() {
+            const modal = document.getElementById('savePresetModal');
+            const presetNameDisplay = document.getElementById('presetNameDisplay');
+            const errorDiv = document.getElementById('presetNameError');
+            
+            if (modal) {
+                const presetName = generatePresetName();
+                if (presetNameDisplay) {
+                    presetNameDisplay.textContent = presetName;
+                }
+                if (errorDiv) {
+                    errorDiv.style.display = 'none';
+                    errorDiv.textContent = '';
+                }
+                modal.style.display = 'block';
+            }
+        }
+
+        function saveCustomPreset() {
+            const errorDiv = document.getElementById('presetNameError');
+            
+            // Generate preset name from Game Name
+            let presetName = generatePresetName();
+            
+            // Get current form values (except Event Name)
+            const gameName = document.getElementById('gameName').value.trim();
+            const gameType = document.getElementById('weaponType').value;
+            const discipline = document.getElementById('discipline').value;
+            const roundCount = parseInt(document.getElementById('roundCount').value);
+            const throwsPerRound = parseInt(document.getElementById('throwsPerRound').value);
+            const maxScore = parseInt(document.getElementById('maxScore').value);
+            const numDistances = parseInt(document.getElementById('numDistances').value);
+            
+            // Get distances
+            let distances = [];
+            const customInputs = document.getElementById('customDistanceInputs');
+            if (customInputs && customInputs.style.display !== 'none') {
+                for (let i = 0; i < numDistances; i++) {
+                    const input = document.getElementById('distance' + (i + 1));
+                    if (input) {
+                        distances.push(input.value || (i + 2) + ' Meters');
+                    }
+                }
+            } else {
+                // Get distances from current preset
+                const distancePreset = document.getElementById('distancePreset').value;
+                if (distancePreset && !distancePreset.startsWith('custom_')) {
+                    distances = getDefaultDistances(distancePreset, numDistances);
+                } else if (distancePreset && distancePreset.startsWith('custom_')) {
+                    // Custom preset selected - get distances from preset
+                    const presets = JSON.parse(localStorage.getItem('tripleNickel_customPresets') || '[]');
+                    const preset = presets.find(p => 'custom_' + p.id === distancePreset);
+                    if (preset && preset.distances) {
+                        distances = preset.distances;
+                    } else {
+                        distances = getDefaultDistances('dangerfest_pro_knife', numDistances);
+                    }
+                }
+            }
+            
+            // Load existing presets
+            const presets = JSON.parse(localStorage.getItem('tripleNickel_customPresets') || '[]');
+            
+            // Check for duplicate name and append number if needed
+            let finalPresetName = presetName;
+            let counter = 1;
+            while (presets.some(p => p.name.toLowerCase() === finalPresetName.toLowerCase())) {
+                const baseName = presetName.replace(/\s+Copy(\s+\d+)?$/, '');
+                finalPresetName = baseName + ' Copy' + (counter > 1 ? ' ' + counter : '');
+                counter++;
+            }
+            
+            // Create preset object
+            const preset = {
+                id: Date.now().toString(),
+                name: finalPresetName,
+                gameName: gameName,
+                gameType: gameType,
+                discipline: discipline,
+                roundCount: roundCount,
+                throwsPerRound: throwsPerRound,
+                maxScore: maxScore,
+                numDistances: numDistances,
+                distances: distances
+            };
+            
+            // Add new preset
+            presets.push(preset);
+            
+            // Save to localStorage
+            localStorage.setItem('tripleNickel_customPresets', JSON.stringify(presets));
+            
+            // Reload presets in dropdown
+            loadCustomPresets();
+            
+            // Select the new preset
+            document.getElementById('distancePreset').value = 'custom_' + preset.id;
+            
+            // Close modal
+            closeModal('savePresetModal');
+            
+            // Hide save button and reset manual changes flag
+            const saveContainer = document.getElementById('savePresetContainer');
+            if (saveContainer) {
+                saveContainer.style.display = 'none';
+            }
+            hasManualChanges = false;
+        }
+
+        // Store the preset ID to delete when confirmed
+        let presetToDelete = null;
+
+        function deleteCustomPreset() {
+            const distancePreset = document.getElementById('distancePreset').value;
+            
+            // Only allow deletion of custom presets
+            if (!distancePreset || !distancePreset.startsWith('custom_')) {
+                return;
+            }
+            
+            // Get preset ID and name
+            const presetId = distancePreset.replace('custom_', '');
+            const presetName = document.getElementById('distancePreset').options[document.getElementById('distancePreset').selectedIndex].textContent;
+            
+            // Store the preset ID for deletion
+            presetToDelete = presetId;
+            
+            // Show the delete confirmation modal
+            const modal = document.getElementById('deletePresetModal');
+            const presetNameDisplay = document.getElementById('deletePresetName');
+            
+            if (modal && presetNameDisplay) {
+                presetNameDisplay.textContent = presetName;
+                modal.style.display = 'block';
+            }
+        }
+
+        function confirmDeletePreset() {
+            if (!presetToDelete) {
+                closeModal('deletePresetModal');
+                return;
+            }
+            
+            // Load existing presets
+            const presets = JSON.parse(localStorage.getItem('tripleNickel_customPresets') || '[]');
+            
+            // Remove the preset
+            const filteredPresets = presets.filter(p => p.id !== presetToDelete);
+            
+            // Save to localStorage
+            localStorage.setItem('tripleNickel_customPresets', JSON.stringify(filteredPresets));
+            
+            // Reload presets in dropdown
+            loadCustomPresets();
+            
+            // Reset to placeholder
+            document.getElementById('distancePreset').value = '';
+            updateDistanceInputs();
+            
+            // Hide delete button
+            const deleteBtn = document.getElementById('deletePresetBtn');
+            if (deleteBtn) {
+                deleteBtn.style.display = 'none';
+            }
+            
+            // Clear the preset to delete
+            presetToDelete = null;
+            
+            // Close the modal
+            closeModal('deletePresetModal');
+        }
+
+        function toggleCustomDistances() {
+            const customInputs = document.getElementById('customDistanceInputs');
+            const toggleIcon = document.getElementById('customDistancesToggleIcon');
+            const distanceInputs = document.getElementById('distanceInputs');
+            const numDistances = parseInt(document.getElementById('numDistances').value) || 5;
+            const distancePreset = document.getElementById('distancePreset').value;
+            
+            if (!customInputs || !toggleIcon) return;
+            
+            const isVisible = customInputs.style.display !== 'none';
+            
+            if (isVisible) {
+                // Hide the section
+                customInputs.style.display = 'none';
+                toggleIcon.textContent = '▼';
+                toggleIcon.style.transform = 'rotate(0deg)';
+            } else {
+                // Show the section
+                customInputs.style.display = 'block';
+                toggleIcon.textContent = '▲';
+                toggleIcon.style.transform = 'rotate(180deg)';
+                
+                // Always update inputs to match current numDistances value
+                if (distanceInputs) {
+                    // Clear existing inputs
+                    distanceInputs.innerHTML = '';
+                    
+                    // Get preset distances if a preset is selected
+                    let presetDistances = [];
+                    if (distancePreset && !distancePreset.startsWith('custom_') && distancePreset !== '') {
+                        presetDistances = getDefaultDistances(distancePreset, numDistances);
+                    }
+                    
+                    // Create the correct number of inputs based on numDistances
+                    for (let i = 0; i < numDistances; i++) {
+                        const inputDiv = document.createElement('div');
+                        inputDiv.style.cssText = 'display: flex; flex-direction: column;';
+                        
+                        const label = document.createElement('label');
+                        label.style.cssText = 'font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;';
+                        label.textContent = 'Variable ' + (i + 1);
+                        
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = 'distance' + (i + 1);
+                        input.placeholder = 'e.g., ' + (i + 2) + ' Meters';
+                        input.maxLength = 20;
+                        input.style.cssText = 'background: #475569; border: 1px solid #64748b; color: white; padding: 8px; border-radius: 6px; font-size: 0.8rem; outline: none;';
+                        
+                        // Use preset distance if available, otherwise use default
+                        if (presetDistances[i]) {
+                            input.value = presetDistances[i];
+                        } else {
+                            input.value = (i + 2) + ' Meters';
+                        }
+                        
+                        // Add event listener for change tracking
+                        input.addEventListener('input', checkForFieldChanges);
+                        input.addEventListener('change', checkForFieldChanges);
+                        
+                        inputDiv.appendChild(label);
+                        inputDiv.appendChild(input);
+                        distanceInputs.appendChild(inputDiv);
+                    }
+                }
+                
+                // Mark that user has made manual changes
+                hasManualChanges = true;
+                checkForFieldChanges();
+            }
+        }
+
+        function generateScoreSheet() {
+            // Get form values with defaults
+            const gameName = document.getElementById('gameName').value.trim() || 'Custom Game';
+            const eventName = document.getElementById('eventName').value.trim() || '';
+            const gameType = document.getElementById('weaponType').value;
+            const discipline = document.getElementById('discipline').value;
+            const roundCount = parseInt(document.getElementById('roundCount').value);
+            const throwsPerRound = parseInt(document.getElementById('throwsPerRound').value);
+            const maxScore = parseInt(document.getElementById('maxScore').value);
+            const distancePreset = document.getElementById('distancePreset').value;
+            const numDistances = parseInt(document.getElementById('numDistances').value);
+            
+            // Get distances
+            let distances = [];
+            const customInputs = document.getElementById('customDistanceInputs');
+            const hasCustomInputs = customInputs && customInputs.style.display !== 'none';
+            
+            // Check if custom distance inputs are visible and have values
+            if (hasCustomInputs) {
+                let hasCustomValues = false;
+                for (let i = 0; i < numDistances; i++) {
+                    const input = document.getElementById('distance' + (i + 1));
+                    if (input && input.value.trim()) {
+                        hasCustomValues = true;
+                        distances.push(input.value.trim());
+                    } else {
+                        distances.push((i + 2) + ' Meters');
+                    }
+                }
+                
+                // If no custom values were entered, use preset distances
+                if (!hasCustomValues && distancePreset && !distancePreset.startsWith('custom_')) {
+                    distances = getDefaultDistances(distancePreset, numDistances);
+                }
+            } else if (distancePreset && distancePreset.startsWith('custom_')) {
+                // Custom preset selected - get distances from preset
+                const presets = JSON.parse(localStorage.getItem('tripleNickel_customPresets') || '[]');
+                const preset = presets.find(p => 'custom_' + p.id === distancePreset);
+                if (preset && preset.distances) {
+                    distances = preset.distances;
+                } else {
+                    distances = getDefaultDistances('dangerfest_pro_knife', numDistances);
+                }
+            } else {
+                // Use preset distances
+                distances = getDefaultDistances(distancePreset, numDistances);
+            }
+
+            // If no distances were determined (no preset selected and no custom distances), use defaults
+            if (distances.length === 0) {
+                // Use default distances based on number of distances
+                for (let i = 0; i < numDistances; i++) {
+                    distances.push((i + 2) + ' Meters');
+                }
+            }
+
+            // Generate HTML score sheet
+            generateHTMLScoreSheet({
+                gameName, eventName, gameType, discipline, roundCount, 
+                throwsPerRound, maxScore, distances, numDistances
+            });
+        }
+
+        // HTML Score Sheet Generator
+        function generateHTMLScoreSheet(config) {
+            const { gameName, eventName, gameType, discipline, roundCount, 
+                    throwsPerRound, maxScore, distances, numDistances } = config;
+            
+            // Create HTML content with print-optimized CSS
+            const htmlContent = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${gameName} - Score Sheet</title>
+    <style>
+        /* Print-optimized CSS */
+        @page {
+            size: A4;
+            margin: 0.5in;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #000;
+            background: white;
+        }
+        
+        .score-sheet {
+            width: 100%;
+            max-width: 8.5in;
+            margin: 0 auto;
+            padding: 15px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 8px;
+        }
+        
+        .game-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .game-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 10px;
+        }
+        
+        .info-section h3 {
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .info-line {
+            margin-bottom: 4px;
+        }
+        
+        .player-info {
+            border: 1px solid #333;
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .player-fields {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+        
+        .field {
+            border-bottom: 1px solid #333;
+            padding-bottom: 2px;
+            font-size: 10px;
+        }
+        
+        .scoring-section {
+            margin-top: 10px;
+        }
+        
+        .distance-block {
+            margin-bottom: 12px;
+            page-break-inside: avoid;
+        }
+        
+        .distance-label {
+            font-weight: bold;
+            font-size: 10px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .rounds-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(${Math.max(50, (maxScore + 1) * 12 + 15)}px, 1fr));
+            gap: 8px;
+        }
+        
+        .round-column {
+            border: 1px solid #333;
+            padding: 5px;
+        }
+        
+        .round-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 10px;
+            margin-bottom: 8px;
+            background: #f8f8f8;
+            padding: 3px;
+        }
+        
+        .throw-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            min-height: 20px;
+        }
+        
+        .throw-label {
+            font-size: 9px;
+            font-weight: bold;
+            width: 20px;
+            flex-shrink: 0;
+        }
+        
+        .score-boxes {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+        }
+        
+        .score-box {
+            width: 18px;
+            height: 18px;
+            border: 1px solid #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: bold;
+            background: white;
+        }
+        
+        
+        .footer {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 8px;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 6px;
+        }
+        
+        /* Print-specific styles */
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            
+            .score-sheet {
+                padding: 10px;
+                font-size: 11px;
+            }
+            
+            .distance-block {
+                page-break-inside: avoid;
+                margin-bottom: 10px;
+            }
+            
+            .header {
+                margin-bottom: 8px;
+                padding-bottom: 6px;
+            }
+            
+            .game-info {
+                margin-bottom: 8px;
+            }
+            
+            .scoring-section {
+                margin-top: 8px;
+            }
+            
+            .footer {
+                margin-top: 10px;
+                padding-top: 4px;
+            }
+        }
+        
+        /* Responsive adjustments for different score ranges */
+        ${maxScore > 10 ? `
+        .rounds-container {
+            grid-template-columns: 1fr;
+        }
+        .score-boxes {
+            flex-wrap: wrap;
+        }
+        ` : ''}
+        
+        ${maxScore <= 3 ? `
+        .rounds-container {
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        }
+        ` : ''}
+    </style>
+</head>
+<body>
+    <div class="score-sheet">
+        <div class="header">
+            <div class="game-title">${gameName}</div>
+            <div class="subtitle">Individual Player Score Sheet</div>
+        </div>
+        
+        <div class="game-info">
+            <div class="info-section">
+                <h3>Game Information</h3>
+                <div class="info-line"><strong>Event:</strong> ${eventName}</div>
+                <div class="info-line"><strong>Game Type:</strong> ${gameType} | <strong>Discipline:</strong> ${discipline}</div>
+                <div class="info-line"><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+            </div>
+            
+            <div class="info-section">
+                <h3>Player Information</h3>
+                <div class="player-fields">
+                    <div class="field">Name: _________________</div>
+                    <div class="field">Division: _____________</div>
+                    <div class="field">Event: _______________</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="scoring-section">
+            <h3 style="text-align: center; margin-bottom: 10px; font-size: 14px;">SCORING SHEET</h3>
+            
+            ${distances.map((distance, index) => `
+            <div class="distance-block">
+                <div class="distance-label">${distance}:</div>
+                <div class="rounds-container">
+                    ${Array.from({length: roundCount}, (_, roundIndex) => `
+                    <div class="round-column">
+                        <div class="round-header">Round ${roundIndex + 1}</div>
+                        ${Array.from({length: throwsPerRound}, (_, throwIndex) => `
+                        <div class="throw-row">
+                            <div class="throw-label">T${throwIndex + 1}:</div>
+                            <div class="score-boxes">
+                                ${Array.from({length: maxScore + 1}, (_, score) => `
+                                <div class="score-box">${score}</div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        `).join('')}
+                    </div>
+                    `).join('')}
+                </div>
+            </div>
+            `).join('')}
+        </div>
+        
+        <div class="footer">
+            Generated by Triple Nickel Competition System<br>
+            Created by Aaron Shour @ Modern Methods and Materials
+        </div>
+    </div>
+</body>
+</html>`;
+
+            // Create and download HTML file
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `triple-nickel-score-sheet-${new Date().toISOString().split('T')[0]}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Show success modal
+            showSuccessModal(a.download);
+        }
+
+        // Success modal functions
+        function showSuccessModal(filename) {
+            // Set the filename in the modal
+            const filenameElement = document.getElementById('generatedFileName');
+            if (filenameElement) {
+                filenameElement.textContent = filename;
+            }
+            
+            // Set the max score information in the modal
+            const maxScoreElement = document.getElementById('generatedMaxScore');
+            const maxScoreRangeElement = document.getElementById('generatedMaxScoreRange');
+            const formatRangeElement = document.getElementById('generatedFormatRange');
+            const layoutElement = document.getElementById('generatedLayout');
+            const maxScore = parseInt(document.getElementById('maxScore').value);
+            
+            if (maxScoreElement) {
+                maxScoreElement.textContent = maxScore;
+            }
+            if (maxScoreRangeElement) {
+                maxScoreRangeElement.textContent = maxScore;
+            }
+            if (formatRangeElement) {
+                formatRangeElement.textContent = `0-${maxScore}`;
+            }
+            
+            // Update content for HTML format
+            const fileLocationInfo = document.getElementById('fileLocationInfo');
+            if (fileLocationInfo) {
+                fileLocationInfo.innerHTML = `
+                    <h3 style="color: #3b82f6; margin-bottom: 15px; font-size: 1.2rem;">🌐 Using Your HTML Score Sheet</h3>
+                    <div style="text-align: left; color: #e2e8f0;">
+                        <p style="margin-bottom: 8px; font-size: 0.95rem;">
+                            <strong>📂 Location:</strong> Check your Downloads folder for the HTML file.
+                        </p>
+                        <p style="margin-bottom: 8px; font-size: 0.95rem;">
+                            <strong>🖨️ To Print:</strong> Double-click the HTML file to open in your browser, then use Ctrl+P (Cmd+P on Mac).
+                        </p>
+                        <p style="margin-bottom: 8px; font-size: 0.95rem;">
+                            <strong>📄 Save as PDF:</strong> When printing, select "Save as PDF" as your printer destination.
+                        </p>
+                        <p style="margin-bottom: 0; font-size: 0.95rem;">
+                            <strong>✨ Benefits:</strong> Perfect text wrapping, responsive layout, and professional print quality.
+                        </p>
+                    </div>
+                `;
+            }
+                         if (layoutElement) {
+                             const throwsPerRound = parseInt(document.getElementById('throwsPerRound').value);
+                             if (maxScore <= 5) {
+                                 layoutElement.textContent = `0-${maxScore} selection boxes for each throw (${throwsPerRound} throws per round) - Professional layout`;
+                                 layoutElement.style.color = '#10b981'; // Green for optimized layouts
+                             } else if (maxScore <= 10) {
+                                 layoutElement.textContent = `0-${maxScore} selection boxes for each throw (${throwsPerRound} throws per round) - Clear organization`;
+                                 layoutElement.style.color = '#3b82f6'; // Blue for balanced layouts
+                             } else {
+                                 layoutElement.textContent = `0-${maxScore} selection boxes for each throw (${throwsPerRound} throws per round) - Maximum readability`;
+                                 layoutElement.style.color = '#f59e0b'; // Orange for professional layouts
+                             }
+                         }
+            
+            // Show the modal
+            openModal('successModal');
+        }
+        
+
+
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const toggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && mainContent && toggle) {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('expanded');
+                
+                // Update toggle button position
+                if (sidebar.classList.contains('collapsed')) {
+                    toggle.style.left = '0';
+                } else {
+                    toggle.style.left = 'clamp(250px, 20vw, 300px)';
+                }
+            }
+        }
+
+          </script>
+      
+     <script src="shared-sidebar.js"></script>
+</body>
+</html>

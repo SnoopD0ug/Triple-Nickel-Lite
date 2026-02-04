@@ -1,0 +1,2353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Triple Nickel - Golf</title>
+    <link rel="stylesheet" href="shared-sidebar.css">
+    <link rel="stylesheet" href="shared-styles.css">
+    <style>
+        /* Container and layout adjustments for sidebar */
+        .container {
+            display: flex;
+            flex-direction: row;
+            min-height: 100vh;
+        }
+        
+        .game-interface {
+            flex: 1;
+            margin-left: clamp(250px, 20vw, 300px);
+            transition: margin-left 0.3s ease;
+        }
+        
+        .game-interface.expanded {
+            margin-left: 0;
+        }
+        
+        /* Adjust game header for no back button */
+        .game-header {
+            justify-content: flex-end;
+        }
+        
+        /* Golf-specific styles */
+        .golf-scoring {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .par-indicator {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .golf-score-good { background: #10b981; }
+        .golf-score-miss { background: #ef4444; }
+        
+        /* Par performance color classes */
+        .green { color: #10b981; }
+        .yellow { color: #fbbf24; }
+        .red { color: #ef4444; }
+        .blue { color: #3b82f6; }
+        .purple { color: #8b5cf6; }
+        
+        /* Disabled add player button styles */
+        .add-player-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #64748b !important;
+        }
+        
+        .add-player-disabled-notice {
+            background: rgba(245, 101, 101, 0.1);
+            border: 1px solid #ef4444;
+            color: #fca5a5;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        /* Remove button styling */
+        .remove-button {
+            background: rgba(220, 38, 38, 0.8);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            transition: all 0.3s ease;
+            position: absolute;
+            top: 15px;
+            left: 10px;
+            z-index: 10;
+            opacity: 0.6;
+            font-weight: 500;
+        }
+
+        .remove-button:hover {
+            background: rgba(185, 28, 28, 0.9);
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .player-card {
+            position: relative;
+        }
+
+        .player-card:hover .remove-button {
+            opacity: 0.8;
+        }
+
+        /* Tiebreaker styles */
+        .tiebreaker-banner {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .tiebreaker-info {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+            color: #fca5a5;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .hidden-for-tiebreaker {
+            opacity: 0.3;
+            filter: grayscale(1);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="shared-navigation"></div>
+        <div id="gameInterface" class="game-interface">
+            <div class="game-header">
+                <div class="action-buttons">
+                    <button class="action-button leaderboard-btn" onclick="toggleLeaderboard()">🏆 Leaderboard</button>
+                    <button class="action-button stats-btn" onclick="showStats()">📊 Stats</button>
+                    <button class="action-button settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
+                    <button class="action-button settings-btn" onclick="exportData()">💾 Export</button>
+                    <button class="action-button" id="finalizeBtn" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); display: none;" onclick="finalizeGame()">🏁 Finalize Game</button>
+                </div>
+            </div>
+
+            <div class="game-info">
+                <div class="current-game" id="currentGameTitle">Golf</div>
+                <div class="game-status" id="gameStatus">⛳ Golf Game • 5 Distances • Lower Score Wins • Par: 7</div>
+                <div id="gameNameDisplay" style="color: #94a3b8; font-size: 1rem; margin-top: 5px; display: none;"></div>
+                <div id="finalizedBanner" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; display: none;">🔒 GAME FINALIZED - RESULTS LOCKED 🔒</div>
+                
+                <!-- Tiebreaker Banner -->
+                <div id="tiebreakerBanner" class="tiebreaker-banner" style="display: none;">
+                    🔥 TIEBREAKER IN PROGRESS 🔥<br>
+                    <span id="tiebreakerInfo" style="font-size: 0.9rem; opacity: 0.9;"></span>
+                </div>
+            </div>
+
+            <div class="par-indicator">
+                <div style="font-size: 1.2rem; font-weight: bold; color: #10b981; margin-bottom: 5px;">⛳ Golf Scoring</div>
+                <div style="color: #cbd5e1; font-size: 0.9rem;">Hit Target (4-5 points) = 0 strokes • Miss Target (0-3 points) = 1 stroke</div>
+                <div style="color: #10b981; font-size: 0.8rem; margin-top: 5px;">Perfect Score: 0 strokes • Par: 7 strokes</div>
+            </div>
+
+            <!-- Settings Panel -->
+            <div id="settingsPanel" style="background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; border-radius: 15px; padding: 25px; margin-bottom: 30px; display: none;">
+                <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
+                    <span>⚙️</span>
+                    <span>Golf Settings</span>
+                </div>
+                
+                <div id="gameStartedWarning" style="background: rgba(245, 101, 101, 0.1); border: 1px solid #ef4444; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;">
+                    <div style="color: #ef4444; font-weight: bold; margin-bottom: 5px;">⚠️ Game In Progress</div>
+                    <div style="color: #fca5a5; font-size: 0.9rem;">Most settings are locked once scoring begins. Use "Reset Game" to change configuration.</div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Game Name</label>
+                        <input type="text" id="gameNameInput" placeholder="Enter custom game name..." maxlength="50" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Number of Distances</label>
+                        <select id="numDistancesSelect" onchange="updateNumDistances()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                            <option value="1">1 Distance</option>
+                            <option value="2">2 Distances</option>
+                            <option value="3">3 Distances</option>
+                            <option value="4">4 Distances</option>
+                            <option value="5" selected>5 Distances</option>
+                            <option value="6">6 Distances</option>
+                            <option value="7">7 Distances</option>
+                            <option value="8">8 Distances</option>
+                            <option value="9">9 Distances</option>
+                            <option value="10">10 Distances</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Distance Preset</label>
+                        <select id="distancePresetSelect" onchange="updateDistancePreset()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                            <option value="amateur">Amateur (2m, 3m, 4m, 5m, 6m)</option>
+                            <option value="professional">Professional (3m, 4m, 5m, 6m, 7m)</option>
+                            <option value="custom">Custom (Set your own)</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Par Score</label>
+                        <input type="number" id="parInput" min="3" max="20" value="7" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Tiebreaker Mode</label>
+                        <select id="tiebreakerSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                            <option value="sudden-death">Sudden Death (1 throw each)</option>
+                            <option value="sudden-death-round">Sudden Death Round (3 throws each)</option>
+                            <option value="no-tiebreaker">No Tiebreaker (Allow ties)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Custom Distance Configuration -->
+                <div id="customDistanceGroup" style="background: rgba(15, 23, 42, 0.5); border: 1px solid #475569; border-radius: 10px; padding: 20px; margin-bottom: 20px; display: none;">
+                    <h4 style="margin-bottom: 15px; color: #e2e8f0; display: flex; align-items: center; gap: 10px;">
+                        <span>📏</span>
+                        <span>Custom Distance Configuration</span>
+                    </h4>
+                    <div id="customDistanceInputs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+                        <!-- Distance inputs will be generated dynamically -->
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <button id="applySettingsBtn" onclick="applySettings()" style="background: #10b981; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Apply Changes</button>
+                    <button onclick="resetGame()" style="background: #ef4444; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Reset Game</button>
+                    <button onclick="exportData()" style="background: #8b5cf6; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">💾 Export Data</button>
+                </div>
+            </div>
+
+            <!-- Add Player Section -->
+            <div class="player-management">
+                <button id="addPlayerBtn" class="add-player-btn" onclick="addPlayer()">+ Add Player</button>
+                <div id="addPlayerDisabledNotice" class="add-player-disabled-notice" style="display: none;">
+                    Cannot add players after scoring has begun. Reset the game to add more players.
+                </div>
+            </div>
+
+            <!-- Players Grid -->
+            <div id="playersGrid" class="players-grid"></div>
+
+            <!-- Floating Leaderboard Window -->
+            <div id="leaderboardWindow" class="leaderboard-window">
+                <div class="leaderboard-header" id="leaderboardHeader">
+                    <div class="leaderboard-title">
+                        <span>🏆</span>
+                        <div>
+                            <div style="font-size: 1.1rem;">Live Leaderboard</div>
+                            <div style="font-size: 0.8rem; color: #94a3b8;" id="leaderboardSubtitle">Golf Rankings</div>
+                        </div>
+                    </div>
+                    <div class="leaderboard-controls">
+                        <button class="close-btn" onclick="toggleLeaderboard()">×</button>
+                    </div>
+                </div>
+                <div class="leaderboard-content" id="leaderboardContent">
+                    <!-- Leaderboard items will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared-sidebar.js"></script>
+    <script>
+        // Golf-specific game state
+        var gameState = {
+            type: 'Golf',
+            rounds: 5,
+            throwsPerRound: 3,
+            maxScore: 1, // Golf uses 0 and 1 scoring
+            targetRings: [0, 1], // 0 = hit, 1 = miss
+            distances: ['2 Meters', '3 Meters', '4 Meters', '5 Meters', '6 Meters'],
+            distancePreset: 'amateur',
+            isWalkback: false,
+            isGolf: true,
+            par: 7,
+            players: [],
+            editingThrow: null,
+            currentRound: 1,
+            currentThrow: 1,
+            viewingRound: 1,
+            gameFinalized: false,
+            gameName: '',
+            tiebreakerMode: 'sudden-death',
+            inTiebreaker: false,
+            tiebreakerRound: 1,
+            tiebreakerPlayers: []
+        };
+
+        var playerId = 1;
+        var leaderboardVisible = false;
+        var leaderboardDragging = false;
+        var leaderboardOffset = { x: 0, y: 0 };
+        var settingsVisible = false;
+
+        // Check if any player has entered any scores
+        function hasGameStarted() {
+            return gameState.players.some(function(player) {
+                return player.scores.some(function(round) {
+                    return round && round.some(function(score) {
+                        return score !== null;
+                    });
+                });
+            });
+        }
+
+        // Update the add player button state
+        function updateAddPlayerButton() {
+            var gameStarted = hasGameStarted();
+            var addPlayerBtn = document.getElementById('addPlayerBtn');
+            var addPlayerNotice = document.getElementById('addPlayerDisabledNotice');
+            
+            if (gameStarted) {
+                addPlayerBtn.disabled = true;
+                addPlayerBtn.style.display = 'none';
+                addPlayerNotice.style.display = 'block';
+            } else {
+                addPlayerBtn.disabled = false;
+                addPlayerBtn.style.display = 'block';
+                addPlayerNotice.style.display = 'none';
+            }
+        }
+
+        // Update number of distances function
+        function updateNumDistances() {
+            if (hasGameStarted()) {
+                alert('Cannot change number of distances after game has started! Reset the game to change this setting.');
+                document.getElementById('numDistancesSelect').value = gameState.rounds;
+                return;
+            }
+            
+            var newNumDistances = parseInt(document.getElementById('numDistancesSelect').value);
+            if (newNumDistances === gameState.rounds) return;
+            
+            gameState.rounds = newNumDistances;
+            
+            // Update distances based on current preset
+            var preset = document.getElementById('distancePresetSelect').value;
+            if (preset !== 'custom') {
+                gameState.distances = getDefaultDistances(preset, newNumDistances);
+            } else {
+                // For custom, adjust the distances array length
+                if (gameState.distances.length > newNumDistances) {
+                    gameState.distances = gameState.distances.slice(0, newNumDistances);
+                } else if (gameState.distances.length < newNumDistances) {
+                    for (var i = gameState.distances.length; i < newNumDistances; i++) {
+                        gameState.distances.push((i + 2) + ' Meters');
+                    }
+                }
+            }
+            
+            // Update all player scores arrays
+            gameState.players.forEach(function(player) {
+                // Adjust scores array length to match new number of distances
+                if (player.scores.length > newNumDistances) {
+                    player.scores = player.scores.slice(0, newNumDistances);
+                } else if (player.scores.length < newNumDistances) {
+                    for (var d = player.scores.length; d < newNumDistances; d++) {
+                        player.scores.push(Array(gameState.throwsPerRound).fill(null));
+                    }
+                }
+                
+                // Reset player position if they're beyond the new number of distances
+                if (player.currentRound > newNumDistances) {
+                    player.currentRound = newNumDistances;
+                    player.viewingRound = newNumDistances;
+                }
+                
+                // Recalculate stats
+                recalculatePlayerStats(player);
+            });
+            
+            updateCustomDistanceInputs();
+            updateGameDisplay();
+            renderPlayers();
+            
+            showTimedNotification('📊 Number of distances updated to ' + newNumDistances + '!', 2000);
+        }
+
+        // Update custom distance inputs dynamically
+        function updateCustomDistanceInputs() {
+            var container = document.getElementById('customDistanceInputs');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            for (var i = 0; i < gameState.rounds; i++) {
+                var inputGroup = document.createElement('div');
+                inputGroup.style.cssText = 'display: flex; flex-direction: column;';
+                
+                var label = document.createElement('label');
+                label.style.cssText = 'font-size: 0.8rem; color: #94a3b8; margin-bottom: 5px;';
+                label.textContent = 'Distance ' + (i + 1);
+                
+                var input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'distance' + (i + 1);
+                input.placeholder = 'e.g., ' + (i + 2) + ' Meters';
+                input.maxLength = 20;
+                input.style.cssText = 'background: #475569; border: 1px solid #64748b; color: white; padding: 8px; border-radius: 6px; font-size: 0.8rem; outline: none;';
+                input.value = gameState.distances[i] || '';
+                
+                inputGroup.appendChild(label);
+                inputGroup.appendChild(input);
+                container.appendChild(inputGroup);
+            }
+        }
+
+        // Get default distances with configurable count
+        function getDefaultDistances(preset, count) {
+            count = count || gameState.rounds;
+            var distances = [];
+            
+            for (var i = 0; i < count; i++) {
+                if (preset === 'amateur') {
+                    distances.push((i + 2) + ' Meters'); // 2m, 3m, 4m, 5m, 6m, 7m, etc.
+                } else if (preset === 'professional') {
+                    distances.push((i + 3) + ' Meters'); // 3m, 4m, 5m, 6m, 7m, 8m, etc.
+                } else {
+                    distances.push('Distance ' + (i + 1));
+                }
+            }
+            
+            return distances;
+        }
+
+        // Recalculate player stats
+        function recalculatePlayerStats(player) {
+            var total = 0;
+            var completedThrows = 0;
+            var goodHits = 0;
+            var perfectRounds = 0;
+            
+            player.scores.forEach(function(round) {
+                if (round) {
+                    var roundHits = 0;
+                    var roundComplete = true;
+                    
+                    round.forEach(function(throwScore) {
+                        if (throwScore !== null) {
+                            total += throwScore;
+                            completedThrows++;
+                            
+                            if (throwScore === 0) { // Hit
+                                goodHits++;
+                                roundHits++;
+                            }
+                        } else {
+                            roundComplete = false;
+                        }
+                    });
+                    
+                    if (roundComplete && roundHits === gameState.throwsPerRound) {
+                        perfectRounds++;
+                    }
+                }
+            });
+            
+            player.total = total;
+            player.average = completedThrows > 0 ? (total / completedThrows).toFixed(2) : 0;
+            player.bullseyes = goodHits;
+            player.tripleNickels = perfectRounds;
+            
+            var maxPossibleScore = gameState.rounds * gameState.throwsPerRound;
+            player.percentage = maxPossibleScore > 0 ? (((maxPossibleScore - total) / maxPossibleScore) * 100).toFixed(1) : 100;
+        }
+
+        // Tiebreaker functions
+        function getTiebreakerModeName(mode) {
+            switch(mode) {
+                case 'sudden-death': return 'Sudden Death (1 throw each)';
+                case 'sudden-death-round': return 'Sudden Death Round (3 throws each)';
+                case 'no-tiebreaker': return 'No Tiebreaker (Allow ties)';
+                default: return 'Unknown';
+            }
+        }
+
+        function getTiebreakerDisplayName(mode) {
+            switch(mode) {
+                case 'sudden-death': return 'Sudden Death';
+                case 'sudden-death-round': return 'Sudden Death Round';
+                case 'no-tiebreaker': return 'No Tiebreaker';
+                default: return 'Tiebreaker';
+            }
+        }
+
+        function startTiebreaker(tiedPlayers) {
+            console.log('Starting tiebreaker with', tiedPlayers.length, 'players');
+            gameState.inTiebreaker = true;
+            gameState.tiebreakerRound = 1;
+            gameState.tiebreakerPlayers = tiedPlayers;
+            
+            // Hide non-tied players
+            gameState.players.forEach(function(player) {
+                player.hiddenForTiebreaker = !tiedPlayers.some(function(tp) { 
+                    return tp.id === player.id; 
+                });
+            });
+            
+            // Setup tiebreaker scoring for tied players
+            var throwsPerRound = gameState.tiebreakerMode === 'sudden-death' ? 1 : 3;
+            
+            tiedPlayers.forEach(function(player) {
+                if (!player.tiebreakerScores) {
+                    player.tiebreakerScores = [];
+                }
+                player.tiebreakerScores.push(Array(throwsPerRound).fill(null));
+                player.tiebreakerComplete = false;
+                player.tiebreakerCurrentThrow = 1;
+                player.tiebreakerTotal = 0;
+            });
+            
+            var tiebreakerName = gameState.tiebreakerMode === 'sudden-death' ? 
+                'Sudden Death (1 throw each)' : 
+                'Sudden Death Round (3 throws each)';
+            
+            showTimedNotification('🔥 TIEBREAKER! ' + tiedPlayers.length + ' players tied with ' + tiedPlayers[0].total + ' strokes. Starting ' + tiebreakerName + '!', 5000);
+            
+            updateGameDisplay();
+            renderPlayers();
+            updateLeaderboard();
+            
+            // Show finalize button during tiebreaker
+            document.getElementById('finalizeBtn').style.display = 'inline-block';
+        }
+
+        function addTiebreakerScore(playerId, score) {
+            console.log('Adding tiebreaker score:', playerId, score, 'Round:', gameState.tiebreakerRound);
+            
+            var player = gameState.tiebreakerPlayers.find(function(p) { return p.id === playerId; });
+            if (!player) {
+                console.warn('Player not found in tiebreaker players:', playerId);
+                return;
+            }
+            
+            var currentRound = gameState.tiebreakerRound - 1;
+            var currentThrow = player.tiebreakerCurrentThrow - 1;
+            
+            if (!player.tiebreakerScores[currentRound]) {
+                var throwsPerRound = gameState.tiebreakerMode === 'sudden-death' ? 1 : 3;
+                player.tiebreakerScores[currentRound] = Array(throwsPerRound).fill(null);
+            }
+            
+            player.tiebreakerScores[currentRound][currentThrow] = score;
+            
+            // Calculate tiebreaker total
+            player.tiebreakerTotal = 0;
+            player.tiebreakerScores.forEach(function(round) {
+                if (round) {
+                    round.forEach(function(throwScore) {
+                        if (throwScore !== null) {
+                            player.tiebreakerTotal += throwScore;
+                        }
+                    });
+                }
+            });
+            
+            var throwsPerRound = gameState.tiebreakerMode === 'sudden-death' ? 1 : 3;
+            
+            // Advance throw/round
+            if (player.tiebreakerCurrentThrow < throwsPerRound) {
+                player.tiebreakerCurrentThrow++;
+                console.log(player.name + ' advanced to throw', player.tiebreakerCurrentThrow);
+            } else {
+                player.tiebreakerComplete = true;
+                console.log(player.name + ' completed tiebreaker round', gameState.tiebreakerRound, 'with total:', player.tiebreakerTotal);
+                showTimedNotification('✅ ' + player.name + ' completed tiebreaker round ' + gameState.tiebreakerRound + ' (' + player.tiebreakerTotal + ' total strokes)', 2000);
+            }
+            
+            // Check if all tied players completed tiebreaker
+            var allComplete = gameState.tiebreakerPlayers.every(function(p) { 
+                return p.tiebreakerComplete; 
+            });
+            
+            if (allComplete) {
+                console.log('All players completed tiebreaker round', gameState.tiebreakerRound);
+                // Add a small delay to let the last notification show
+                setTimeout(function() {
+                    checkTiebreakerResults();
+                }, 1000);
+            }
+            
+            renderPlayers();
+            updateLeaderboard();
+        }
+
+        function checkTiebreakerResults() {
+            console.log('🔍 Checking tiebreaker results...');
+            
+            // Safety check to prevent infinite tiebreakers
+            var MAX_TIEBREAKER_ROUNDS = 10;
+            if (gameState.tiebreakerRound >= MAX_TIEBREAKER_ROUNDS) {
+                console.warn('Maximum tiebreaker rounds reached, ending tiebreaker');
+                showTimedNotification('⚠️ Maximum tiebreaker rounds reached (' + MAX_TIEBREAKER_ROUNDS + '). Ending with current results.', 4000);
+                setTimeout(function() {
+                    promptGameFinalization();
+                }, 2000);
+                return;
+            }
+            
+            // Sort by tiebreaker total (ascending for golf - lower scores win)
+            var sortedTiedPlayers = gameState.tiebreakerPlayers.slice().sort(function(a, b) { 
+                return (a.tiebreakerTotal || 0) - (b.tiebreakerTotal || 0); 
+            });
+            
+            var topTiebreakerScore = sortedTiedPlayers[0].tiebreakerTotal || 0;
+            var stillTiedPlayers = sortedTiedPlayers.filter(function(player) { 
+                return (player.tiebreakerTotal || 0) === topTiebreakerScore; 
+            });
+            
+            var eliminatedPlayers = sortedTiedPlayers.filter(function(player) {
+                return (player.tiebreakerTotal || 0) > topTiebreakerScore;
+            });
+            
+            console.log('Tiebreaker Round ' + gameState.tiebreakerRound + ' Results:');
+            console.log('- Best score:', topTiebreakerScore);
+            console.log('- Still tied for lead:', stillTiedPlayers.length, 'players');
+            console.log('- Eliminated this round:', eliminatedPlayers.length, 'players');
+            
+            // Show elimination notifications
+            if (eliminatedPlayers.length > 0 && stillTiedPlayers.length > 1) {
+                var eliminatedNames = eliminatedPlayers.map(function(p) { return p.name; }).join(', ');
+                showTimedNotification('❌ Eliminated: ' + eliminatedNames + ' (' + eliminatedPlayers[0].tiebreakerTotal + ' strokes)', 3000);
+            }
+            
+            if (stillTiedPlayers.length > 1) {
+                // Multiple players still tied - continue tiebreaker
+                gameState.tiebreakerRound++;
+                
+                // Set up next round for tied players only
+                stillTiedPlayers.forEach(function(player) {
+                    var throwsPerRound = gameState.tiebreakerMode === 'sudden-death' ? 1 : 3;
+                    player.tiebreakerScores.push(Array(throwsPerRound).fill(null));
+                    player.tiebreakerComplete = false;
+                    player.tiebreakerCurrentThrow = 1;
+                });
+                
+                // Hide ALL players who are not tied for the lead (including eliminated players)
+                gameState.players.forEach(function(player) {
+                    player.hiddenForTiebreaker = !stillTiedPlayers.some(function(stp) { 
+                        return stp.id === player.id; 
+                    });
+                });
+                
+                // Update tiebreaker players to only include those still tied
+                gameState.tiebreakerPlayers = stillTiedPlayers;
+                
+                var tiedNames = stillTiedPlayers.map(function(p) { return p.name; }).join(', ');
+                var progressMsg = stillTiedPlayers.length === 2 ? 'HEAD-TO-HEAD!' : stillTiedPlayers.length + ' PLAYERS REMAIN!';
+                showTimedNotification('🔥 ' + progressMsg + ' ' + tiedNames + ' advance to Round ' + gameState.tiebreakerRound + '!', 5000);
+                
+                updateGameDisplay();
+                renderPlayers();
+            } else if (stillTiedPlayers.length === 1) {
+                // Single winner emerged from tiebreaker
+                var winner = stillTiedPlayers[0];
+                var finalScore = winner.total + (winner.tiebreakerTotal || 0);
+                
+                // Show final elimination if applicable
+                if (eliminatedPlayers.length > 0) {
+                    var eliminatedNames = eliminatedPlayers.map(function(p) { return p.name; }).join(', ');
+                    showTimedNotification('❌ Final Elimination: ' + eliminatedNames, 2000);
+                    
+                    setTimeout(function() {
+                        showTimedNotification('🏆 TIEBREAKER CHAMPION! ' + winner.name + ' wins with ' + finalScore + ' total strokes after ' + gameState.tiebreakerRound + ' tiebreaker rounds!', 6000);
+                        
+                        setTimeout(function() {
+                            promptGameFinalization();
+                        }, 3000);
+                    }, 2500);
+                } else {
+                    showTimedNotification('🏆 TIEBREAKER RESOLVED! ' + winner.name + ' wins with ' + finalScore + ' total strokes!', 5000);
+                    
+                    setTimeout(function() {
+                        promptGameFinalization();
+                    }, 2000);
+                }
+            } else {
+                // This shouldn't happen, but handle edge case
+                console.error('Unexpected tiebreaker state: no players remaining');
+                promptGameFinalization();
+            }
+        }
+
+        function initializeGame() {
+            addPlayer();
+            updateGameDisplay();
+            setupLeaderboardDragging();
+            updateAddPlayerButton();
+            updateCustomDistanceInputs();
+            showTimedNotification('⛳ Golf game initialized! Lower score wins!', 2000);
+        }
+
+        function addPlayer() {
+            if (hasGameStarted()) {
+                alert('Cannot add players once scoring has begun! Reset the game to add more players.');
+                return;
+            }
+            
+            var player = {
+                id: playerId++,
+                name: 'Player ' + (gameState.players.length + 1),
+                scores: Array(gameState.rounds).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); }),
+                total: 0,
+                average: 0,
+                percentage: 100,
+                bullseyes: 0,
+                tripleNickels: 0,
+                currentRound: 1,
+                currentThrow: 1,
+                viewingRound: 1,
+                gameComplete: false,
+                tiebreakerScores: [],
+                tiebreakerTotal: 0,
+                tiebreakerComplete: false,
+                tiebreakerCurrentThrow: 1,
+                hiddenForTiebreaker: false
+            };
+            
+            gameState.players.push(player);
+            renderPlayers();
+            updateAddPlayerButton();
+            updateGameDisplay();
+            showTimedNotification('👤 ' + player.name + ' added to golf game!', 2000);
+        }
+
+        function removePlayer(playerId) {
+            if (hasGameStarted()) {
+                alert('Cannot remove players after scoring has begun! Reset the game to modify players.');
+                return;
+            }
+            
+            var player = gameState.players.find(function(p) { return p.id === playerId; });
+            if (!player) return;
+            
+            if (gameState.players.length <= 1) {
+                alert('Cannot remove the last player! At least one player is required.');
+                return;
+            }
+            
+            if (confirm('Remove ' + player.name + ' from the golf game? This cannot be undone.')) {
+                gameState.players = gameState.players.filter(function(p) { return p.id !== playerId; });
+                renderPlayers();
+                updateLeaderboard();
+                updateAddPlayerButton();
+                showTimedNotification('👤 ' + player.name + ' removed from golf game!', 2000);
+            }
+        }
+
+        function addScore(playerId, score) {
+            // Check if this is a tiebreaker score
+            if (gameState.inTiebreaker && gameState.tiebreakerPlayers.some(function(p) { return p.id === playerId; })) {
+                addTiebreakerScore(playerId, score);
+                return;
+            }
+            
+            var player = gameState.players.find(function(p) { return p.id === playerId; });
+            if (!player) return;
+
+            var roundIndex, throwIndex;
+            var wasEditingExistingScore = false;
+
+            if (gameState.editingThrow && gameState.editingThrow.playerId === playerId) {
+                roundIndex = gameState.editingThrow.round - 1;
+                throwIndex = gameState.editingThrow.throw - 1;
+                wasEditingExistingScore = player.scores[roundIndex] && player.scores[roundIndex][throwIndex] !== null;
+                gameState.editingThrow = null;
+            } else {
+                roundIndex = player.currentRound - 1;
+                throwIndex = player.currentThrow - 1;
+            }
+
+            if (!player.scores[roundIndex]) {
+                player.scores[roundIndex] = Array(gameState.throwsPerRound).fill(null);
+            }
+
+            player.scores[roundIndex][throwIndex] = score;
+            
+            // Recalculate golf stats
+            recalculatePlayerStats(player);
+
+            // Advance player position
+            if (!wasEditingExistingScore && roundIndex === player.currentRound - 1 && throwIndex === player.currentThrow - 1) {
+                if (player.currentThrow < gameState.throwsPerRound) {
+                    player.currentThrow++;
+                } else if (player.currentRound < gameState.rounds) {
+                    player.currentRound++;
+                    player.currentThrow = 1;
+                    player.viewingRound = player.currentRound;
+                    
+                    var distanceName = gameState.distances[player.currentRound - 1] || 'Distance ' + player.currentRound;
+                    showTimedNotification('⛳ ' + player.name + ' advanced to ' + distanceName + '!', 3000);
+                } else {
+                    player.gameComplete = true;
+                    var performance = player.total <= gameState.par ? 'Under Par!' : 
+                                    player.total === gameState.par ? 'At Par!' : 
+                                    'Over Par';
+                    showTimedNotification('⛳ ' + player.name + ' completed golf! ' + performance, 4000);
+                    
+                    checkGameCompletion();
+                }
+            }
+
+            renderPlayers();
+            updateLeaderboard();
+            updateAddPlayerButton();
+        }
+
+        function checkGameCompletion() {
+            var allPlayersFinished = gameState.players.every(function(player) {
+                return player.gameComplete;
+            });
+            
+            if (allPlayersFinished && gameState.players.length > 0) {
+                var topScore = Math.min(...gameState.players.map(function(p) { return p.total; }));
+                var tiedPlayers = gameState.players.filter(function(p) { return p.total === topScore; });
+                
+                console.log('Game completion check - Top score:', topScore, 'Tied players:', tiedPlayers.length);
+                
+                if (tiedPlayers.length > 1 && gameState.tiebreakerMode !== 'no-tiebreaker') {
+                    showTimedNotification('⛳ TIE DETECTED! ' + tiedPlayers.length + ' players tied with ' + topScore + ' strokes. Starting tiebreaker...', 4000);
+                    setTimeout(function() {
+                        startTiebreaker(tiedPlayers);
+                    }, 2000);
+                } else {
+                    promptGameFinalization();
+                }
+            }
+        }
+
+        function promptGameFinalization() {
+            showTimedNotification('⛳ ALL PLAYERS FINISHED! Automatically finalizing golf results! ⛳', 3000);
+            
+            setTimeout(function() {
+                finalizeGame();
+            }, 1500);
+        }
+
+        function finalizeGame() {
+            gameState.gameFinalized = true;
+            gameState.inTiebreaker = false;
+            
+            // Show all players again
+            gameState.players.forEach(function(player) {
+                player.hiddenForTiebreaker = false;
+            });
+            
+            // Hide finalize button
+            var finalizeBtn = document.getElementById('finalizeBtn');
+            if (finalizeBtn) {
+                finalizeBtn.style.display = 'none';
+            }
+            
+            updateGameDisplay();
+            renderPlayers();
+            showTimedNotification('⛳ Golf Game Finalized! Results are now locked.', 3000);
+            
+            setTimeout(function() {
+                exportData();
+                showGameVictoryScreen();
+            }, 2000);
+        }
+
+        function showGameVictoryScreen() {
+            var sortedPlayers = gameState.players.slice().sort(function(a, b) { 
+                var aTotal = a.total + (a.tiebreakerTotal || 0);
+                var bTotal = b.total + (b.tiebreakerTotal || 0);
+                return aTotal - bTotal; // Ascending for golf
+            });
+            
+            var overlay = document.createElement('div');
+            overlay.id = 'gameVictoryOverlay';
+            overlay.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 10001; padding: 20px; box-sizing: border-box;';
+            
+            var victoryContainer = document.createElement('div');
+            victoryContainer.style.cssText = 'background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%, #1e293b 100%); border: 3px solid #fbbf24; border-radius: 25px; padding: 30px; max-width: 950px; width: 95%; text-align: center; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.7); max-height: 90vh; overflow-y: auto; position: relative;';
+            
+            // Add CSS for animations
+            var style = document.createElement('style');
+            style.textContent = `
+                @keyframes golfPulse {
+                    0%, 100% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.05); opacity: 0.9; }
+                }
+                @keyframes slideUp {
+                    from { transform: translateY(30px); opacity: 0; }
+                    to { transform: translateY(0); opacity: 1; }
+                }
+                @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                .golf-title {
+                    animation: golfPulse 2s infinite;
+                    background: linear-gradient(45deg, #fbbf24, #f59e0b, #10b981);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                    background-size: 200% 200%;
+                    animation: golfPulse 2s infinite, gradientShift 3s ease-in-out infinite;
+                }
+                @keyframes gradientShift {
+                    0%, 100% { background-position: 0% 50%; }
+                    50% { background-position: 100% 50%; }
+                }
+                .podium-card {
+                    animation: slideUp 0.8s ease-out;
+                    animation-fill-mode: both;
+                    transition: transform 0.3s ease, box-shadow 0.3s ease;
+                }
+                .podium-card:hover {
+                    transform: translateY(-8px) scale(1.02);
+                    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+                }
+                .podium-card:nth-child(1) { animation-delay: 0.2s; }
+                .podium-card:nth-child(2) { animation-delay: 0.4s; }
+                .podium-card:nth-child(3) { animation-delay: 0.6s; }
+                @media (max-width: 768px) {
+                    .podium-card {
+                        min-width: 160px !important;
+                        margin: 5px !important;
+                    }
+                    .golf-title {
+                        font-size: 2.5rem !important;
+                    }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Add decorative corner elements
+            var cornerDecorations = 
+                '<div style="position: absolute; top: 20px; left: 20px; font-size: 2rem; opacity: 0.3;">⛳</div>' +
+                '<div style="position: absolute; top: 20px; right: 20px; font-size: 2rem; opacity: 0.3;">🏆</div>' +
+                '<div style="position: absolute; bottom: 20px; left: 20px; font-size: 2rem; opacity: 0.3;">🎯</div>' +
+                '<div style="position: absolute; bottom: 20px; right: 20px; font-size: 2rem; opacity: 0.3;">🏌️</div>';
+            
+            // Build top 3 podium display
+            var podiumHtml = '';
+            var topPlayersToShow = Math.min(3, sortedPlayers.length);
+            
+            if (topPlayersToShow > 0) {
+                // Podium arrangement: 2nd, 1st, 3rd for visual hierarchy
+                var topThree = sortedPlayers.slice(0, topPlayersToShow);
+                var podiumOrder = [];
+                
+                // Handle different numbers of players
+                if (topThree.length === 1) {
+                    podiumOrder = [0]; // Just 1st place
+                } else if (topThree.length === 2) {
+                    podiumOrder = [1, 0]; // 2nd, then 1st
+                } else {
+                    podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd
+                }
+                
+                podiumHtml += '<div style="display: flex; justify-content: center; align-items: end; gap: 15px; margin-bottom: 40px; flex-wrap: wrap; padding: 0 10px;">';
+                
+                podiumOrder.forEach(function(playerIndex, displayIndex) {
+                    var player = topThree[playerIndex];
+                    var rank = playerIndex + 1;
+                    var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '';
+                    var totalScore = player.total + (player.tiebreakerTotal || 0);
+                    var performance = totalScore <= gameState.par ? 'Under Par!' : 
+                                    totalScore === gameState.par ? 'At Par!' : 
+                                    'Over Par';
+                    
+                    // Height and styling based on rank - use min-height for flexibility
+                    var cardMinHeight = rank === 1 ? '320px' : rank === 2 ? '280px' : '240px';
+                    var fontSize = rank === 1 ? '3.5rem' : rank === 2 ? '3rem' : '2.5rem';
+                    var nameSize = rank === 1 ? '1.3rem' : rank === 2 ? '1.1rem' : '1rem';
+                    
+                    var cardStyle = '';
+                    var textColor = '';
+                    if (rank === 1) {
+                        cardStyle = 'background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fbbf24 100%); border: 3px solid #fcd34d; box-shadow: 0 0 30px rgba(251, 191, 36, 0.5);';
+                        textColor = '#1e293b';
+                    } else if (rank === 2) {
+                        cardStyle = 'background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 50%, #e5e7eb 100%); border: 3px solid #f3f4f6; box-shadow: 0 0 20px rgba(209, 213, 219, 0.3);';
+                        textColor = '#1e293b';
+                    } else {
+                        cardStyle = 'background: linear-gradient(135deg, #cd7c2f 0%, #b45309 50%, #cd7c2f 100%); border: 3px solid #d97706; box-shadow: 0 0 20px rgba(205, 124, 47, 0.3);';
+                        textColor = '#ffffff';
+                    }
+                    
+                    podiumHtml += 
+                        '<div class="podium-card" style="' + cardStyle + ' border-radius: 20px; padding: 25px; min-width: 200px; min-height: ' + cardMinHeight + '; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: visible; margin: 10px;">' +
+                            '<div style="position: absolute; top: -10px; right: -10px; width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 50%; transform: rotate(45deg);"></div>' +
+                            '<div style="font-size: ' + fontSize + '; margin-bottom: 15px; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3)); line-height: 1;">' + medal + '</div>' +
+                            '<div style="text-align: center; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px;">' +
+                                '<div style="font-size: ' + nameSize + '; font-weight: bold; color: ' + textColor + '; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); line-height: 1.2;">' + player.name + '</div>' +
+                                '<div style="font-size: 1.4rem; color: ' + textColor + '; font-weight: 700; line-height: 1;">' + totalScore + ' strokes</div>' +
+                                '<div style="font-size: 0.95rem; color: ' + textColor + '; opacity: 0.9; font-weight: 500; line-height: 1;">' + performance + '</div>' +
+                                (player.tiebreakerTotal > 0 ? '<div style="font-size: 0.85rem; color: ' + textColor + '; opacity: 0.8; line-height: 1;">🔥 +' + player.tiebreakerTotal + ' tiebreaker</div>' : '') +
+                                (player.bullseyes > 0 ? '<div style="font-size: 0.85rem; color: ' + textColor + '; opacity: 0.8; line-height: 1;">🎯 ' + player.bullseyes + ' hits</div>' : '') +
+                                (player.tripleNickels > 0 ? '<div style="font-size: 0.85rem; color: ' + textColor + '; opacity: 0.8; line-height: 1;">🔥 ' + player.tripleNickels + ' perfect</div>' : '') +
+                            '</div>' +
+                            '<div style="font-size: 1.1rem; font-weight: bold; color: ' + textColor + '; opacity: 0.7; margin-top: 10px;">#' + rank + '</div>' +
+                        '</div>';
+                });
+                
+                podiumHtml += '</div>';
+                
+                // Show remaining players if more than 3
+                if (sortedPlayers.length > 3) {
+                    podiumHtml += '<div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; border-radius: 15px; padding: 20px; margin-bottom: 20px; animation: fadeIn 1s ease-out 0.8s both;">' +
+                        '<div style="font-weight: bold; margin-bottom: 15px; color: #3b82f6; font-size: 1.1rem;">🏌️ Other Competitors</div>';
+                    
+                    for (var i = 3; i < Math.min(sortedPlayers.length, 8); i++) {
+                        var player = sortedPlayers[i];
+                        var totalScore = player.total + (player.tiebreakerTotal || 0);
+                        var performance = totalScore <= gameState.par ? 'Under Par' : 
+                                        totalScore === gameState.par ? 'At Par' : 
+                                        'Over Par';
+                        podiumHtml += '<div style="margin: 8px 0; padding: 8px; background: rgba(30, 41, 59, 0.3); border-radius: 8px; color: #e2e8f0; display: flex; justify-content: space-between; align-items: center;">' +
+                            '<span>#' + (i + 1) + ' - ' + player.name + '</span>' +
+                            '<span>' + totalScore + ' strokes (' + performance + ')</span>' +
+                        '</div>';
+                    }
+                    
+                    if (sortedPlayers.length > 8) {
+                        podiumHtml += '<div style="color: #94a3b8; font-style: italic; margin-top: 10px;">... and ' + (sortedPlayers.length - 8) + ' more players</div>';
+                    }
+                    podiumHtml += '</div>';
+                }
+            }
+            
+            victoryContainer.innerHTML = 
+                cornerDecorations +
+                '<div class="golf-title" style="font-size: 3rem; font-weight: bold; margin-bottom: 30px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">⛳ GOLF COMPLETE! ⛳</div>' +
+                podiumHtml +
+                '<div style="background: rgba(15, 23, 42, 0.6); border-radius: 15px; padding: 15px; margin-bottom: 30px; animation: fadeIn 1s ease-out 1s both;">' +
+                    '<div style="font-size: 1rem; color: #cbd5e1; margin-bottom: 5px;">🏌️ Game Summary</div>' +
+                    '<div style="font-size: 0.9rem; color: #94a3b8;">Par: ' + gameState.par + ' • Distances: ' + gameState.rounds + ' • Players: ' + sortedPlayers.length + (gameState.gameName ? ' • ' + gameState.gameName : '') + '</div>' +
+                '</div>' +
+                '<div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">' +
+                    '<button onclick="closeVictoryScreen()" style="background: linear-gradient(45deg, #3b82f6, #1d4ed8); border: none; color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3); animation: fadeIn 1s ease-out 1.2s both;" onmouseover="this.style.transform=\'scale(1.05)\'; this.style.boxShadow=\'0 6px 20px rgba(59, 130, 246, 0.4)\'" onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'0 4px 15px rgba(59, 130, 246, 0.3)\'">Continue</button>' +
+                    '<button onclick="exportData()" style="background: linear-gradient(45deg, #10b981, #059669); border: none; color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); animation: fadeIn 1s ease-out 1.4s both;" onmouseover="this.style.transform=\'scale(1.05)\'; this.style.boxShadow=\'0 6px 20px rgba(16, 185, 129, 0.4)\'" onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'0 4px 15px rgba(16, 185, 129, 0.3)\'">📁 Export Results</button>' +
+                    '<button onclick="startNewGame()" style="background: linear-gradient(45deg, #f59e0b, #d97706); border: none; color: white; padding: 15px 30px; border-radius: 12px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); animation: fadeIn 1s ease-out 1.6s both;" onmouseover="this.style.transform=\'scale(1.05)\'; this.style.boxShadow=\'0 6px 20px rgba(245, 158, 11, 0.4)\'" onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'0 4px 15px rgba(245, 158, 11, 0.3)\'">🆕 New Game</button>' +
+                '</div>';
+            
+            overlay.appendChild(victoryContainer);
+            document.body.appendChild(overlay);
+            
+            // Add close function
+            window.closeVictoryScreen = function() {
+                overlay.remove();
+                delete window.closeVictoryScreen;
+                delete window.startNewGame;
+            };
+            
+            // Add new game function
+            window.startNewGame = function() {
+                overlay.remove();
+                if (confirm('Start a new golf game? This will reset all scores and settings.')) {
+                    location.reload();
+                }
+            };
+        }
+
+        function closeVictoryScreen() {
+            var overlay = document.getElementById('gameVictoryOverlay');
+            if (overlay) {
+                document.body.removeChild(overlay);
+            }
+            // Clean up global functions
+            if (window.closeVictoryScreen) delete window.closeVictoryScreen;
+            if (window.startNewGame) delete window.startNewGame;
+        }
+
+        function navigateToRound(playerId, roundNum) {
+            var player = gameState.players.find(function(p) { return p.id === playerId; });
+            if (player) {
+                player.viewingRound = roundNum;
+                renderPlayers();
+            }
+        }
+
+        function navigateToThrow(playerId, roundNum, throwNum) {
+            var player = gameState.players.find(function(p) { return p.id === playerId; });
+            if (player && !gameState.gameFinalized) {
+                player.currentRound = roundNum;
+                player.currentThrow = throwNum;
+                player.viewingRound = roundNum;
+                renderPlayers();
+            }
+        }
+
+        function editThrow(playerId, roundNum, throwNum) {
+            if (gameState.gameFinalized) {
+                showTimedNotification('⚠️ Cannot edit - game is finalized!', 2000);
+                return;
+            }
+            
+            gameState.editingThrow = {
+                playerId: playerId,
+                round: roundNum,
+                throw: throwNum
+            };
+            renderPlayers();
+        }
+
+        function updateGameDisplay() {
+            var gameTitle = gameState.type;
+            document.getElementById('currentGameTitle').textContent = gameTitle;
+            
+            var gameNameDisplay = gameState.gameName ? ' • ' + gameState.gameName : '';
+            var tiebreakerInfo = '';
+            if (gameState.inTiebreaker) {
+                var remainingPlayers = gameState.tiebreakerPlayers.length;
+                var playersText = remainingPlayers === 1 ? '1 player' : remainingPlayers + ' players';
+                tiebreakerInfo = ' • ' + getTiebreakerDisplayName(gameState.tiebreakerMode) + ' R' + gameState.tiebreakerRound + ' (' + playersText + ' remaining)';
+            }
+            
+            document.getElementById('gameStatus').textContent = '⛳ ' + gameState.type + ' Game' + gameNameDisplay + ' • ' + gameState.rounds + ' Distances • Lower Score Wins • Par: ' + gameState.par + tiebreakerInfo;
+            
+            // Update tiebreaker banner with detailed info
+            var tiebreakerBanner = document.getElementById('tiebreakerBanner');
+            var tiebreakerInfoText = document.getElementById('tiebreakerInfo');
+            
+            if (gameState.inTiebreaker && gameState.tiebreakerPlayers.length > 0) {
+                tiebreakerBanner.style.display = 'block';
+                
+                var remainingNames = gameState.tiebreakerPlayers.map(function(p) { return p.name; }).join(', ');
+                var roundInfo = 'Round ' + gameState.tiebreakerRound + ' • ' + getTiebreakerDisplayName(gameState.tiebreakerMode);
+                var playersInfo = gameState.tiebreakerPlayers.length + ' players competing: ' + remainingNames;
+                
+                tiebreakerInfoText.innerHTML = roundInfo + '<br>' + playersInfo;
+            } else {
+                tiebreakerBanner.style.display = 'none';
+            }
+        }
+
+        function renderPlayers() {
+            var grid = document.getElementById('playersGrid');
+            if (!grid) return;
+            
+            grid.innerHTML = '';
+            
+            gameState.players.forEach(function(player) {
+                var playerCard = document.createElement('div');
+                playerCard.className = 'player-card';
+                
+                // Hide non-tied players during tiebreaker
+                if (player.hiddenForTiebreaker) {
+                    playerCard.classList.add('hidden-for-tiebreaker');
+                }
+                
+                var displayRound = player.viewingRound;
+                var displayThrow = player.currentThrow;
+                
+                if (gameState.editingThrow && gameState.editingThrow.playerId === player.id) {
+                    displayRound = gameState.editingThrow.round;
+                    displayThrow = gameState.editingThrow.throw;
+                }
+                
+                var currentRoundScores = player.scores[displayRound - 1] || Array(gameState.throwsPerRound).fill(null);
+                var currentRoundTotal = currentRoundScores.reduce(function(sum, score) { return sum + (score || 0); }, 0);
+
+                var selectedScore = null;
+                if (gameState.editingThrow && gameState.editingThrow.playerId === player.id) {
+                    selectedScore = currentRoundScores[gameState.editingThrow.throw - 1];
+                } else if (displayRound === player.currentRound) {
+                    selectedScore = currentRoundScores[player.currentThrow - 1];
+                }
+
+                // Golf scoring buttons: Hit (0) or Miss (1)
+                var scoreButtonsHtml = 
+                    '<button class="score-button golf-score-good ' + (selectedScore === 0 ? 'selected' : '') + '" onclick="addScore(' + player.id + ', 0)">✓ Hit (4-5)</button>' +
+                    '<button class="score-button golf-score-miss ' + (selectedScore === 1 ? 'selected' : '') + '" onclick="addScore(' + player.id + ', 1)">✗ Miss (0-3)</button>';
+
+                // If in tiebreaker and this player is participating, show tiebreaker interface
+                if (gameState.inTiebreaker && gameState.tiebreakerPlayers.some(function(tp) { return tp.id === player.id; })) {
+                    var tiebreakerRound = gameState.tiebreakerRound - 1;
+                    var throwsPerRound = gameState.tiebreakerMode === 'sudden-death' ? 1 : 3;
+                    var tiebreakerScores = player.tiebreakerScores && player.tiebreakerScores[tiebreakerRound] ?
+                        player.tiebreakerScores[tiebreakerRound] : Array(throwsPerRound).fill(null);
+                    
+                    var tiebreakerSelectedScore = null;
+                    if (player.tiebreakerCurrentThrow <= throwsPerRound) {
+                        tiebreakerSelectedScore = tiebreakerScores[player.tiebreakerCurrentThrow - 1];
+                    }
+                    
+                    scoreButtonsHtml = 
+                        '<button class="score-button golf-score-good ' + (tiebreakerSelectedScore === 0 ? 'selected' : '') + '" onclick="addScore(' + player.id + ', 0)">✓ Hit (4-5)</button>' +
+                        '<button class="score-button golf-score-miss ' + (tiebreakerSelectedScore === 1 ? 'selected' : '') + '" onclick="addScore(' + player.id + ', 1)">✗ Miss (0-3)</button>';
+                    
+                    // Create tiebreaker throws display
+                    var tiebreakerThrowsHtml = Array(throwsPerRound).fill(null).map(function(_, throwIndex) {
+                        var score = tiebreakerScores[throwIndex];
+                        var isCurrent = throwIndex === player.tiebreakerCurrentThrow - 1 && !player.tiebreakerComplete;
+                        
+                        var className = 'throw-box ';
+                        var backgroundColor = '';
+                        var textColor = 'white';
+                        var borderStyle = '';
+                        
+                        if (score !== null) {
+                            className += 'completed';
+                            backgroundColor = score === 0 ? 'background: #10b981;' : 'background: #ef4444;';
+                            textColor = 'white';
+                            borderStyle = 'border: 2px solid rgba(255,255,255,0.3);';
+                        } else if (isCurrent) {
+                            className += 'current';
+                            backgroundColor = 'background: linear-gradient(45deg, #ef4444, #dc2626);';
+                            textColor = 'white';
+                            borderStyle = 'border: 3px solid #f87171;';
+                        } else {
+                            className += 'empty';
+                            backgroundColor = 'background: #475569;';
+                            textColor = '#94a3b8';
+                            borderStyle = 'border: 2px solid #64748b;';
+                        }
+                        
+                        var displayText = score !== null ? (score === 0 ? '✓' : '✗') : (throwIndex + 1);
+                        
+                        return '<div class="' + className + '" style="padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: default; transition: all 0.3s ease; ' + backgroundColor + ' color: ' + textColor + '; ' + borderStyle + '">' + displayText + '</div>';
+                    }).join('');
+                    
+                    // Override throw display for tiebreaker
+                    var throwDisplayHtml = tiebreakerThrowsHtml;
+                } else {
+                    // Regular round navigation buttons
+                    var roundNavButtons = '';
+                    for (var r = 1; r <= gameState.rounds; r++) {
+                        var roundStatus = getRoundStatus(player, r - 1);
+                        var className = 'round-nav-btn ';
+                        
+                        if (r === displayRound) {
+                            className += 'current';
+                        } else if (roundStatus === 'completed') {
+                            className += 'completed';
+                        } else if (roundStatus === 'partial') {
+                            className += 'partial';
+                        } else {
+                            className += 'empty';
+                        }
+                        
+                        var label = gameState.distances[r - 1] ? 
+                            (gameState.distances[r - 1].replace(' Meters', 'M').replace(' meters', 'm').length > 8 ? 
+                                gameState.distances[r - 1].substring(0, 6) + '...' :
+                                gameState.distances[r - 1]) : 'D' + r;
+                        
+                        roundNavButtons += '<button class="' + className + '" onclick="navigateToRound(' + player.id + ', ' + r + ')" title="' + 
+                            (gameState.distances[r - 1] || 'Distance ' + r) + '">' + label + '</button>';
+                    }
+
+                    // Throw display for regular game
+                    var throwDisplayHtml = Array(gameState.throwsPerRound).fill(null).map(function(_, throwIndex) {
+                        var score = currentRoundScores[throwIndex];
+                        var isCurrent = throwIndex === player.currentThrow - 1 && displayRound === player.currentRound && !gameState.editingThrow;
+                        var isEditing = gameState.editingThrow && 
+                                        gameState.editingThrow.playerId === player.id && 
+                                        gameState.editingThrow.round === displayRound &&
+                                        gameState.editingThrow.throw === throwIndex + 1;
+                        
+                        var className = 'throw-box ';
+                        var backgroundColor = '';
+                        var textColor = 'white';
+                        var borderStyle = '';
+                        
+                        if (isEditing) {
+                            className += 'editing';
+                            backgroundColor = 'background: linear-gradient(45deg, #fbbf24, #f59e0b);';
+                            textColor = '#1e293b';
+                            borderStyle = 'border: 3px solid #fbbf24;';
+                        } else if (score !== null) {
+                            className += 'completed';
+                            backgroundColor = score === 0 ? 'background: #10b981;' : 'background: #ef4444;';
+                            textColor = 'white';
+                            borderStyle = 'border: 2px solid rgba(255,255,255,0.3);';
+                        } else if (isCurrent) {
+                            className += 'current';
+                            backgroundColor = 'background: linear-gradient(45deg, #3b82f6, #1d4ed8);';
+                            textColor = 'white';
+                            borderStyle = 'border: 3px solid #60a5fa;';
+                        } else {
+                            className += 'empty';
+                            backgroundColor = 'background: #475569;';
+                            textColor = '#94a3b8';
+                            borderStyle = 'border: 2px solid #64748b;';
+                        }
+                        
+                        var displayText = score !== null ? (score === 0 ? '✓' : '✗') : (throwIndex + 1);
+                        var throwNum = throwIndex + 1;
+                        var roundNum = displayRound;
+                        
+                        var clickHandler = score !== null ?
+                            'editThrow(' + player.id + ', ' + roundNum + ', ' + throwNum + ')' : 
+                            'navigateToThrow(' + player.id + ', ' + roundNum + ', ' + throwNum + ')';
+                        
+                        return '<div class="' + className + '" onclick="' + clickHandler + '" style="padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; transition: all 0.3s ease; ' + backgroundColor + ' color: ' + textColor + '; ' + borderStyle + '">' + displayText + '</div>';
+                    }).join('');
+                }
+
+                // Golf-specific score display with 2/3 par threshold
+                var totalScore = player.total + (player.tiebreakerTotal || 0);
+                var parThreshold = Math.ceil(gameState.par * 2/3);
+                var scoreColor = totalScore < parThreshold ? 'green' : 
+                               totalScore <= gameState.par ? 'yellow' : 'red';
+                var scoreIndicator = totalScore < parThreshold ? '🟢' : 
+                                   totalScore <= gameState.par ? '🟡' : '🔴';
+                var performanceText = totalScore < parThreshold ? 'Excellent!' : 
+                                    totalScore < gameState.par ? 'Under Par!' :
+                                    totalScore === gameState.par ? 'At Par' : 
+                                    totalScore === gameState.par + 1 ? 'Bogey' : 'Over Par';
+                
+                var navSection = '';
+                if (gameState.inTiebreaker && gameState.tiebreakerPlayers.some(function(tp) { return tp.id === player.id; })) {
+                    navSection = '<div class="tiebreaker-info">🔥 Tiebreaker Round ' + gameState.tiebreakerRound + ' - ' + getTiebreakerDisplayName(gameState.tiebreakerMode) + '</div>';
+                } else {
+                    navSection = '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid #475569;">' +
+                        '<span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Distances:</span>' +
+                        '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' + roundNavButtons + '</div></div>';
+                }
+                
+                playerCard.innerHTML = '<div class="player-header">' +
+                    '<div class="player-name-section">' +
+                    '<input type="text" class="player-name" value="' + player.name + '" onchange="updatePlayerName(' + player.id + ', this.value)">' +
+                    '</div>' +
+                    '<div class="player-stats">' +
+                    '<div class="total-score">' + totalScore + ' ' + scoreIndicator + '</div>' +
+                    '<div class="score-details">' +
+                    'Par: ' + gameState.par + '<br>' +
+                    '<span class="yellow">🎯 Good Hits: ' + player.bullseyes + '</span><br>' +
+                    '<span class="purple">Strokes: ' + player.total + '/' + (gameState.rounds * gameState.throwsPerRound) + '</span><br>' +
+                    (player.tiebreakerTotal > 0 ? '<span class="red">🔥 Tiebreaker: +' + player.tiebreakerTotal + '</span><br>' : '') +
+                    '<span class="' + scoreColor + '">' + performanceText + '</span>' +
+                    (player.tripleNickels > 0 ? '<br><span class="green">🔥 Perfect Rounds: ' + player.tripleNickels + '</span>' : '') +
+                    '</div></div></div>' +
+                    (!hasGameStarted() ? '<button class="remove-button" onclick="removePlayer(' + player.id + ')" title="Remove ' + player.name + '">✕</button>' : '') +
+                    navSection +
+                    '<div class="score-input">' +
+                    '<label class="score-label">' +
+                    (player.gameComplete && !gameState.inTiebreaker ? 
+                        '🏆 GOLF GAME COMPLETE - Click any throw below to edit' :
+                        gameState.editingThrow && gameState.editingThrow.playerId === player.id ? 
+                            '✏️ EDITING - ' + (gameState.distances[displayRound - 1] || 'Distance ' + displayRound) + ', Throw ' + displayThrow :
+                            gameState.inTiebreaker && gameState.tiebreakerPlayers.some(function(tp) { return tp.id === player.id; }) ?
+                                '🔥 TIEBREAKER - ' + getTiebreakerDisplayName(gameState.tiebreakerMode) + ', Throw ' + (player.tiebreakerCurrentThrow || 1) :
+                                (gameState.distances[displayRound - 1] || 'Distance ' + displayRound) + (displayRound === player.currentRound ? ', Throw ' + player.currentThrow : '')) +
+                    '</label>' +
+                    '<div class="golf-scoring" ' + (player.gameComplete && gameState.gameFinalized ? 'style="display: none;"' : player.gameComplete && !gameState.inTiebreaker ? 'style="display: none;"' : '') + '>' +
+                    scoreButtonsHtml + '</div>' +
+                    (player.gameComplete && !gameState.inTiebreaker ? '<div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 20px; border-radius: 12px; text-align: center; font-weight: bold; font-size: 1.1rem;">⛳ GOLF COMPLETE! ⛳<br><span style="font-size: 0.9rem; margin-top: 8px; display: block;">Final Score: ' + player.total + ' strokes (' + performanceText + ')</span></div>' : '') +
+                    '</div>' +
+                    '<div style="margin-bottom: 20px;">' +
+                    '<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">' +
+                    '<span style="font-size: 0.9rem; font-weight: 500;">' +
+                    (gameState.inTiebreaker && gameState.tiebreakerPlayers.some(function(tp) { return tp.id === player.id; }) ? 
+                        'Tiebreaker Round ' + gameState.tiebreakerRound :
+                        (gameState.distances[displayRound - 1] || 'Distance ' + displayRound)) +
+                    '</span>' +
+                    '<span style="font-size: 0.8rem; color: #94a3b8;">Strokes: ' + 
+                    (gameState.inTiebreaker && gameState.tiebreakerPlayers.some(function(tp) { return tp.id === player.id; }) ? 
+                        (player.tiebreakerTotal || 0) : currentRoundTotal) + '</span>' +
+                    '</div>' +
+                    '<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">' +
+                    throwDisplayHtml + '</div></div>';
+                
+                grid.appendChild(playerCard);
+            });
+
+            updateAddPlayerButton();
+        }
+
+        function getRoundStatus(player, roundIndex) {
+            if (!player.scores[roundIndex]) return 'empty';
+            
+            var round = player.scores[roundIndex];
+            var completedThrows = round.filter(function(score) { return score !== null; }).length;
+            
+            if (completedThrows === 0) return 'empty';
+            if (completedThrows === gameState.throwsPerRound) return 'completed';
+            return 'partial';
+        }
+
+        function updatePlayerName(playerId, newName) {
+            var player = gameState.players.find(function(p) { return p.id === playerId; });
+            if (player) {
+                player.name = newName.trim() || 'Player ' + playerId;
+                updateLeaderboard();
+            }
+        }
+
+        function toggleLeaderboard() {
+            leaderboardVisible = !leaderboardVisible;
+            var window = document.getElementById('leaderboardWindow');
+            if (leaderboardVisible) {
+                window.classList.add('show');
+                updateLeaderboard();
+                setupLeaderboardDragging();
+            } else {
+                window.classList.remove('show');
+            }
+        }
+
+        function updateLeaderboard() {
+            var content = document.getElementById('leaderboardContent');
+            var subtitle = document.getElementById('leaderboardSubtitle');
+            if (!content) return;
+            
+            var sortedPlayers = gameState.players.slice().sort(function(a, b) { 
+                var aTotal = a.total + (a.tiebreakerTotal || 0);
+                var bTotal = b.total + (b.tiebreakerTotal || 0);
+                return aTotal - bTotal; // Ascending for golf
+            });
+            
+            content.innerHTML = '';
+            
+            sortedPlayers.forEach(function(player, index) {
+                var rank = index + 1;
+                var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎯';
+                var totalScore = player.total + (player.tiebreakerTotal || 0);
+                var performance = totalScore <= gameState.par ? 'Under Par' : 
+                                totalScore === gameState.par ? 'At Par' : 
+                                'Over Par';
+                
+                var item = document.createElement('div');
+                item.className = 'leaderboard-item';
+                item.style.padding = '20px 15px';
+                
+                if (rank === 1 && gameState.gameFinalized) {
+                    item.style.background = 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1))';
+                    item.style.border = '2px solid #fbbf24';
+                    item.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.3)';
+                }
+                
+                // Hide players not in tiebreaker if we're in tiebreaker mode
+                if (gameState.inTiebreaker && player.hiddenForTiebreaker) {
+                    item.style.opacity = '0.5';
+                    item.style.filter = 'grayscale(70%)';
+                }
+                
+                var scoreBreakdown = '';
+                if (player.tiebreakerTotal) {
+                    scoreBreakdown = '<br><span style="font-size: 0.7rem; color: #ef4444;">(' + player.total + ' + ' + player.tiebreakerTotal + ' TB)</span>';
+                }
+                
+                item.innerHTML = 
+                    '<div style="font-size: 2rem; margin-right: 15px; width: 50px; text-align: center;">' + medal + '</div>' +
+                    '<div style="font-size: 1.5rem; font-weight: bold; width: 40px; text-align: center; margin-right: 15px; color: ' + 
+                    (rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#64748b') + ';">#' + rank + '</div>' +
+                    '<div style="flex: 1;">' +
+                        '<div style="font-size: 1.2rem; font-weight: bold; color: white; margin-bottom: 5px;">' + player.name + 
+                        (rank === 1 && gameState.gameFinalized ? ' 🏆' : '') + '</div>' +
+                        '<div style="font-size: 0.9rem; color: #94a3b8;">' + performance + scoreBreakdown + '</div>' +
+                        (player.bullseyes > 0 ? '<div style="font-size: 0.8rem; color: #10b981; margin-top: 3px;">🎯 ' + player.bullseyes + ' Hits</div>' : '') +
+                        (player.tripleNickels > 0 ? '<div style="font-size: 0.8rem; color: #a855f7; margin-top: 3px;">🔥 ' + player.tripleNickels + ' Perfect Rounds</div>' : '') +
+                    '</div>' +
+                    '<div style="font-size: 1.8rem; font-weight: bold; color: #10b981; text-align: right; margin-left: 15px;">' + totalScore + 
+                    '<br><span style="font-size: 0.7rem; color: #64748b;">strokes</span></div>';
+                
+                content.appendChild(item);
+            });
+            
+            // Update subtitle
+            if (subtitle) {
+                if (gameState.inTiebreaker) {
+                    var tiedCount = gameState.tiebreakerPlayers ? gameState.tiebreakerPlayers.length : 0;
+                    subtitle.textContent = 'Tiebreaker Round ' + gameState.tiebreakerRound + ' - ' + tiedCount + ' players';
+                } else {
+                    var completedPlayers = gameState.players.filter(function(p) { return p.gameComplete; }).length;
+                    subtitle.textContent = completedPlayers + '/' + gameState.players.length + ' players completed';
+                }
+            }
+            
+            // Add tiebreaker status if active
+            if (gameState.inTiebreaker) {
+                var tiebreakerStatus = document.createElement('div');
+                tiebreakerStatus.style.cssText = 'background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center; color: #f87171; font-size: 0.9rem;';
+                tiebreakerStatus.innerHTML = '🔥 Tiebreaker Round ' + gameState.tiebreakerRound + ' in progress<br>' + 
+                    gameState.tiebreakerPlayers.length + ' players competing for victory';
+                content.appendChild(tiebreakerStatus);
+            }
+        }
+
+        function setupLeaderboardDragging() {
+            var header = document.getElementById('leaderboardHeader');
+            var window = document.getElementById('leaderboardWindow');
+
+            if (!header || !window) return;
+
+            header.addEventListener('mousedown', function(e) {
+                leaderboardDragging = true;
+                var rect = window.getBoundingClientRect();
+                leaderboardOffset.x = e.clientX - rect.left;
+                leaderboardOffset.y = e.clientY - rect.top;
+                document.addEventListener('mousemove', handleLeaderboardDrag);
+                document.addEventListener('mouseup', stopLeaderboardDrag);
+                e.preventDefault();
+            });
+        }
+
+        function handleLeaderboardDrag(e) {
+            if (leaderboardDragging) {
+                var window = document.getElementById('leaderboardWindow');
+                window.style.left = (e.clientX - leaderboardOffset.x) + 'px';
+                window.style.top = (e.clientY - leaderboardOffset.y) + 'px';
+                window.style.right = 'auto';
+            }
+        }
+
+        function stopLeaderboardDrag() {
+            leaderboardDragging = false;
+            document.removeEventListener('mousemove', handleLeaderboardDrag);
+            document.removeEventListener('mouseup', stopLeaderboardDrag);
+        }
+
+        // Calculate game statistics function
+        function calculateGameStatistics(gameState) {
+            var stats = {
+                lowestScore: Infinity,
+                lowestScorePlayer: '',
+                highestScore: 0,
+                highestScorePlayer: '',
+                averageScore: 0,
+                totalHits: 0,
+                totalPerfectRounds: 0,
+                playersUnderPar: 0,
+                playersAtPar: 0,
+                playersOverPar: 0,
+                totalStrokes: 0
+            };
+            
+            var totalScore = 0;
+            
+            gameState.players.forEach(function(player) {
+                var playerTotal = player.total + (player.tiebreakerTotal || 0);
+                
+                if (playerTotal < stats.lowestScore) {
+                    stats.lowestScore = playerTotal;
+                    stats.lowestScorePlayer = player.name;
+                }
+                
+                if (playerTotal > stats.highestScore) {
+                    stats.highestScore = playerTotal;
+                    stats.highestScorePlayer = player.name;
+                }
+                
+                totalScore += playerTotal;
+                stats.totalHits += player.bullseyes;
+                stats.totalPerfectRounds += player.tripleNickels;
+                stats.totalStrokes += playerTotal;
+                
+                // Golf-specific par comparisons
+                if (playerTotal < gameState.par) {
+                    stats.playersUnderPar++;
+                } else if (playerTotal === gameState.par) {
+                    stats.playersAtPar++;
+                } else {
+                    stats.playersOverPar++;
+                }
+            });
+            
+            stats.averageScore = gameState.players.length > 0 ? 
+                (totalScore / gameState.players.length).toFixed(1) : 0;
+            
+            if (stats.lowestScore === Infinity) {
+                stats.lowestScore = 0;
+                stats.lowestScorePlayer = 'N/A';
+            }
+            
+            return stats;
+        }
+
+        function showStats() {
+            if (gameState.players.length === 0) {
+                alert('No players added yet!');
+                return;
+            }
+            
+            var stats = calculateGameStatistics(gameState);
+            
+            // Create a better modal display for stats
+            var statsModal = document.createElement('div');
+            statsModal.id = 'statsModal';
+            statsModal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.9); display: flex; align-items: center; justify-content: center; z-index: 10001; padding: 20px; box-sizing: border-box;';
+            
+            var statsContainer = document.createElement('div');
+            statsContainer.style.cssText = 'background: linear-gradient(135deg, #1e293b 0%, #10b981 30%, #059669 70%, #1e293b 100%); border: 3px solid #10b981; border-radius: 20px; padding: 30px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; color: #e2e8f0;';
+            
+            var maxPossibleStrokes = gameState.rounds * gameState.throwsPerRound;
+            
+            statsContainer.innerHTML = `
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <h2 style="font-size: 2.5rem; margin-bottom: 10px; color: #e2e8f0;">⛳ Golf Game Statistics ⛳</h2>
+                    <div style="font-size: 1.2rem; color: #10b981; margin-bottom: 20px;">${gameState.gameName || 'Golf Championship'}</div>
+                    <div style="background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; font-size: 0.9rem;">
+                        <div><strong>Players:</strong> ${gameState.players.length}</div>
+                        <div><strong>Distances:</strong> ${gameState.rounds}</div>
+                        <div><strong>Par:</strong> ${gameState.par}</div>
+                        <div><strong>Total Throws:</strong> ${gameState.rounds * gameState.throwsPerRound}</div>
+                        ${gameState.inTiebreaker || gameState.players.some(function(p) { return p.tiebreakerTotal > 0; }) ? '<div><strong>Tiebreaker:</strong> ' + getTiebreakerDisplayName(gameState.tiebreakerMode) + (gameState.inTiebreaker ? ' (Round ' + gameState.tiebreakerRound + ' active)' : ' (Completed)') + '</div>' : ''}
+                    </div>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #10b981; border-radius: 10px; padding: 20px;">
+                        <h3 style="color: #10b981; margin-bottom: 15px; font-size: 1.3rem;">🏆 Scoring Summary</h3>
+                        <div style="space-y: 8px;">
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Best Score:</strong> ${stats.lowestScorePlayer} (${stats.lowestScore} strokes)</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Worst Score:</strong> ${stats.highestScorePlayer} (${stats.highestScore} strokes)</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Average Score:</strong> ${stats.averageScore} strokes</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Total Strokes:</strong> ${stats.totalStrokes}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(15, 23, 42, 0.8); border: 1px solid #10b981; border-radius: 10px; padding: 20px;">
+                        <h3 style="color: #10b981; margin-bottom: 15px; font-size: 1.3rem;">🎯 Performance Stats</h3>
+                        <div style="space-y: 8px;">
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Total Hits:</strong> ${stats.totalHits}</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Perfect Rounds:</strong> ${stats.totalPerfectRounds}</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Under Par:</strong> ${stats.playersUnderPar} players</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>At Par:</strong> ${stats.playersAtPar} players</div>
+                            <div style="margin-bottom: 8px; color: #ffffff;"><strong>Over Par:</strong> ${stats.playersOverPar} players</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: rgba(15, 23, 42, 0.6); border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h3 style="color: #10b981; margin-bottom: 20px; font-size: 1.4rem;">👥 Individual Player Breakdown</h3>
+                    <div style="display: grid; gap: 15px;">
+                        ${gameState.players.map(function(player) {
+                            var totalScore = player.total + (player.tiebreakerTotal || 0);
+                            var performance = totalScore <= gameState.par ? 'Under Par! 🟢' : 
+                                            totalScore === gameState.par ? 'At Par 🟡' : 
+                                            'Over Par 🔴';
+                            var vsParValue = totalScore - gameState.par;
+                            var vsParDisplay = vsParValue === 0 ? 'Even' : 
+                                              vsParValue > 0 ? '+' + vsParValue : vsParValue.toString();
+                            
+                            return `
+                                <div style="background: rgba(51, 65, 85, 0.6); border-radius: 8px; padding: 15px; border-left: 4px solid #10b981;">
+                                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: center;">
+                                        <div>
+                                            <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 8px;">${player.name}</div>
+                                            <div style="color: #cbd5e1; font-size: 0.9rem;">
+                                                <div style="margin-bottom: 4px;"><strong>Performance:</strong> ${performance}</div>
+                                                <div style="margin-bottom: 4px;"><strong>vs Par:</strong> ${vsParDisplay}</div>
+                                                <div style="margin-bottom: 4px;"><strong>Hits:</strong> ${player.bullseyes} | <strong>Perfect Rounds:</strong> ${player.tripleNickels}</div>
+                                                ${player.tiebreakerTotal > 0 ? '<div style="margin-bottom: 4px;"><strong>Tiebreaker:</strong> +' + player.tiebreakerTotal + ' strokes</div>' : ''}
+                                            </div>
+                                        </div>
+                                        <div style="text-align: center; padding: 10px; background: rgba(16, 185, 129, 0.2); border-radius: 8px;">
+                                            <div style="font-size: 1.5rem; font-weight: bold; color: #10b981;">${totalScore}</div>
+                                            <div style="font-size: 0.8rem; color: #cbd5e1;">strokes</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button onclick="closeStatsModal()" style="background: linear-gradient(45deg, #3b82f6, #1d4ed8); border: none; color: white; padding: 12px 30px; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">Close Statistics</button>
+                </div>
+            `;
+            
+            statsModal.appendChild(statsContainer);
+            document.body.appendChild(statsModal);
+            
+            // Add close function
+            window.closeStatsModal = function() {
+                statsModal.remove();
+                delete window.closeStatsModal;
+            };
+            
+            // Close on background click
+            statsModal.addEventListener('click', function(e) {
+                if (e.target === statsModal) {
+                    window.closeStatsModal();
+                }
+            });
+        }
+
+        function exportData() {
+            if (gameState.players.length === 0) {
+                alert('No data to export!');
+                return;
+            }
+            
+            // Create HTML export with tiebreaker support
+            var gameTitle = gameState.gameName ? gameState.gameName : 'Golf Game Results';
+            var date = new Date();
+            var sortedPlayers = gameState.players.slice().sort(function(a, b) { 
+                var aTotal = a.total + (a.tiebreakerTotal || 0);
+                var bTotal = b.total + (b.tiebreakerTotal || 0);
+                return aTotal - bTotal; // Ascending for golf
+            });
+            
+            var htmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golf Results - ${gameTitle}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #e2e8f0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .report-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #1e293b;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 1px solid #334155;
+        }
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #10b981 30%, #059669 70%, #0f172a 100%);
+            color: #e2e8f0;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        .header::before {
+            content: '⛳';
+            font-size: 4rem;
+            position: absolute;
+            top: 20px;
+            left: 40px;
+            opacity: 0.2;
+        }
+        .header::after {
+            content: '🏆';
+            font-size: 4rem;
+            position: absolute;
+            top: 20px;
+            right: 40px;
+            opacity: 0.2;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: #f1f5f9;
+        }
+        .header h2 {
+            font-size: 1.5rem;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+        .game-info {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            text-align: left;
+        }
+        .info-item {
+            background: rgba(16, 185, 129, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #10b981;
+        }
+        .info-label {
+            font-size: 0.9rem;
+            color: #10b981;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e2e8f0;
+        }
+        .tiebreaker-notice {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid #ef4444;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            color: #f87171;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        .content {
+            padding: 40px;
+        }
+        .section {
+            margin-bottom: 50px;
+        }
+        .section-title {
+            font-size: 2rem;
+            color: #10b981;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #10b981;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .podium {
+            display: flex;
+            justify-content: center;
+            align-items: end;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        .podium-card {
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            min-width: 200px;
+            max-width: 250px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            word-wrap: break-word;
+        }
+        .podium-card:hover {
+            transform: translateY(-5px);
+        }
+        .podium-first {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #1e293b;
+            min-height: 200px;
+            border: 3px solid #fcd34d;
+        }
+        .podium-second {
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            color: #1e293b;
+            min-height: 180px;
+            border: 3px solid #f3f4f6;
+        }
+        .podium-third {
+            background: linear-gradient(135deg, #cd7c2f, #b45309);
+            color: #ffffff;
+            min-height: 160px;
+            border: 3px solid #d97706;
+        }
+        .medal {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        .player-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .player-score {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .performance {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        .tiebreaker-text {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #334155;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        th {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: left;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #475569;
+            color: #e2e8f0;
+        }
+        tr:nth-child(even) {
+            background: rgba(15, 23, 42, 0.3);
+        }
+        tr:hover {
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .rank {
+            font-weight: bold;
+            text-align: center;
+            width: 60px;
+        }
+        .rank-1 { color: #fbbf24; }
+        .rank-2 { color: #e5e7eb; }
+        .rank-3 { color: #cd7c2f; }
+        .distance-section {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid #475569;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .distance-title {
+            font-size: 1.3rem;
+            color: #10b981;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .distance-results {
+            display: grid;
+            gap: 15px;
+        }
+        .player-distance-result {
+            background: rgba(51, 65, 85, 0.6);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        .player-distance-name {
+            font-weight: bold;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+        }
+        .throws-breakdown {
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            margin-bottom: 5px;
+        }
+        .distance-total {
+            font-weight: bold;
+            color: #10b981;
+        }
+        .footer {
+            background: #0f172a;
+            color: #94a3b8;
+            text-align: center;
+            padding: 20px;
+            font-size: 0.9rem;
+            border-top: 1px solid #334155;
+        }
+        .export-date {
+            color: #64748b;
+            margin-top: 10px;
+        }
+        .stats-highlight {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: inline-block;
+            margin: 2px;
+            font-size: 0.8rem;
+        }
+        @media print {
+            body { background: #1e293b; padding: 0; }
+            .report-container { box-shadow: none; }
+            .podium-card { break-inside: avoid; }
+            table { break-inside: avoid; }
+        }
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2rem; }
+            .content { padding: 20px; }
+            .game-info { grid-template-columns: 1fr; }
+            .podium { flex-direction: column; align-items: center; }
+            .podium-card { width: 100%; max-width: 300px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="report-container">
+        <div class="header">
+            <h1>⛳ GOLF RESULTS ⛳</h1>
+            <h2>${gameTitle}</h2>
+            <div class="game-info">
+                <div class="info-item">
+                    <div class="info-label">Players</div>
+                    <div class="info-value">${gameState.players.length}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Distances</div>
+                    <div class="info-value">${gameState.rounds}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Par</div>
+                    <div class="info-value">${gameState.par}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Throws per Distance</div>
+                    <div class="info-value">${gameState.throwsPerRound}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Game Date</div>
+                    <div class="info-value">${date.toLocaleDateString()}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Winning Score</div>
+                    <div class="info-value">${sortedPlayers.length > 0 ? sortedPlayers[0].name + ' - ' + (sortedPlayers[0].total + (sortedPlayers[0].tiebreakerTotal || 0)) + ' strokes' : 'N/A'}</div>
+                </div>
+            </div>
+            ${gameState.players.some(function(p) { return p.tiebreakerTotal > 0; }) ? '<div class="tiebreaker-notice">🔥 Tiebreaker was used: ' + getTiebreakerDisplayName(gameState.tiebreakerMode) + '</div>' : ''}
+        </div>
+        
+        <div class="content">`;
+            
+            // Podium Section
+            if (sortedPlayers.length > 0) {
+                htmlContent += `
+            <div class="section">
+                <h2 class="section-title">🏆 Podium Finishers</h2>
+                <div class="podium">`;
+                
+                // Show top 3 in correct podium order: 2nd, 1st, 3rd (for visual hierarchy)
+                var topThree = sortedPlayers.slice(0, Math.min(3, sortedPlayers.length));
+                var podiumOrder = [];
+                
+                // Handle different numbers of players
+                if (topThree.length === 1) {
+                    podiumOrder = [0]; // Just 1st place
+                } else if (topThree.length === 2) {
+                    podiumOrder = [1, 0]; // 2nd, then 1st
+                } else {
+                    podiumOrder = [1, 0, 2]; // 2nd, 1st, 3rd
+                }
+                
+                podiumOrder.forEach(function(playerIndex) {
+                    var player = topThree[playerIndex];
+                    var rank = playerIndex + 1;
+                    var medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : '🥉';
+                    var cardClass = rank === 1 ? 'podium-first' : rank === 2 ? 'podium-second' : 'podium-third';
+                    var totalScore = player.total + (player.tiebreakerTotal || 0);
+                    var performance = totalScore <= gameState.par ? 'Under Par!' : 
+                                    totalScore === gameState.par ? 'At Par!' : 
+                                    'Over Par';
+                    var tiebreakerText = player.tiebreakerTotal > 0 ? '<div class="tiebreaker-text">🔥 +' + player.tiebreakerTotal + ' tiebreaker</div>' : '';
+                    
+                    htmlContent += `
+                    <div class="podium-card ${cardClass}">
+                        <div class="medal">${medal}</div>
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-score">${totalScore} strokes</div>
+                        <div class="performance">${performance}</div>
+                        ${tiebreakerText}
+                        ${player.bullseyes > 0 ? `<div class="stats-highlight">🎯 ${player.bullseyes} hits</div>` : ''}
+                        ${player.tripleNickels > 0 ? `<div class="stats-highlight">🔥 ${player.tripleNickels} perfect</div>` : ''}
+                    </div>`;
+                });
+                
+                htmlContent += `
+                </div>
+            </div>`;
+            }
+            
+            // Full Rankings Table
+            htmlContent += `
+            <div class="section">
+                <h2 class="section-title">📊 Complete Rankings</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="rank">Rank</th>
+                            <th>Player</th>
+                            <th>Regular Score</th>
+                            <th>Tiebreaker</th>
+                            <th>Total Strokes</th>
+                            <th>vs Par</th>
+                            <th>Hits</th>
+                            <th>Perfect Rounds</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+            
+            sortedPlayers.forEach(function(player, index) {
+                var rank = index + 1;
+                var rankClass = rank <= 3 ? 'rank-' + rank : '';
+                var totalScore = player.total + (player.tiebreakerTotal || 0);
+                var vsParValue = totalScore - gameState.par;
+                var vsParDisplay = vsParValue === 0 ? 'Even' : 
+                                  vsParValue > 0 ? '+' + vsParValue : vsParValue.toString();
+                var performance = totalScore <= gameState.par ? 'Under Par' : 
+                                totalScore === gameState.par ? 'At Par' : 
+                                'Over Par';
+                
+                htmlContent += `
+                        <tr>
+                            <td class="rank ${rankClass}">#${rank}</td>
+                            <td><strong>${player.name}</strong></td>
+                            <td>${player.total}</td>
+                            <td>${player.tiebreakerTotal > 0 ? '+' + player.tiebreakerTotal : '-'}</td>
+                            <td><strong>${totalScore}</strong></td>
+                            <td>${vsParDisplay}</td>
+                            <td>${player.bullseyes}</td>
+                            <td>${player.tripleNickels}</td>
+                            <td>${performance}</td>
+                        </tr>`;
+            });
+            
+            htmlContent += `
+                    </tbody>
+                </table>
+            </div>`;
+            
+            // Add tiebreaker section right after complete rankings if applicable
+            if (gameState.players.some(function(p) { return p.tiebreakerTotal > 0; })) {
+                htmlContent += `
+            <div class="section">
+                <h2 class="section-title">🔥 Tiebreaker Results</h2>
+                <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <div style="color: #f87171; font-weight: bold; margin-bottom: 10px;">Tiebreaker Mode: ${getTiebreakerDisplayName(gameState.tiebreakerMode)}</div>
+                    <div style="color: #fca5a5; font-size: 0.9rem; margin-bottom: 15px;">Players were tied and competed in additional rounds to determine final rankings.</div>
+                    <div style="display: grid; gap: 10px;">`;
+                
+                gameState.players.filter(function(p) { return p.tiebreakerTotal > 0; }).forEach(function(player) {
+                    htmlContent += `
+                        <div style="background: rgba(51, 65, 85, 0.6); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: bold;">${player.name}</span>
+                            <span style="color: #f87171;">+${player.tiebreakerTotal} tiebreaker strokes</span>
+                        </div>`;
+                });
+                
+                htmlContent += `
+                    </div>
+                </div>
+            </div>`;
+            }
+            
+            // Distance-by-Distance Breakdown
+            htmlContent += `
+            <div class="section">
+                <h2 class="section-title">🎯 Distance-by-Distance Breakdown</h2>`;
+            
+            for (var distance = 0; distance < gameState.rounds; distance++) {
+                var distanceLabel = gameState.distances[distance] || 'Distance ' + (distance + 1);
+                htmlContent += `
+                <div class="distance-section">
+                    <div class="distance-title">${distanceLabel}</div>
+                    <div class="distance-results">`;
+                
+                gameState.players.forEach(function(player) {
+                    var distanceScores = player.scores[distance] || Array(gameState.throwsPerRound).fill(null);
+                    var distanceTotal = distanceScores.reduce(function(sum, score) { return sum + (score || 0); }, 0);
+                    var throwsText = distanceScores.map(function(score, throwIndex) {
+                        return 'T' + (throwIndex + 1) + ': ' + (score !== null ? (score === 0 ? 'Hit' : 'Miss') : '-');
+                    }).join(', ');
+                    
+                    htmlContent += `
+                        <div class="player-distance-result">
+                            <div class="player-distance-name">${player.name}</div>
+                            <div class="throws-breakdown">${throwsText}</div>
+                            <div class="distance-total">Total: ${distanceTotal} strokes</div>
+                        </div>`;
+                });
+                
+                htmlContent += `
+                    </div>
+                </div>`;
+            }
+            
+            htmlContent += `
+            </div>
+        </div>
+        
+        <div class="footer">
+            <div>Generated by Triple Nickel Golf Scoring System</div>
+            <div class="export-date">Exported on ${date.toLocaleDateString()} at ${date.toLocaleTimeString()}</div>
+        </div>
+    </div>
+</body>
+</html>`;
+            
+            // Create and download the HTML file
+            var filename = 'golf-results-' + (gameState.gameName ? gameState.gameName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' : '') + date.toISOString().split('T')[0] + '.html';
+            downloadTextFile(htmlContent, filename);
+            showTimedNotification('📁 Beautiful golf results exported as HTML!', 3000);
+        }
+
+        function downloadTextFile(content, filename) {
+            var mimeType = filename.endsWith('.html') ? 'text/html' : 'text/plain';
+            var blob = new Blob([content], { type: mimeType });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function toggleSettings() {
+            settingsVisible = !settingsVisible;
+            var panel = document.getElementById('settingsPanel');
+            if (settingsVisible) {
+                panel.style.display = 'block';
+                updateSettingsPanel();
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function updateSettingsPanel() {
+            var gameStarted = hasGameStarted();
+            
+            document.getElementById('gameNameInput').value = gameState.gameName || '';
+            document.getElementById('numDistancesSelect').value = gameState.rounds;
+            document.getElementById('distancePresetSelect').value = gameState.distancePreset || 'amateur';
+            document.getElementById('parInput').value = gameState.par || 7;
+            document.getElementById('tiebreakerSelect').value = gameState.tiebreakerMode || 'sudden-death';
+            
+            updateCustomDistanceInputs();
+            updateDistancePreset();
+            
+            var warning = document.getElementById('gameStartedWarning');
+            if (warning) {
+                warning.style.display = gameStarted ? 'block' : 'none';
+            }
+        }
+
+        function updateDistancePreset() {
+            var preset = document.getElementById('distancePresetSelect').value;
+            var customGroup = document.getElementById('customDistanceGroup');
+            
+            if (customGroup) {
+                customGroup.style.display = preset === 'custom' ? 'block' : 'none';
+            }
+            
+            if (!hasGameStarted() && preset !== 'custom') {
+                gameState.distances = getDefaultDistances(preset, gameState.rounds);
+                gameState.distancePreset = preset;
+                
+                updateCustomDistanceInputs();
+                renderPlayers();
+                updateGameDisplay();
+                showTimedNotification('📏 Distance preset updated!', 2000);
+            }
+        }
+
+        function applySettings() {
+            if (hasGameStarted()) {
+                alert('Cannot change settings after scoring has begun! Reset the game to change settings.');
+                return;
+            }
+            
+            var newGameName = document.getElementById('gameNameInput').value.trim();
+            var newDistancePreset = document.getElementById('distancePresetSelect').value;
+            var newPar = parseInt(document.getElementById('parInput').value);
+            var newTiebreakerMode = document.getElementById('tiebreakerSelect').value;
+            
+            gameState.gameName = newGameName;
+            gameState.par = newPar;
+            gameState.tiebreakerMode = newTiebreakerMode;
+            
+            if (newDistancePreset === 'custom') {
+                var customDistances = [];
+                for (var i = 1; i <= gameState.rounds; i++) {
+                    var input = document.getElementById('distance' + i);
+                    if (input && input.value.trim()) {
+                        customDistances.push(input.value.trim());
+                    } else {
+                        customDistances.push('Distance ' + i);
+                    }
+                }
+                gameState.distances = customDistances;
+                gameState.distancePreset = 'custom';
+            } else {
+                gameState.distances = getDefaultDistances(newDistancePreset, gameState.rounds);
+                gameState.distancePreset = newDistancePreset;
+            }
+            
+            updateGameDisplay();
+            renderPlayers();
+            showTimedNotification('⚙️ Golf settings applied successfully!', 2000);
+        }
+
+        function resetGame() {
+            if (confirm('Reset the golf game? All scores will be lost.')) {
+                location.reload();
+            }
+        }
+
+        function showTimedNotification(message, duration) {
+            var notification = document.createElement('div');
+            notification.style.cssText = 'position: fixed; top: 20%; right: 20px; background: linear-gradient(45deg, #f59e0b, #d97706); color: white; padding: 15px 25px; border-radius: 12px; font-size: 1rem; font-weight: bold; z-index: 10000; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3); border: 2px solid #fbbf24; max-width: 300px;';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(function() {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, duration);
+        }
+
+        // Custom sidebar toggle function for game-interface
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const gameInterface = document.querySelector('.game-interface');
+            const toggle = document.getElementById('sidebarToggle');
+            
+            if (sidebar && gameInterface && toggle) {
+                sidebar.classList.toggle('collapsed');
+                gameInterface.classList.toggle('expanded');
+                
+                // Update toggle button text
+                if (sidebar.classList.contains('collapsed')) {
+                    toggle.textContent = '☰';
+                } else {
+                    toggle.textContent = '✕';
+                }
+            }
+        }
+
+        function initializeCommonFeatures() {
+            // Placeholder for shared initialization
+        }
+
+        // Initialize the game when page loads
+        window.addEventListener('load', function() {
+            initializeSidebar(); // Initialize shared sidebar
+            initializeCommonFeatures();
+            initializeGame();
+        });
+    </script>
+</body>
+</html>
