@@ -6,6 +6,9 @@
     <title>Resources - Triple Nickel</title>
     <link rel="stylesheet" href="shared-sidebar.css">
     <script src="shared-functions.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -16,68 +19,66 @@
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             padding: clamp(10px, 2vw, 20px);
             overflow-x: hidden;
+            width: 100%;
+            max-width: 100vw;
         }
 
-        .container {
-            max-width: 100vw;
+        .main-container {
+            max-width: 100%;
             margin: 0;
             min-height: 100vh;
             display: flex;
             flex-direction: row;
+            overflow-x: hidden;
         }
 
         /* Page-specific styles for Resources */
 
         /* Nav button and sidebar header styles handled by shared-sidebar.css */
 
-        .back-button {
-            background: hsl(215, 19%, 35%);
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 40px;
-        }
-
-        .back-button:hover {
-            background: #64748b;
-            text-decoration: none;
-            color: white;
-        }
-
         .header {
-            text-align: center;
-            margin-bottom: 60px;
+            text-align: left;
+            margin-bottom: clamp(30px, 5vh, 50px);
+            max-width: 700px;
         }
 
         .title {
-            font-size: 4rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: clamp(15px, 2vh, 25px);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+
+        .title-icon {
+            display: inline-block;
+            margin-right: 12px;
+        }
+
+        .title-text {
+            background: linear-gradient(135deg, #fff 0%, #e2e8f0 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-accent {
+            background: linear-gradient(135deg, #10b981 0%, #34d399 50%, #6ee7b7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .subtitle {
-            font-size: 1.5rem;
-            color: #cbd5e1;
-            margin-bottom: 10px;
-        }
-
-        .description {
-            font-size: 1.1rem;
+            font-size: clamp(1rem, 2vw, 1.2rem);
             color: #94a3b8;
+            line-height: 1.7;
             max-width: 600px;
-            margin: 0 auto;
-            line-height: 1.6;
         }
 
         .emoji {
@@ -92,46 +93,61 @@
             display: inline-block;
         }
 
-
-
         .resources-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 40px;
-            margin-top: 40px;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
+            gap: clamp(20px, 3vw, 40px);
+            max-width: min(1400px, 100%);
+            width: 100%;
         }
 
         .resource-card {
-            background: rgba(15, 23, 42, 0.8);
-            border: 2px solid #475569;
-            border-radius: 20px;
-            padding: 30px;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: clamp(20px, 3vh, 32px);
             transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             text-decoration: none;
             color: white;
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            min-height: 320px;
+            backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            box-shadow: 
+                0 4px 24px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
         }
 
         .resource-card::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            transition: left 0.6s ease;
-            z-index: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
 
-        .resource-card:hover::before {
-            left: 100%;
+        .resource-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(16, 185, 129, 0.05) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .resource-card:hover::before,
+        .resource-card:hover::after {
+            opacity: 1;
         }
 
         .resource-card > * {
@@ -140,61 +156,97 @@
         }
 
         .resource-card:hover {
-            border-color: #10b981;
-            box-shadow: 0 15px 30px rgba(16, 185, 129, 0.3);
+            transform: translateY(-8px);
+            box-shadow: 
+                0 20px 40px rgba(16, 185, 129, 0.15),
+                0 0 0 1px rgba(16, 185, 129, 0.2) inset;
+            border-color: rgba(16, 185, 129, 0.3);
         }
 
-        .resource-card::before {
-            background: linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.1), transparent);
+        .resource-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
         }
 
-        .resource-icon {
-            font-size: 3rem;
-            text-align: center;
-            margin-bottom: 15px;
+        .resource-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.3));
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .resource-title-section {
+            flex: 1;
+            min-width: 0;
         }
 
         .resource-title {
-            font-size: 2.2rem;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 20px;
-            background: linear-gradient(45deg, #10b981, #34d399);
+            font-size: clamp(1.2rem, 2.5vw, 1.5rem);
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.01em;
+            background: linear-gradient(135deg, #10b981, #34d399);
             background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
+        .resource-tagline {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
         .resource-description {
-            font-size: 1rem;
-            color: #e2e8f0;
+            font-size: 0.9rem;
+            color: #94a3b8;
             line-height: 1.6;
-            margin-bottom: 25px;
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-            background: rgba(16, 185, 129, 0.1);
+            margin-bottom: 20px;
+            flex: 1;
         }
 
         .resource-button {
-            background: linear-gradient(45deg, #10b981, #059669);
+            background: linear-gradient(135deg, #10b981, #059669);
             border: none;
             color: white;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            padding: 14px 24px;
+            border-radius: 12px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.08em;
             width: 100%;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .resource-button::after {
+            content: '→';
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
         }
 
         .resource-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+
+        .resource-button:hover::after {
+            transform: translateX(4px);
         }
 
         .modal {
@@ -321,29 +373,90 @@
         }
 
         @media (max-width: 768px) {
+            body {
+                padding: 0;
+                width: 100vw;
+                max-width: 100vw;
+            }
+            
+            .main-container {
+                flex-direction: column;
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: hidden;
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 20px;
+                width: 100%;
+                max-width: 100%;
+                overflow-x: hidden;
+                box-sizing: border-box;
+            }
+            
+            .main-content.expanded {
+                margin-left: 0;
+            }
+            
+            .header {
+                text-align: center;
+                margin-bottom: 24px;
+                max-width: 100%;
+                padding: 0;
+            }
+            
             .title {
-                font-size: 2.5rem;
+                font-size: clamp(1.8rem, 8vw, 2.5rem);
+            }
+            
+            .subtitle {
+                margin-left: auto;
+                margin-right: auto;
+                padding: 0 10px;
             }
             
             .resources-grid {
-                grid-template-columns: 1fr;
-                gap: 25px;
+                gap: 16px;
+                width: 100%;
+                max-width: 100%;
             }
-
+            
             .resource-card {
-                padding: 25px;
-                min-height: 260px;
+                padding: 20px;
+                width: 100%;
             }
-
+            
+            .resource-header {
+                gap: 12px;
+                margin-bottom: 12px;
+            }
+            
+            .resource-icon-wrapper {
+                width: 48px;
+                height: 48px;
+                font-size: 1.4rem;
+                flex-shrink: 0;
+            }
+            
+            .resource-title-section {
+                min-width: 0;
+                overflow: hidden;
+            }
+            
             .resource-title {
-                font-size: 1.8rem;
+                font-size: clamp(1rem, 4vw, 1.3rem);
             }
-
-            .resource-icon {
-                font-size: 2.5rem;
+            
+            .resource-description {
+                font-size: 0.85rem;
+                margin-bottom: 16px;
             }
-
-
+            
+            .resource-button {
+                padding: 12px 20px;
+                font-size: 0.85rem;
+            }
 
             .modal-content {
                 width: 95%;
@@ -356,152 +469,96 @@
             }
         }
 
-        /* Medium screens and smaller */
-        @media (max-width: 1024px) {
-            .sidebar {
-                width: clamp(200px, 25vw, 250px);
-            }
-            
-            .sidebar-toggle {
-                left: clamp(200px, 25vw, 250px);
-            }
-            
-            .main-content {
-                margin-left: clamp(200px, 25vw, 250px);
-            }
-            
-            .container {
-                justify-content: flex-start;
-                padding-top: clamp(20px, 3vh, 40px);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .resources-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .title {
-                font-size: 2.5rem;
-            }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: 2px solid #475569;
-                flex-direction: row;
-                flex-wrap: wrap;
-                justify-content: center;
-                gap: 10px;
-                padding: 15px;
-                transform: none !important;
-            }
-            
-            .sidebar.collapsed {
-                transform: none !important;
-            }
-            
-            .sidebar-toggle {
-                display: none;
-            }
-            
-            .sidebar-header {
-                width: 100%;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
-            }
-            
-            .nav-button {
-                flex: 1;
-                min-width: 120px;
-                max-width: 150px;
-                padding: 12px;
-                font-size: 0.9rem;
-            }
-            
-            .main-content {
-                margin-left: 0;
-                padding: 20px;
-            }
-            
-            .main-content.expanded {
-                margin-left: 0;
-            }
-        }
-
         @media (max-width: 480px) {
+            .main-content {
+                padding: 12px;
+            }
+            
             .title {
-                font-size: 2rem;
+                font-size: 1.8rem;
             }
             
             .subtitle {
-                font-size: 1.2rem;
+                font-size: 0.85rem;
             }
             
             .resource-card {
-                padding: 20px;
+                padding: 16px;
+                border-radius: 16px;
+            }
+            
+            .resource-icon-wrapper {
+                width: 44px;
+                height: 44px;
+                font-size: 1.2rem;
+                border-radius: 12px;
+            }
+            
+            .resource-title {
+                font-size: 1.1rem;
+            }
+            
+            .resource-tagline {
+                font-size: 0.7rem;
             }
         }
 
-        /* Height-based media queries for better vertical scaling */
-        @media (max-height: 800px) {
-            .container {
-                justify-content: flex-start;
-                padding-top: 20px;
+        /* Accessibility: Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
             }
             
-            .header {
-                margin-bottom: 30px;
-            }
-        }
-
-        @media (max-height: 600px) {
-            .title {
-                font-size: clamp(2rem, 6vw, 3rem);
+            .resource-card:hover {
+                transform: none;
             }
             
-            .subtitle {
-                font-size: clamp(1rem, 2.5vw, 1.2rem);
+            .resource-button:hover::after {
+                transform: none;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Shared Navigation will be loaded here -->
-        <div id="shared-navigation"></div>
-        
+    <!-- Shared Navigation -->
+    <div id="shared-navigation"></div>
+    
+    <div class="main-container">
         <div class="main-content">
             <div class="header">
-            <h1 class="title">
-                <span class="emoji">📚</span>
-                <span style="background: linear-gradient(45deg, #10b981, #34d399, #10b981); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;"> Resources </span>
-                <span class="emoji">📚</span>
-            </h1>
-            <p class="subtitle">Everything You Need for Competition Success</p>
-            <p class="description">
-                Comprehensive guides, tools, and references for mastering knife throwing competitions. 
-                From score sheets to tournament management, we've got you covered.
-            </p>
-        </div>
-
-
-
-        <div class="resources-grid">
-            <div class="resource-card">
-                <div class="resource-icon"><span class="emoji">📄</span></div>
-                <h3 class="resource-title">Score Sheet Generator</h3>
-                <p class="resource-description">
-                    Generate custom score sheets for your knife throwing games and tournaments. Choose from various formats, customize max points per throw, and set your own distances.
+                <h1 class="title">
+                    <span class="title-accent">Resources</span>
+                </h1>
+                <p class="subtitle">
+                    Comprehensive guides, tools, and references for mastering knife throwing competitions. From score sheets to tournament management, we've got you covered.
                 </p>
-                <button class="resource-button" onclick="openModal('scoreSheetModal')">Generate Score Sheet</button>
             </div>
 
+            <div class="resources-grid">
+                <div class="resource-card">
+                    <div class="resource-header">
+                        <div class="resource-icon-wrapper"><span class="emoji">📄</span></div>
+                        <div class="resource-title-section">
+                            <h3 class="resource-title">Score Sheet Generator</h3>
+                            <span class="resource-tagline">Custom printable sheets</span>
+                        </div>
+                    </div>
+                    <p class="resource-description">
+                        Generate custom score sheets for your knife throwing games and tournaments. Choose from various formats, customize max points per throw, and set your own distances.
+                    </p>
+                    <button class="resource-button" onclick="openModal('scoreSheetModal')">Generate</button>
+                </div>
+
             <div class="resource-card">
-                <div class="resource-icon"><span class="emoji">📖</span></div>
-                <h3 class="resource-title">Game Rules</h3>
+                <div class="resource-header">
+                    <div class="resource-icon-wrapper"><span class="emoji">📖</span></div>
+                    <div class="resource-title-section">
+                        <h3 class="resource-title">Game Rules</h3>
+                        <span class="resource-tagline">Official rule reference</span>
+                    </div>
+                </div>
                 <p class="resource-description">
                     Complete rules and explanations for all game modes including Custom Games, Quick Draw Tournaments, Walk Back, and more.
                 </p>
@@ -509,17 +566,27 @@
             </div>
 
             <div class="resource-card">
-                <div class="resource-icon"><span class="emoji">🎯</span></div>
-                <h3 class="resource-title">How to Use the App</h3>
+                <div class="resource-header">
+                    <div class="resource-icon-wrapper"><span class="emoji">🎯</span></div>
+                    <div class="resource-title-section">
+                        <h3 class="resource-title">How to Use</h3>
+                        <span class="resource-tagline">Step-by-step guides</span>
+                    </div>
+                </div>
                 <p class="resource-description">
-                    Step-by-step guides on how to use all features of the dart scoring app, from basic scoring to advanced tournament management.
+                    Step-by-step guides on how to use all features of the app, from basic scoring to advanced tournament management.
                 </p>
                 <button class="resource-button" onclick="openModal('howToModal')">View Guide</button>
             </div>
 
             <div class="resource-card">
-                <div class="resource-icon"><span class="emoji">🏆</span></div>
-                <h3 class="resource-title">Tournament Formats</h3>
+                <div class="resource-header">
+                    <div class="resource-icon-wrapper"><span class="emoji">🏆</span></div>
+                    <div class="resource-title-section">
+                        <h3 class="resource-title">Tournaments</h3>
+                        <span class="resource-tagline">Format explanations</span>
+                    </div>
+                </div>
                 <p class="resource-description">
                     Learn about different tournament formats including Single Elimination, Double Elimination, Round Robin, and Conference style.
                 </p>
@@ -527,8 +594,13 @@
             </div>
 
             <div class="resource-card">
-                <div class="resource-icon"><span class="emoji">📝</span></div>
-                <h3 class="resource-title">Change Log</h3>
+                <div class="resource-header">
+                    <div class="resource-icon-wrapper"><span class="emoji">📝</span></div>
+                    <div class="resource-title-section">
+                        <h3 class="resource-title">Change Log</h3>
+                        <span class="resource-tagline">Updates & bug fixes</span>
+                    </div>
+                </div>
                 <p class="resource-description">
                     View recent program updates, known issues, and report bugs. Stay informed about the latest improvements and fixes.
                 </p>
@@ -536,10 +608,15 @@
             </div>
 
             <div class="resource-card">
-                <div class="resource-icon"><span class="emoji">📋</span></div>
-                <h3 class="resource-title">Terms & Conditions</h3>
+                <div class="resource-header">
+                    <div class="resource-icon-wrapper"><span class="emoji">📋</span></div>
+                    <div class="resource-title-section">
+                        <h3 class="resource-title">Terms & Conditions</h3>
+                        <span class="resource-tagline">Legal information</span>
+                    </div>
+                </div>
                 <p class="resource-description">
-                    Read the complete terms and conditions for using Triple Nickel software, including licensing, distribution rights, and usage restrictions.
+                    Read the complete terms and conditions for using Triple Nickel software, including licensing and usage restrictions.
                 </p>
                 <button class="resource-button" onclick="openModal('termsModal')">View Terms</button>
             </div>
