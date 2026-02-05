@@ -18,7 +18,7 @@
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             min-height: 100vh;
             padding: clamp(10px, 2vw, 20px);
             overflow-x: hidden;
@@ -37,12 +37,12 @@
         .content-wrapper {
             flex: 1;
             margin-left: clamp(250px, 20vw, 300px);
-            padding: clamp(20px, 3vw, 40px);
+            padding: clamp(30px, 4vw, 60px);
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
             min-height: 100vh;
-            padding-top: clamp(40px, 6vh, 60px);
+            padding-top: clamp(30px, 4vh, 50px);
             transition: margin-left 0.3s ease;
         }
 
@@ -52,121 +52,108 @@
 
         .top-section {
             flex-shrink: 0;
-            margin-bottom: 2vh;
-        }
-
-        .back-button {
-            background: #475569;
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: clamp(30px, 4vh, 40px);
-        }
-
-        .back-button:hover {
-            background: #64748b;
-            text-decoration: none;
-            color: white;
+            margin-bottom: clamp(30px, 4vh, 50px);
         }
 
         .header {
-            text-align: center;
-            margin-bottom: clamp(30px, 5vh, 50px);
+            text-align: left;
+            max-width: 700px;
         }
 
         .title {
-            font-size: clamp(2rem, 5vw, 3rem);
-            font-weight: 700;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
             font-family: 'Inter', sans-serif;
-            margin-bottom: clamp(10px, 2vh, 20px);
-            position: relative;
-            z-index: 10;
+            margin-bottom: clamp(15px, 2vh, 25px);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
         }
 
         .title-text {
-            background: linear-gradient(45deg, #3b82f6, #60a5fa);
+            background: linear-gradient(135deg, #fff 0%, #e2e8f0 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .title-accent {
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 50%, #93c5fd 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
 
         .subtitle {
-            font-size: clamp(1.1rem, 2.5vw, 1.3rem);
-            color: #cbd5e1;
-            line-height: 1.6;
-            margin-bottom: clamp(15px, 2vh, 25px);
-        }
-
-        .description {
-            font-size: clamp(0.9rem, 1.8vw, 1.1rem);
+            font-size: clamp(1rem, 2vw, 1.2rem);
             color: #94a3b8;
-            max-width: min(800px, 90vw);
-            margin: 0 auto;
-            line-height: 1.6;
+            line-height: 1.7;
+            max-width: 600px;
         }
 
         .content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 0;
-            overflow: hidden;
-            padding-top: 1vh; /* Add space for hover movement */
+            overflow: visible;
         }
 
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 2vw;
-            height: 100%;
-            max-height: 65vh;
-            margin: 0 auto;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+            gap: clamp(20px, 3vw, 40px);
             width: 100%;
-            max-width: 85vw;
-            align-items: stretch;
+            max-width: 1200px;
         }
 
         .game-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 2px solid rgba(59, 130, 246, 0.1);
-            border-radius: 20px;
-            padding: clamp(20px, 3vh, 30px);
-            transition: all 0.3s ease;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: clamp(24px, 3vh, 36px);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
             text-decoration: none;
             color: white;
             position: relative;
             overflow: hidden;
-            backdrop-filter: blur(10px);
-            min-height: 0;
-            max-height: 100%;
+            backdrop-filter: blur(20px);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 
+                0 4px 24px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
         }
 
         .game-card::before {
             content: '';
             position: absolute;
             top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-            transition: left 0.5s ease;
-            z-index: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
 
-        .game-card:hover::before {
-            left: 100%;
+        .game-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+        }
+
+        .game-card:hover::before,
+        .game-card:hover::after {
+            opacity: 1;
         }
 
         .game-card > * {
@@ -175,298 +162,310 @@
         }
 
         .game-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-            border-color: rgba(59, 130, 246, 0.3);
+            transform: translateY(-8px);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            border-color: rgba(255, 255, 255, 0.15);
             text-decoration: none;
             color: white;
         }
 
-        .game-icon {
-            font-size: clamp(2rem, 5vw, 3rem);
-            text-align: center;
-            margin-bottom: 1vh;
+        .game-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .game-icon-wrapper {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
             flex-shrink: 0;
+        }
+
+        .game-title-section {
+            flex: 1;
         }
 
         .game-title {
-            font-size: clamp(1.5rem, 3.5vw, 2.2rem);
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 1vh;
-            flex-shrink: 0;
+            font-size: clamp(1.4rem, 3vw, 1.8rem);
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: -0.01em;
+        }
+
+        .game-tagline {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-weight: 500;
         }
 
         .game-stats {
-            background: rgba(15, 23, 42, 0.4);
-            border-radius: 15px;
-            padding: clamp(15px, 2vh, 20px);
-            margin-bottom: clamp(15px, 2vh, 20px);
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            padding: clamp(16px, 2vh, 20px);
+            margin-bottom: 20px;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: clamp(8px, 1vh, 12px);
-            flex-shrink: 0;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .game-stat {
             display: flex;
-            justify-content: space-between;
-            font-size: clamp(0.7rem, 1.4vw, 0.9rem);
-            align-items: center;
+            flex-direction: column;
+            gap: 4px;
         }
 
-        .game-stat span:first-child {
-            color: #cbd5e1;
-            font-weight: 500;
+        .game-stat .stat-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .stat-value {
-            font-weight: bold;
-            padding: 0.2vh 0.8vw;
-            border-radius: 0.5vh;
-            font-size: clamp(0.6rem, 1.2vw, 0.8rem);
-            white-space: nowrap;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: inline-block;
+            width: fit-content;
         }
 
-        .stat-value.red { background: #dc2626; color: white; }
-        .stat-value.orange { background: #ea580c; color: white; }
-        .stat-value.yellow { background: #ca8a04; color: white; }
-        .stat-value.green { background: #16a34a; color: white; }
-        .stat-value.purple { background: #9333ea; color: white; }
+        .stat-value.red { background: rgba(220, 38, 38, 0.2); color: #fca5a5; border: 1px solid rgba(220, 38, 38, 0.3); }
+        .stat-value.orange { background: rgba(234, 88, 12, 0.2); color: #fdba74; border: 1px solid rgba(234, 88, 12, 0.3); }
+        .stat-value.yellow { background: rgba(202, 138, 4, 0.2); color: #fde047; border: 1px solid rgba(202, 138, 4, 0.3); }
+        .stat-value.green { background: rgba(22, 163, 74, 0.2); color: #86efac; border: 1px solid rgba(22, 163, 74, 0.3); }
+        .stat-value.purple { background: rgba(147, 51, 234, 0.2); color: #c4b5fd; border: 1px solid rgba(147, 51, 234, 0.3); }
 
         .game-description {
-            font-size: clamp(0.7rem, 1.3vw, 0.9rem);
-            color: #e2e8f0;
-            line-height: 1.3;
-            margin-bottom: 1vh;
-            padding: 0.8vh 1vw;
-            border-radius: 1vh;
-            text-align: center;
+            font-size: 0.95rem;
+            color: #94a3b8;
+            line-height: 1.6;
+            margin-bottom: 24px;
             flex: 1;
-            display: flex;
-            align-items: center;
-            min-height: 0;
         }
 
         .start-button {
-            background: linear-gradient(45deg, #3b82f6, #2563eb);
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
             border: none;
             color: white;
-            padding: clamp(12px, 1.5vh, 16px) clamp(20px, 2vw, 30px);
-            border-radius: 10px;
-            font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 0.95rem;
             font-weight: 600;
             cursor: pointer;
             text-align: center;
             transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
-            flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            letter-spacing: 0.08em;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .start-button::after {
+            content: '→';
+            font-size: 1.1rem;
+            transition: transform 0.3s ease;
         }
 
         .start-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-            background: linear-gradient(45deg, #2563eb, #1d4ed8);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        .start-button:hover::after {
+            transform: translateX(4px);
         }
 
         /* Golf Game Styling */
-        .classic-golf { 
-            border-color: rgba(34, 197, 94, 0.3); 
+        .classic-golf .game-icon-wrapper { 
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.3));
+            border: 1px solid rgba(34, 197, 94, 0.3);
         }
         .classic-golf:hover { 
-            border-color: rgba(34, 197, 94, 0.5); 
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.2); 
+            border-color: rgba(34, 197, 94, 0.3); 
+            box-shadow: 
+                0 20px 40px rgba(34, 197, 94, 0.15),
+                0 0 0 1px rgba(34, 197, 94, 0.1) inset;
         }
         .classic-golf .game-title { 
-            background: linear-gradient(45deg, #22c55e, #16a34a); 
+            background: linear-gradient(135deg, #22c55e, #4ade80); 
             background-clip: text; 
             -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent; 
         }
-        .classic-golf .game-description { 
-            background: rgba(34, 197, 94, 0.05); 
-        }
         .classic-golf .start-button { 
-            background: linear-gradient(45deg, #22c55e, #16a34a); 
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
         }
         .classic-golf .start-button:hover { 
-            background: linear-gradient(45deg, #16a34a, #15803d);
-            box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4); 
+            box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4); 
         }
 
         /* Custom Game Styling */
-        .custom-game { 
-            border-color: rgba(139, 92, 246, 0.3); 
+        .custom-game .game-icon-wrapper { 
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(124, 58, 237, 0.3));
+            border: 1px solid rgba(139, 92, 246, 0.3);
         }
         .custom-game:hover { 
-            border-color: rgba(139, 92, 246, 0.5); 
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2); 
+            border-color: rgba(139, 92, 246, 0.3); 
+            box-shadow: 
+                0 20px 40px rgba(139, 92, 246, 0.15),
+                0 0 0 1px rgba(139, 92, 246, 0.1) inset;
         }
         .custom-game .game-title { 
-            background: linear-gradient(45deg, #8b5cf6, #a78bfa); 
+            background: linear-gradient(135deg, #8b5cf6, #a78bfa); 
             background-clip: text; 
             -webkit-background-clip: text; 
             -webkit-text-fill-color: transparent; 
         }
-        .custom-game .game-description { 
-            background: rgba(139, 92, 246, 0.05); 
-        }
         .custom-game .start-button { 
-            background: linear-gradient(45deg, #8b5cf6, #7c3aed); 
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         }
         .custom-game .start-button:hover { 
-            background: linear-gradient(45deg, #7c3aed, #6d28d9);
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4); 
+            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4); 
         }
 
 
 
         /* Responsive overrides for shared styles */
 
-        /* Mobile Portrait */
-        @media (max-width: 768px) and (orientation: portrait) {
-            .content {
-                padding-top: 0.5vh;
+        /* Tablet and smaller */
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                padding: clamp(20px, 3vw, 40px);
             }
             
             .games-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5vh;
-                max-height: 70vh;
-            }
-            
-            .game-card {
-                padding: 1.5vh 2vw;
-                max-height: 32vh;
-            }
-            
-            .game-stats {
-                grid-template-columns: 1fr;
-                gap: 0.3vh;
-                padding: 0.8vh 1vw;
-            }
-            
-            .game-icon {
-                font-size: clamp(1.5rem, 8vw, 2.5rem);
-            }
-            
-            .game-description {
-                font-size: clamp(0.6rem, 1.2vw, 0.8rem);
-                line-height: 1.2;
+                gap: 20px;
             }
         }
 
-        /* Mobile Landscape */
-        @media (max-width: 768px) and (orientation: landscape) {
-            .main-container {
-                padding: 1vh 1vw;
-            }
-            
-            .content {
-                padding-top: 0.5vh;
-            }
-            
-            .games-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 1.5vw;
-                max-height: 55vh;
-            }
-            
-            .game-card {
-                padding: 1vh 1.2vw;
-            }
-            
-            .top-section {
-                margin-bottom: 1vh;
+        /* Mobile Portrait */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                margin-left: 0;
+                padding: 20px;
+                padding-top: 20px;
             }
             
             .header {
-                margin-bottom: 1vh;
+                text-align: center;
+            }
+            
+            .subtitle {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .top-section {
+                margin-bottom: 24px;
+            }
+            
+            .title {
+                font-size: clamp(2rem, 8vw, 2.5rem);
+            }
+            
+            .games-grid {
+                gap: 16px;
+            }
+            
+            .game-card {
+                padding: 20px;
+            }
+            
+            .game-header {
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+            
+            .game-icon-wrapper {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5rem;
             }
             
             .game-stats {
-                padding: 0.8vh 1vw;
-                gap: 0.3vh;
+                padding: 12px;
+                gap: 10px;
             }
             
             .game-description {
-                font-size: clamp(0.6rem, 1.1vw, 0.8rem);
+                font-size: 0.9rem;
+                margin-bottom: 20px;
+            }
+            
+            .start-button {
+                padding: 12px 20px;
+                font-size: 0.85rem;
             }
         }
 
         /* Very small screens */
         @media (max-width: 480px) {
-            .main-container {
-                padding: 1vh 1vw;
-                margin: 0.5vh 0.5vw;
-                height: calc(100vh - 1vh);
-                width: calc(100vw - 1vw);
+            body {
+                padding: 8px;
             }
             
-            .content {
-                padding-top: 0.5vh;
+            .content-wrapper {
+                padding: 16px;
             }
             
-            .games-grid {
-                grid-template-columns: 1fr;
-                gap: 1vh;
-                max-height: 58vh; /* Adjusted for very small screens */
+            .title {
+                font-size: 1.8rem;
+            }
+            
+            .subtitle {
+                font-size: 0.9rem;
             }
             
             .game-card {
-                padding: 1.5vh 2vw;
+                padding: 16px;
+                border-radius: 16px;
             }
             
             .game-stats {
-                grid-template-columns: 1fr;
-                padding: 1vh 1vw;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                padding: 10px;
+            }
+            
+            .stat-value {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+            
+            .game-stat .stat-label {
+                font-size: 0.65rem;
             }
         }
 
         /* Ultra-wide screens */
-        @media (min-width: 1400px) {
+        @media (min-width: 1600px) {
+            .content-wrapper {
+                padding: 60px 80px;
+            }
+            
             .games-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 3vw;
-                max-height: 60vh;
-                max-width: 70vw;
+                max-width: 1400px;
+                gap: 40px;
             }
             
             .game-card {
-                padding: 2vh 2vw;
-            }
-        }
-
-        /* Extreme aspect ratios */
-        @media (max-aspect-ratio: 1/2) {
-            .content {
-                padding-top: 0.5vh;
-            }
-            
-            .games-grid {
-                grid-template-columns: 1fr;
-                max-height: 68vh; /* Adjusted for extreme tall screens */
-            }
-            
-            .top-section {
-                margin-bottom: 1vh;
-            }
-            
-            .game-stats {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        @media (min-aspect-ratio: 3/1) {
-            .main-container {
-                padding: 1vh 2vw;
-            }
-            
-            .games-grid {
-                max-height: 58vh; /* Adjusted for extreme wide screens */
+                padding: 40px;
             }
         }
 
@@ -477,6 +476,14 @@
                 animation-iteration-count: 1 !important;
                 transition-duration: 0.01ms !important;
             }
+            
+            .game-card:hover {
+                transform: none;
+            }
+            
+            .start-button:hover::after {
+                transform: none;
+            }
         }
 
         /* Print styles */
@@ -486,15 +493,21 @@
                 color: black;
             }
             
-            .main-container {
-                border: 2px solid black;
-                box-shadow: none;
+            .game-card {
+                border: 1px solid #ccc;
                 background: white;
+                box-shadow: none;
+                break-inside: avoid;
             }
             
-            .game-card {
-                border: 1px solid black;
-                background: white;
+            .game-title {
+                -webkit-text-fill-color: initial;
+                background: none;
+                color: black;
+            }
+            
+            .start-button {
+                display: none;
             }
         }
     </style>
@@ -506,74 +519,83 @@
     <div class="main-container">
         <div class="content-wrapper main-content" id="contentWrapper">
             <div class="top-section">
-            <div class="header">
-                <h1 class="title">🎯 <span class="title-text">Side Games</span> 🎯</h1>
-                <p class="subtitle">Classic Knife Throwing Formats</p>
-                <p class="description">
-                    Traditional knife throwing games and custom formats perfect for practice, casual play, and competition. 
-                    These time-tested formats and flexible custom options offer something for every skill level.
-                </p>
+                <div class="header">
+                    <h1 class="title">
+                        <span class="title-text">Side</span> <span class="title-accent">Games</span>
+                    </h1>
+                    <p class="subtitle">
+                        Traditional knife throwing games and custom formats perfect for practice, casual play, and competition. Choose a format below to get started.
+                    </p>
+                </div>
             </div>
-        </div>
 
-        <div class="content">
-            <div class="games-grid">
-                <a href="golf.html" class="game-card classic-golf">
-                    <div class="game-icon">⛳</div>
-                    <h3 class="game-title">Golf</h3>
-                    <div class="game-stats">
-                        <div class="game-stat">
-                            <span>Distances:</span>
-                            <span class="stat-value red">2m-8m+</span>
+            <div class="content">
+                <div class="games-grid">
+                    <a href="golf.html" class="game-card classic-golf">
+                        <div class="game-header">
+                            <div class="game-icon-wrapper">⛳</div>
+                            <div class="game-title-section">
+                                <h3 class="game-title">Golf</h3>
+                                <span class="game-tagline">Target-based scoring</span>
+                            </div>
                         </div>
-                        <div class="game-stat">
-                            <span>Throws per Distance:</span>
-                            <span class="stat-value orange">3</span>
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <span class="stat-label">Distances</span>
+                                <span class="stat-value red">2m - 8m+</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Throws/Distance</span>
+                                <span class="stat-value orange">3</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Players</span>
+                                <span class="stat-value yellow">1 - ∞</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Goal</span>
+                                <span class="stat-value green">Lowest Wins</span>
+                            </div>
                         </div>
-                        <div class="game-stat">
-                            <span>Players:</span>
-                            <span class="stat-value yellow">1-∞</span>
-                        </div>
-                        <div class="game-stat">
-                            <span>Scoring:</span>
-                            <span class="stat-value green">Lower is Better</span>
-                        </div>
-                    </div>
-                    <div class="game-description">
-                       Target-based knife throwing golf! Hit your target (4-5 points) for 0 strokes, miss (0-3 points) for 1 stroke. Lowest total strokes wins!
-                    </div>
-                    <div class="start-button">Start Golf Game</div>
-                </a>
+                        <p class="game-description">
+                            Hit your target (4-5 points) for 0 strokes, miss (0-3 points) for 1 stroke. Progress through distances like golf holes. Lowest total strokes wins!
+                        </p>
+                        <div class="start-button">Play Golf</div>
+                    </a>
 
-                <a href="custom.html" class="game-card custom-game">
-                    <div class="game-icon">🎯</div>
-                    <h3 class="game-title">Custom</h3>
-                    <div class="game-stats">
-                        <div class="game-stat">
-                            <span>Rounds:</span>
-                            <span class="stat-value purple">1-20</span>
+                    <a href="custom.html" class="game-card custom-game">
+                        <div class="game-header">
+                            <div class="game-icon-wrapper">🎯</div>
+                            <div class="game-title-section">
+                                <h3 class="game-title">Custom</h3>
+                                <span class="game-tagline">Build your own game</span>
+                            </div>
                         </div>
-                        <div class="game-stat">
-                            <span>Throws per Round:</span>
-                            <span class="stat-value green">1-10</span>
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <span class="stat-label">Rounds</span>
+                                <span class="stat-value purple">1 - 20</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Throws/Round</span>
+                                <span class="stat-value green">1 - 10</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Max Score</span>
+                                <span class="stat-value orange">1 - 20</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Players</span>
+                                <span class="stat-value yellow">1 - ∞</span>
+                            </div>
                         </div>
-                        <div class="game-stat">
-                            <span>Max Score:</span>
-                            <span class="stat-value orange">1-20</span>
-                        </div>
-                        <div class="game-stat">
-                            <span>Players:</span>
-                            <span class="stat-value yellow">1-∞</span>
-                        </div>
-                    </div>
-                    <div class="game-description">
-                        Create your own knife throwing game! Fully customizable rounds, scoring, distances, and tiebreaker rules. Perfect for unique challenges and training.
-                    </div>
-                    <div class="start-button">Start Custom Game</div>
-                </a>
-
+                        <p class="game-description">
+                            Create your own knife throwing game with fully customizable rounds, scoring, distances, and tiebreaker rules. Perfect for unique challenges and training.
+                        </p>
+                        <div class="start-button">Create Game</div>
+                    </a>
+                </div>
             </div>
-        </div>
         </div>
     </div>
 
