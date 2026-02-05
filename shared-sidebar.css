@@ -199,10 +199,11 @@
         border-right: none;
         border-bottom: 2px solid #475569;
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         justify-content: center;
-        gap: 8px;
-        padding: 12px;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 8px;
         transform: none !important;
     }
     
@@ -215,37 +216,42 @@
     }
     
     .sidebar-header {
-        width: 100%;
-        margin-bottom: 10px;
-        padding-bottom: 8px;
+        width: auto;
+        flex-shrink: 0;
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+        padding-right: 8px;
+        border-right: 1px solid rgba(71, 85, 105, 0.3);
     }
 
     .sidebar-title {
-        font-size: 1.2rem;
+        font-size: 1rem;
     }
 
     .sidebar-subtitle {
-        font-size: 0.75rem;
+        font-size: 0.6rem;
     }
     
     .nav-button {
-        flex: 0 1 auto;
-        min-width: 70px;
-        max-width: 100px;
-        padding: 10px 8px;
-        font-size: 0.75rem;
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
+        padding: 6px 4px;
+        font-size: 0.65rem;
         flex-direction: column;
         text-align: center;
-        gap: 4px;
+        gap: 2px;
+        border-radius: 10px;
     }
 
     .nav-button .nav-icon {
-        font-size: 1.2rem;
+        font-size: 1.1rem;
         min-width: auto;
     }
 
     .nav-button .nav-text {
-        font-size: 0.7rem;
+        font-size: 0.6rem;
     }
     
     .main-content {
@@ -261,14 +267,27 @@
 /* Very small phones */
 @media (max-width: 400px) {
     .sidebar {
-        padding: 10px 8px;
-        gap: 6px;
+        padding: 6px;
+        gap: 4px;
+    }
+    
+    .sidebar-header {
+        padding-right: 6px;
+    }
+    
+    .sidebar-title {
+        font-size: 0.85rem;
+    }
+    
+    .sidebar-subtitle {
+        font-size: 0.55rem;
     }
 
     .nav-button {
-        min-width: 60px;
-        max-width: 80px;
-        padding: 8px 6px;
+        flex: 1 1 0;
+        min-width: 0;
+        max-width: none;
+        padding: 5px 3px;
     }
 
     .nav-button .nav-icon {
@@ -276,6 +295,6 @@
     }
 
     .nav-button .nav-text {
-        font-size: 0.65rem;
+        font-size: 0.55rem;
     }
 } 
