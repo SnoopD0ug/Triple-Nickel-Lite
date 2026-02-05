@@ -1,0 +1,1611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dagger & Die - Triple Nickel</title>
+    <link rel="stylesheet" href="shared-sidebar.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            max-width: 100vw;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            margin-left: clamp(250px, 20vw, 300px);
+            padding: clamp(20px, 3vw, 40px);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content-wrapper.expanded {
+            margin-left: 0;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Setup Screen */
+        #setup-screen {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .setup-title {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 1.5rem;
+        }
+
+        .player-count-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .player-count-btn {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .player-count-btn:hover, .player-count-btn.selected {
+            background: #48dbfb;
+            transform: scale(1.1);
+        }
+
+        .player-setup {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .player-setup.visible {
+            display: flex;
+        }
+
+        .player-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .player-input input {
+            flex: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .player-input input::placeholder {
+            color: rgba(255,255,255,0.5);
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 5px;
+        }
+
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .color-option:hover {
+            transform: scale(1.2);
+        }
+
+        .color-option.selected {
+            border-color: #fff;
+            box-shadow: 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(238, 90, 36, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #c0392b, #e74c3c);
+            color: #fff;
+        }
+
+        .btn-center {
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Game Screen */
+        #game-screen {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .turn-indicator {
+            font-size: 1.5rem;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .current-player-name {
+            font-weight: bold;
+        }
+
+        /* Players Panel */
+        .players-panel {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .player-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            min-width: 150px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 3px solid transparent;
+        }
+
+        .player-card.current {
+            border-color: #feca57;
+            box-shadow: 0 0 20px rgba(254, 202, 87, 0.4);
+            transform: scale(1.05);
+        }
+
+        .player-card.eliminated {
+            opacity: 0.4;
+            filter: grayscale(1);
+        }
+
+        .player-card.targetable {
+            cursor: pointer;
+        }
+
+        .player-card.targetable:hover {
+            border-color: #ff6b6b;
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.4);
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin: 0 auto 10px;
+        }
+
+        .player-name {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .player-hp {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .hp-bar {
+            width: 100%;
+            height: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, #2ecc71);
+            transition: width 0.5s;
+        }
+
+        .player-turn-order {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        /* Game Area */
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Dice Section */
+        .dice-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .dice-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .die {
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(145deg, #2d3436, #1e272e);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .die.rolling {
+            animation: roll 0.1s infinite;
+        }
+
+        .die.odd {
+            color: #ff6b6b;
+            border-color: #ff6b6b;
+        }
+
+        .die.even {
+            color: #48dbfb;
+            border-color: #48dbfb;
+        }
+
+        @keyframes roll {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(10deg) scale(1.1); }
+            50% { transform: rotate(0deg) scale(1); }
+            75% { transform: rotate(-10deg) scale(1.1); }
+        }
+
+        .roll-btn {
+            display: block;
+            margin: 0 auto 20px;
+            padding: 15px 50px;
+        }
+
+        .dice-results {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .total-damage {
+            font-size: 1.5rem;
+            color: #feca57;
+        }
+
+        /* Target Section */
+        .targets-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+        }
+
+        .targets-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: nowrap;
+        }
+
+        .target-wrapper {
+            position: relative;
+            width: 180px;
+        }
+
+        .target-label {
+            text-align: center;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .target-image-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            overflow: hidden;
+            /* Wood base color */
+            background: 
+                /* Wood grain texture */
+                repeating-linear-gradient(
+                    85deg,
+                    transparent 0px,
+                    transparent 2px,
+                    rgba(101, 67, 33, 0.08) 3px,
+                    rgba(101, 67, 33, 0.08) 4px,
+                    transparent 5px,
+                    transparent 12px
+                ),
+                /* Base wood color gradient */
+                radial-gradient(
+                    circle at 45% 45%,
+                    #d4a574 0%,
+                    #c4956a 20%,
+                    #b8895e 40%,
+                    #a67c52 60%,
+                    #8b6914 80%,
+                    #6b4423 100%
+                );
+            /* Bark edge */
+            border: 8px solid #3d2914;
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,0.3),
+                inset 0 0 40px rgba(0,0,0,0.1),
+                0 5px 15px rgba(0,0,0,0.5),
+                0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Bark texture on border */
+        .target-image-container::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: -8px;
+            right: -8px;
+            bottom: -8px;
+            border-radius: 50%;
+            border: 8px solid transparent;
+            background: 
+                repeating-conic-gradient(
+                    from 0deg,
+                    #2d1f0f 0deg,
+                    #4a3520 2deg,
+                    #3d2914 4deg,
+                    #2d1f0f 6deg
+                );
+            background-clip: padding-box;
+            -webkit-mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            mask: 
+                linear-gradient(#fff 0 0) content-box, 
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .target-image {
+            width: 90%;
+            height: 90%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(1px 1px 1px rgba(0,0,0,0.3));
+            z-index: 2;
+        }
+
+        .target-overlay {
+            position: absolute;
+            top: 5%;
+            left: 5%;
+            width: 90%;
+            height: 90%;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .highlight-zone {
+            fill: transparent;
+            stroke: transparent;
+            stroke-width: 3;
+            transition: all 0.3s;
+        }
+
+        .highlight-zone.active {
+            fill: rgba(255, 215, 0, 0.4);
+            stroke: #ffd700;
+            stroke-width: 4;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Actions Section */
+        .actions-section {
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .attack-prompt {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #feca57;
+        }
+
+        .hit-info {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+        .hit-badge {
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .hit-badge.hit {
+            background: #2ecc71;
+        }
+
+        .hit-badge.miss {
+            background: #e74c3c;
+        }
+
+        /* Turn Order Screen */
+        #turn-order-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .turn-order-rolls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 400px;
+            margin: 30px auto;
+        }
+
+        .turn-order-player {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+        }
+
+        .turn-order-player .roll-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #feca57;
+        }
+
+        /* Winner Screen */
+        #winner-screen {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .winner-title {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px #feca57; }
+            50% { text-shadow: 0 0 40px #feca57, 0 0 60px #ff6b6b; }
+        }
+
+        .winner-name {
+            font-size: 2rem;
+            margin-bottom: 40px;
+        }
+
+        /* Game Log */
+        .game-log {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            max-height: 120px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .log-entry {
+            padding: 3px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            font-size: 0.85rem;
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-damage {
+            color: #ff6b6b;
+        }
+
+        .log-heal {
+            color: #2ecc71;
+        }
+
+        .log-info {
+            color: #48dbfb;
+        }
+
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Responsive - Tablet */
+        @media (max-width: 1024px) {
+            .content-wrapper {
+                margin-left: clamp(200px, 25vw, 250px);
+            }
+        }
+
+        /* Responsive - Mobile */
+        @media (max-width: 768px) {
+            .content-wrapper {
+                margin-left: 0;
+                padding: 15px;
+            }
+        }
+
+        /* Responsive - Small Mobile */
+        @media (max-width: 600px) {
+            .container {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+
+            .game-header {
+                margin-bottom: 10px;
+            }
+
+            .turn-indicator {
+                font-size: 1rem;
+                padding: 8px 12px;
+            }
+
+            .players-panel {
+                gap: 8px;
+                margin-bottom: 15px;
+            }
+
+            .player-card {
+                padding: 10px;
+                min-width: 100px;
+            }
+
+            .player-avatar {
+                width: 40px;
+                height: 40px;
+            }
+
+            .player-hp {
+                font-size: 1.1rem;
+            }
+
+            .player-turn-order {
+                font-size: 0.7rem;
+            }
+
+            .game-area {
+                gap: 15px;
+            }
+
+            .dice-section, .targets-section, .actions-section {
+                padding: 15px;
+                border-radius: 15px;
+            }
+
+            .section-title {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+            .die {
+                width: 55px;
+                height: 55px;
+                font-size: 1.3rem;
+            }
+
+            .dice-container {
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .roll-btn {
+                padding: 10px 30px;
+                font-size: 1rem;
+            }
+
+            .target-wrapper {
+                width: 140px;
+            }
+
+            .target-label {
+                font-size: 0.75rem;
+                margin-bottom: 3px;
+            }
+
+            .target-image-container {
+                border-width: 6px;
+            }
+
+            .target-image-container::before {
+                top: -6px;
+                left: -6px;
+                right: -6px;
+                bottom: -6px;
+                border-width: 6px;
+            }
+
+            .btn {
+                padding: 10px 20px;
+                font-size: 0.9rem;
+            }
+
+            .attack-prompt {
+                font-size: 1rem;
+            }
+
+            .game-log {
+                max-height: 100px;
+                padding: 10px;
+            }
+
+            .log-entry {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .target-wrapper {
+                width: 120px;
+            }
+
+            .target-image-container {
+                border-width: 5px;
+            }
+
+            .target-image-container::before {
+                top: -5px;
+                left: -5px;
+                right: -5px;
+                bottom: -5px;
+                border-width: 5px;
+            }
+
+            .die {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1rem;
+            }
+
+            .player-card {
+                min-width: 80px;
+                padding: 8px;
+            }
+
+            .player-avatar {
+                width: 30px;
+                height: 30px;
+            }
+
+            .player-name {
+                font-size: 0.85rem;
+            }
+
+            .player-hp {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Shared Navigation -->
+    <div id="shared-navigation"></div>
+    
+    <div class="main-container">
+        <div class="content-wrapper main-content" id="contentWrapper">
+            <div class="container">
+                <h1>Dagger & Die</h1>
+
+        <!-- Setup Screen -->
+        <div id="setup-screen">
+            <h2 class="setup-title">Select Number of Players</h2>
+            <div class="player-count-selector">
+                <button class="player-count-btn" data-count="2">2</button>
+                <button class="player-count-btn" data-count="3">3</button>
+                <button class="player-count-btn" data-count="4">4</button>
+                <button class="player-count-btn" data-count="5">5</button>
+                <button class="player-count-btn" data-count="6">6</button>
+            </div>
+            <div class="player-setup" id="player-setup"></div>
+            <button class="btn btn-primary btn-center" id="start-game-btn" style="display:none;">Start Game</button>
+        </div>
+
+        <!-- Turn Order Screen -->
+        <div id="turn-order-screen">
+            <h2 class="setup-title">Rolling for Turn Order</h2>
+            <p>Each player rolls a D20 to determine turn order. Highest goes first!</p>
+            <div class="turn-order-rolls" id="turn-order-rolls"></div>
+            <button class="btn btn-primary" id="roll-turn-order-btn">Roll for Turn Order</button>
+            <button class="btn btn-primary hidden" id="begin-game-btn">Begin Game!</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen">
+            <div class="game-header">
+                <div class="turn-indicator">
+                    Turn: <span class="current-player-name" id="current-player-name">-</span>
+                </div>
+                <button class="btn btn-secondary" id="new-game-btn">New Game</button>
+            </div>
+
+            <div class="players-panel" id="players-panel"></div>
+
+            <div class="game-area">
+                <div class="dice-section">
+                    <h3 class="section-title">Your Dice</h3>
+                    <div class="dice-container">
+                        <div class="die" id="die1">-</div>
+                        <div class="die" id="die2">-</div>
+                        <div class="die" id="die3">-</div>
+                    </div>
+                    <button class="btn btn-primary roll-btn" id="roll-dice-btn">Roll Dice</button>
+                    <div class="dice-results" id="dice-results"></div>
+                </div>
+
+                <div class="targets-section">
+                    <h3 class="section-title">Target Boards</h3>
+                    <div class="targets-container">
+                        <div class="target-wrapper">
+                            <div class="target-label">Odd Numbers (1-19)</div>
+                            <div class="target-image-container">
+                                <img src="assets/odd.svg" alt="Odd Target" class="target-image">
+                                <svg class="target-overlay" id="odd-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <!-- Center: 1 -->
+                                    <polygon class="highlight-zone" data-number="1" points="50,30 35,55 65,55"/>
+                                    <!-- Top left: 17 -->
+                                    <polygon class="highlight-zone" data-number="17" points="19,16 50,10 35,30"/>
+                                    <!-- Top right: 3 -->
+                                    <polygon class="highlight-zone" data-number="3" points="50,10 81,16 65,30"/>
+                                    <!-- Left upper: 7 -->
+                                    <polygon class="highlight-zone" data-number="7" points="19,16 35,30 20,50"/>
+                                    <!-- Right upper: 19 -->
+                                    <polygon class="highlight-zone" data-number="19" points="65,30 81,16 80,50"/>
+                                    <!-- Left middle: 15 -->
+                                    <polygon class="highlight-zone" data-number="15" points="8,35 19,16 20,50"/>
+                                    <!-- Right middle: 9 -->
+                                    <polygon class="highlight-zone" data-number="9" points="92,35 80,50 81,16"/>
+                                    <!-- Left lower: 5 (bottom left corner) -->
+                                    <polygon class="highlight-zone" data-number="5" points="20,50 35,55 25,75"/>
+                                    <!-- Right lower: 11 (bottom right corner) -->
+                                    <polygon class="highlight-zone" data-number="11" points="65,55 80,50 75,75"/>
+                                    <!-- Bottom center: 13 -->
+                                    <polygon class="highlight-zone" data-number="13" points="35,55 65,55 50,85"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="target-wrapper">
+                            <div class="target-label">Even Numbers (2-20)</div>
+                            <div class="target-image-container">
+                                <img src="assets/even.svg" alt="Even Target" class="target-image">
+                                <svg class="target-overlay" id="even-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+                                    <!-- Center: 20 -->
+                                    <polygon class="highlight-zone" data-number="20" points="50,30 35,55 65,55"/>
+                                    <!-- Top left: 18 -->
+                                    <polygon class="highlight-zone" data-number="18" points="19,16 50,10 35,30"/>
+                                    <!-- Top right: 4 -->
+                                    <polygon class="highlight-zone" data-number="4" points="50,10 81,16 65,30"/>
+                                    <!-- Left upper: 2 -->
+                                    <polygon class="highlight-zone" data-number="2" points="19,16 35,30 20,50"/>
+                                    <!-- Right upper: 14 -->
+                                    <polygon class="highlight-zone" data-number="14" points="65,30 81,16 80,50"/>
+                                    <!-- Left middle: 12 (outer left) -->
+                                    <polygon class="highlight-zone" data-number="12" points="8,35 19,16 20,50"/>
+                                    <!-- Right middle: 6 (outer right) -->
+                                    <polygon class="highlight-zone" data-number="6" points="92,35 80,50 81,16"/>
+                                    <!-- Left lower: 10 (bottom left) -->
+                                    <polygon class="highlight-zone" data-number="10" points="20,50 35,55 25,75"/>
+                                    <!-- Right lower: 16 (bottom right) -->
+                                    <polygon class="highlight-zone" data-number="16" points="65,55 80,50 75,75"/>
+                                    <!-- Bottom center: 8 -->
+                                    <polygon class="highlight-zone" data-number="8" points="35,55 65,55 50,85"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions-section" id="actions-section">
+                <h3 class="section-title">Actions</h3>
+                <div class="hit-info" id="hit-info"></div>
+                <div class="attack-prompt hidden" id="attack-prompt">Select a player to attack!</div>
+                <div class="action-buttons">
+                    <button class="btn btn-danger" id="dropped-knife-btn">Dropped Knife (-1 HP)</button>
+                    <button class="btn btn-primary hidden" id="end-turn-btn">End Turn</button>
+                </div>
+            </div>
+
+            <div class="game-log">
+                <h4>Game Log</h4>
+                <div id="game-log-entries"></div>
+            </div>
+        </div>
+
+                <!-- Winner Screen -->
+                <div id="winner-screen">
+                    <h2 class="winner-title">Victory!</h2>
+                    <div class="winner-name" id="winner-name"></div>
+                    <button class="btn btn-primary" id="play-again-btn">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="shared-sidebar.js"></script>
+    <script>
+        // Game State
+        const state = {
+            players: [],
+            currentPlayerIndex: 0,
+            phase: 'setup', // setup, turnOrder, playing, finished
+            currentRoll: [],
+            hits: [],
+            totalDamage: 0,
+            hasRolled: false,
+            hasAttacked: false,
+            damageClaimedPhase: false,
+            currentHitIndex: 0,
+            attackLog: []
+        };
+
+        const COLORS = [
+            { name: 'Red', hex: '#e74c3c' },
+            { name: 'Blue', hex: '#3498db' },
+            { name: 'Green', hex: '#2ecc71' },
+            { name: 'Purple', hex: '#9b59b6' },
+            { name: 'Orange', hex: '#e67e22' },
+            { name: 'Pink', hex: '#fd79a8' },
+            { name: 'Cyan', hex: '#00cec9' },
+            { name: 'Yellow', hex: '#f1c40f' }
+        ];
+
+        // DOM Elements
+        const setupScreen = document.getElementById('setup-screen');
+        const turnOrderScreen = document.getElementById('turn-order-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const winnerScreen = document.getElementById('winner-screen');
+        const playerSetup = document.getElementById('player-setup');
+        const startGameBtn = document.getElementById('start-game-btn');
+        const playersPanel = document.getElementById('players-panel');
+        const currentPlayerNameEl = document.getElementById('current-player-name');
+        const rollDiceBtn = document.getElementById('roll-dice-btn');
+        const diceResults = document.getElementById('dice-results');
+        const hitInfo = document.getElementById('hit-info');
+        const attackPrompt = document.getElementById('attack-prompt');
+        const endTurnBtn = document.getElementById('end-turn-btn');
+        const droppedKnifeBtn = document.getElementById('dropped-knife-btn');
+        const gameLogEntries = document.getElementById('game-log-entries');
+
+        // Setup: Player count selection
+        document.querySelectorAll('.player-count-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.player-count-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                const count = parseInt(btn.dataset.count);
+                setupPlayerInputs(count);
+            });
+        });
+
+        function setupPlayerInputs(count) {
+            playerSetup.innerHTML = '';
+            playerSetup.classList.add('visible');
+            
+            const usedColors = new Set();
+            
+            for (let i = 0; i < count; i++) {
+                const div = document.createElement('div');
+                div.className = 'player-input';
+                div.innerHTML = `
+                    <span>P${i + 1}</span>
+                    <input type="text" placeholder="Player ${i + 1} Name" data-player="${i}">
+                    <div class="color-picker" data-player="${i}">
+                        ${COLORS.map((c, idx) => `
+                            <div class="color-option ${idx === i ? 'selected' : ''}" 
+                                 data-color="${idx}" 
+                                 style="background: ${c.hex};"
+                                 title="${c.name}"></div>
+                        `).join('')}
+                    </div>
+                `;
+                playerSetup.appendChild(div);
+            }
+
+            // Color picker functionality
+            document.querySelectorAll('.color-picker').forEach(picker => {
+                picker.querySelectorAll('.color-option').forEach(opt => {
+                    opt.addEventListener('click', () => {
+                        picker.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+                        opt.classList.add('selected');
+                    });
+                });
+            });
+
+            startGameBtn.style.display = 'block';
+        }
+
+        // Start game button
+        startGameBtn.addEventListener('click', () => {
+            const inputs = playerSetup.querySelectorAll('input');
+            state.players = [];
+            
+            inputs.forEach((input, idx) => {
+                const colorPicker = playerSetup.querySelector(`.color-picker[data-player="${idx}"]`);
+                const selectedColor = colorPicker.querySelector('.color-option.selected');
+                const colorIdx = parseInt(selectedColor.dataset.color);
+                
+                state.players.push({
+                    id: idx,
+                    name: input.value || `Player ${idx + 1}`,
+                    color: COLORS[colorIdx],
+                    hp: 50,
+                    maxHp: 50,
+                    turnOrderRoll: 0,
+                    eliminated: false
+                });
+            });
+
+            showTurnOrderScreen();
+        });
+
+        // Turn Order Screen
+        function showTurnOrderScreen() {
+            setupScreen.style.display = 'none';
+            turnOrderScreen.style.display = 'block';
+            
+            const rollsDiv = document.getElementById('turn-order-rolls');
+            rollsDiv.innerHTML = state.players.map(p => `
+                <div class="turn-order-player" data-player="${p.id}">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; background: ${p.color.hex};"></div>
+                        <span>${p.name}</span>
+                    </div>
+                    <span class="roll-value">-</span>
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('roll-turn-order-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('roll-turn-order-btn');
+            btn.disabled = true;
+            
+            // Roll for each player with animation
+            for (let player of state.players) {
+                const playerDiv = document.querySelector(`.turn-order-player[data-player="${player.id}"]`);
+                const rollValue = playerDiv.querySelector('.roll-value');
+                
+                // Animate roll
+                for (let i = 0; i < 10; i++) {
+                    rollValue.textContent = rollD20();
+                    await sleep(50);
+                }
+                
+                player.turnOrderRoll = rollD20();
+                rollValue.textContent = player.turnOrderRoll;
+                await sleep(300);
+            }
+
+            // Sort players by roll (highest first)
+            state.players.sort((a, b) => b.turnOrderRoll - a.turnOrderRoll);
+            
+            // Update display to show order
+            const rollsDiv = document.getElementById('turn-order-rolls');
+            await sleep(500);
+            rollsDiv.innerHTML = state.players.map((p, idx) => `
+                <div class="turn-order-player" data-player="${p.id}">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: bold; width: 25px;">#${idx + 1}</span>
+                        <div style="width: 30px; height: 30px; border-radius: 50%; background: ${p.color.hex};"></div>
+                        <span>${p.name}</span>
+                    </div>
+                    <span class="roll-value">${p.turnOrderRoll}</span>
+                </div>
+            `).join('');
+
+            btn.classList.add('hidden');
+            document.getElementById('begin-game-btn').classList.remove('hidden');
+        });
+
+        document.getElementById('begin-game-btn').addEventListener('click', () => {
+            turnOrderScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            state.phase = 'playing';
+            state.currentPlayerIndex = 0;
+            updateGameUI();
+        });
+
+        // Game Functions
+        function rollD20() {
+            return Math.floor(Math.random() * 20) + 1;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function getCurrentPlayer() {
+            return state.players[state.currentPlayerIndex];
+        }
+
+        function getAlivePlayers() {
+            return state.players.filter(p => !p.eliminated);
+        }
+
+        // Update UI
+        function updateGameUI() {
+            updatePlayersPanel();
+            updateCurrentPlayerDisplay();
+            clearHighlights();
+            resetDice();
+            diceResults.innerHTML = '';
+            hitInfo.innerHTML = '';
+            attackPrompt.classList.add('hidden');
+            endTurnBtn.classList.add('hidden');
+            state.hasRolled = false;
+            state.hasAttacked = false;
+            state.damageClaimedPhase = false;
+            state.hits = [];
+            state.totalDamage = 0;
+            state.currentHitIndex = 0;
+            state.attackLog = [];
+            rollDiceBtn.disabled = false;
+            disableTargetSelection();
+        }
+
+        function updatePlayersPanel() {
+            const currentPlayer = getCurrentPlayer();
+            playersPanel.innerHTML = state.players.map(p => `
+                <div class="player-card ${p.id === currentPlayer.id ? 'current' : ''} ${p.eliminated ? 'eliminated' : ''}" 
+                     data-player="${p.id}">
+                    <div class="player-avatar" style="background: ${p.color.hex};"></div>
+                    <div class="player-name">${p.name}</div>
+                    <div class="player-hp">${p.hp} HP</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" style="width: ${(p.hp / p.maxHp) * 100}%; background: ${p.color.hex};"></div>
+                    </div>
+                    <div class="player-turn-order">Turn Order: #${state.players.indexOf(p) + 1}</div>
+                </div>
+            `).join('');
+        }
+
+        function updateCurrentPlayerDisplay() {
+            const current = getCurrentPlayer();
+            currentPlayerNameEl.textContent = current.name;
+            currentPlayerNameEl.style.color = current.color.hex;
+        }
+
+        // Roll Dice
+        rollDiceBtn.addEventListener('click', async () => {
+            if (state.hasRolled) return;
+            
+            rollDiceBtn.disabled = true;
+            const dice = [
+                document.getElementById('die1'),
+                document.getElementById('die2'),
+                document.getElementById('die3')
+            ];
+
+            // Rolling animation
+            dice.forEach(die => {
+                die.classList.add('rolling');
+                die.classList.remove('odd', 'even');
+            });
+
+            for (let i = 0; i < 15; i++) {
+                dice.forEach(die => {
+                    die.textContent = rollD20();
+                });
+                await sleep(50);
+            }
+
+            // Final rolls
+            state.currentRoll = [rollD20(), rollD20(), rollD20()];
+            state.hits = [];
+            state.totalDamage = 0;
+            state.damageClaimedPhase = false;
+
+            dice.forEach((die, idx) => {
+                die.classList.remove('rolling');
+                const value = state.currentRoll[idx];
+                die.textContent = value;
+                die.classList.add(value % 2 === 0 ? 'even' : 'odd');
+            });
+
+            // Highlight targets
+            highlightTargets(state.currentRoll);
+
+            // Display results
+            displayRollResults();
+            
+            state.hasRolled = true;
+            
+            // Show hit recording UI (Phase 1: Claim damage)
+            showHitRecorder();
+        });
+
+        function highlightTargets(rolls) {
+            clearHighlights();
+            rolls.forEach(roll => {
+                const zone = document.querySelector(`.highlight-zone[data-number="${roll}"]`);
+                if (zone) {
+                    zone.classList.add('active');
+                }
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.highlight-zone').forEach(zone => {
+                zone.classList.remove('active');
+            });
+        }
+
+        function displayRollResults() {
+            const current = getCurrentPlayer();
+            diceResults.innerHTML = `
+                <p>Rolled: <strong>${state.currentRoll.join(', ')}</strong></p>
+                <p>Odd targets: <span style="color: #ff6b6b;">${state.currentRoll.filter(r => r % 2 === 1).join(', ') || 'None'}</span></p>
+                <p>Even targets: <span style="color: #48dbfb;">${state.currentRoll.filter(r => r % 2 === 0).join(', ') || 'None'}</span></p>
+            `;
+        }
+
+        // Phase 1: Record which targets were hit and claim damage points
+        function showHitRecorder() {
+            const currentPlayer = getCurrentPlayer();
+            
+            attackPrompt.classList.remove('hidden');
+            attackPrompt.innerHTML = `<strong>Step 1:</strong> Throw your knives! Click each number you HIT on the target to claim damage points.`;
+            
+            hitInfo.innerHTML = `
+                <div style="width: 100%; text-align: center; margin-bottom: 15px;">
+                    <p style="font-size: 1.1rem;">Click the numbers you <strong>HIT</strong> on the target:</p>
+                </div>
+                <div class="hit-buttons" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    ${state.currentRoll.map((roll, idx) => `
+                        <button class="btn hit-toggle" data-roll="${roll}" data-idx="${idx}" style="min-width: 70px; font-size: 1.3rem;">
+                            ${roll}
+                        </button>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 20px;">
+                    <p style="font-size: 1.3rem;">Damage Claimed: <strong id="total-damage-display" style="color: #feca57; font-size: 1.5rem;">0</strong></p>
+                    <button class="btn btn-primary" id="confirm-hits-btn" style="margin-top: 15px;">Confirm Hits</button>
+                    <button class="btn btn-secondary" id="miss-all-btn" style="margin-top: 15px; margin-left: 10px;">Missed All</button>
+                </div>
+            `;
+
+            state.hits = [];
+
+            hitInfo.querySelectorAll('.hit-toggle').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const roll = parseInt(btn.dataset.roll);
+                    const idx = parseInt(btn.dataset.idx);
+                    
+                    if (btn.classList.contains('hit')) {
+                        btn.classList.remove('hit');
+                        btn.style.background = '';
+                        state.hits = state.hits.filter(h => h.idx !== idx);
+                    } else {
+                        btn.classList.add('hit');
+                        btn.style.background = '#2ecc71';
+                        state.hits.push({ roll, idx });
+                    }
+
+                    state.totalDamage = state.hits.reduce((sum, h) => sum + h.roll, 0);
+                    document.getElementById('total-damage-display').textContent = state.totalDamage;
+                });
+            });
+
+            document.getElementById('confirm-hits-btn').addEventListener('click', () => {
+                state.totalDamage = state.hits.reduce((sum, h) => sum + h.roll, 0);
+                
+                if (state.totalDamage > 0) {
+                    addLogEntry(`${currentPlayer.name} claimed ${state.totalDamage} damage points! (Hit: ${state.hits.map(h => h.roll).join(', ')})`, 'info');
+                    showTargetSelection();
+                } else {
+                    // No hits - prompt to confirm or go back
+                    if (confirm('No hits recorded. Did you miss all targets?')) {
+                        addLogEntry(`${currentPlayer.name} missed all targets!`, 'info');
+                        finishTurnNoAttack();
+                    }
+                }
+            });
+
+            document.getElementById('miss-all-btn').addEventListener('click', () => {
+                state.hits = [];
+                state.totalDamage = 0;
+                addLogEntry(`${currentPlayer.name} missed all targets!`, 'info');
+                finishTurnNoAttack();
+            });
+        }
+
+        // Phase 2: Deal each hit individually to chosen opponents
+        function showTargetSelection() {
+            const currentPlayer = getCurrentPlayer();
+            state.damageClaimedPhase = true;
+            state.currentHitIndex = 0;
+            state.attackLog = [];
+            
+            showNextHitToAssign();
+        }
+
+        function showNextHitToAssign() {
+            const currentPlayer = getCurrentPlayer();
+            
+            // Check if all hits have been assigned
+            if (state.currentHitIndex >= state.hits.length) {
+                finishAttackPhase();
+                return;
+            }
+
+            // Check if any opponents are still alive
+            const aliveOpponents = state.players.filter(p => !p.eliminated && p.id !== currentPlayer.id);
+            if (aliveOpponents.length === 0) {
+                finishAttackPhase();
+                return;
+            }
+
+            const currentHit = state.hits[state.currentHitIndex];
+            const remainingHits = state.hits.slice(state.currentHitIndex);
+            
+            attackPrompt.innerHTML = `<strong>Step 2:</strong> Assign hit <span style="color: #feca57; font-size: 1.3rem;">${currentHit.roll}</span> damage - Click an opponent to attack!`;
+            
+            // Show remaining hits to assign
+            hitInfo.innerHTML = `
+                <div class="damage-claimed-display" style="background: rgba(46, 204, 113, 0.2); padding: 10px; border-radius: 10px; border: 2px solid #2ecc71; margin-bottom: 10px;">
+                    <p style="margin-bottom: 5px; font-size: 0.9rem;">Hits to assign:</p>
+                    <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                        ${remainingHits.map((h, idx) => `
+                            <span style="
+                                padding: 8px 15px;
+                                border-radius: 8px;
+                                font-weight: bold;
+                                font-size: 1.2rem;
+                                background: ${idx === 0 ? '#feca57' : 'rgba(255,255,255,0.2)'};
+                                color: ${idx === 0 ? '#1a1a2e' : '#fff'};
+                                ${idx === 0 ? 'box-shadow: 0 0 10px rgba(254,202,87,0.5);' : ''}
+                            ">${h.roll}</span>
+                        `).join('')}
+                    </div>
+                </div>
+                ${state.attackLog.length > 0 ? `
+                    <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
+                        ${state.attackLog.join('<br>')}
+                    </div>
+                ` : ''}
+            `;
+            
+            enableTargetSelection();
+        }
+
+        function enableTargetSelection() {
+            const current = getCurrentPlayer();
+            const cards = document.querySelectorAll('.player-card');
+            
+            cards.forEach(card => {
+                const playerId = parseInt(card.dataset.player);
+                const player = state.players.find(p => p.id === playerId);
+                
+                if (!player.eliminated && player.id !== current.id) {
+                    card.classList.add('targetable');
+                    card.addEventListener('click', handleAttack);
+                }
+            });
+        }
+
+        function disableTargetSelection() {
+            document.querySelectorAll('.player-card').forEach(card => {
+                card.classList.remove('targetable');
+                card.removeEventListener('click', handleAttack);
+            });
+        }
+
+        function handleAttack(e) {
+            const card = e.currentTarget;
+            const playerId = parseInt(card.dataset.player);
+            const targetPlayer = state.players.find(p => p.id === playerId);
+            const currentPlayer = getCurrentPlayer();
+            const currentHit = state.hits[state.currentHitIndex];
+
+            disableTargetSelection();
+            
+            // Deal this specific hit's damage to the target
+            targetPlayer.hp = Math.max(0, targetPlayer.hp - currentHit.roll);
+            addLogEntry(`${currentPlayer.name} dealt ${currentHit.roll} damage to ${targetPlayer.name}!`, 'damage');
+            state.attackLog.push(`${currentHit.roll} → ${targetPlayer.name}`);
+            
+            if (targetPlayer.hp <= 0) {
+                targetPlayer.eliminated = true;
+                addLogEntry(`${targetPlayer.name} has been eliminated!`, 'info');
+            }
+
+            updatePlayersPanel();
+            checkWinCondition();
+            
+            // Move to next hit
+            state.currentHitIndex++;
+            
+            if (state.phase === 'playing') {
+                showNextHitToAssign();
+            }
+        }
+
+        function finishAttackPhase() {
+            const totalDealt = state.hits.reduce((sum, h) => sum + h.roll, 0);
+            
+            hitInfo.innerHTML = `
+                <div style="background: rgba(255, 107, 107, 0.2); padding: 15px; border-radius: 10px; border: 2px solid #ff6b6b;">
+                    <p style="font-size: 1.1rem; margin-bottom: 8px;">Attacks Complete!</p>
+                    <div style="font-size: 0.9rem;">
+                        ${state.attackLog.map(log => `<div>${log}</div>`).join('')}
+                    </div>
+                    <p style="margin-top: 8px;">Total Damage: <strong style="color: #ff6b6b;">${totalDealt}</strong></p>
+                </div>
+            `;
+            attackPrompt.classList.add('hidden');
+            endTurnBtn.classList.remove('hidden');
+            state.hasAttacked = true;
+        }
+
+        function finishTurnNoAttack() {
+            hitInfo.innerHTML = `<span class="hit-badge miss">No damage this turn</span>`;
+            attackPrompt.classList.add('hidden');
+            endTurnBtn.classList.remove('hidden');
+            state.hasAttacked = true;
+        }
+
+        // Dropped Knife
+        droppedKnifeBtn.addEventListener('click', () => {
+            const current = getCurrentPlayer();
+            current.hp = Math.max(0, current.hp - 1);
+            addLogEntry(`${current.name} dropped a knife! (-1 HP)`, 'damage');
+            updatePlayersPanel();
+            
+            if (current.hp <= 0) {
+                current.eliminated = true;
+                addLogEntry(`${current.name} has been eliminated!`, 'info');
+                checkWinCondition();
+                if (state.phase === 'playing') {
+                    nextTurn();
+                }
+            }
+        });
+
+        // End Turn
+        endTurnBtn.addEventListener('click', () => {
+            nextTurn();
+        });
+
+        function nextTurn() {
+            disableTargetSelection();
+            
+            // Find next alive player
+            let nextIdx = state.currentPlayerIndex;
+            const alivePlayers = getAlivePlayers();
+            
+            if (alivePlayers.length <= 1) {
+                checkWinCondition();
+                return;
+            }
+
+            do {
+                nextIdx = (nextIdx + 1) % state.players.length;
+            } while (state.players[nextIdx].eliminated);
+
+            state.currentPlayerIndex = nextIdx;
+            addLogEntry(`${getCurrentPlayer().name}'s turn begins.`, 'info');
+            updateGameUI();
+        }
+
+        function checkWinCondition() {
+            const alivePlayers = getAlivePlayers();
+            if (alivePlayers.length === 1) {
+                state.phase = 'finished';
+                showWinner(alivePlayers[0]);
+            } else if (alivePlayers.length === 0) {
+                state.phase = 'finished';
+                showWinner(null); // Draw
+            }
+        }
+
+        function showWinner(winner) {
+            gameScreen.style.display = 'none';
+            winnerScreen.style.display = 'block';
+            
+            if (winner) {
+                document.getElementById('winner-name').innerHTML = `
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: ${winner.color.hex}; margin: 0 auto 20px;"></div>
+                    <span style="color: ${winner.color.hex};">${winner.name}</span> Wins!
+                `;
+            } else {
+                document.getElementById('winner-name').textContent = "It's a Draw!";
+            }
+        }
+
+        // Reset Dice Display
+        function resetDice() {
+            ['die1', 'die2', 'die3'].forEach(id => {
+                const die = document.getElementById(id);
+                die.textContent = '-';
+                die.classList.remove('odd', 'even', 'rolling');
+            });
+        }
+
+        // Game Log
+        function addLogEntry(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = message;
+            gameLogEntries.insertBefore(entry, gameLogEntries.firstChild);
+        }
+
+        // New Game / Play Again
+        document.getElementById('new-game-btn').addEventListener('click', resetGame);
+        document.getElementById('play-again-btn').addEventListener('click', resetGame);
+
+        function resetGame() {
+            state.players = [];
+            state.currentPlayerIndex = 0;
+            state.phase = 'setup';
+            state.currentRoll = [];
+            state.hits = [];
+            state.totalDamage = 0;
+            state.hasRolled = false;
+            state.hasAttacked = false;
+            state.damageClaimedPhase = false;
+            state.currentHitIndex = 0;
+            state.attackLog = [];
+
+            gameScreen.style.display = 'none';
+            winnerScreen.style.display = 'none';
+            turnOrderScreen.style.display = 'none';
+            setupScreen.style.display = 'block';
+
+            // Reset setup screen
+            document.querySelectorAll('.player-count-btn').forEach(b => b.classList.remove('selected'));
+            playerSetup.innerHTML = '';
+            playerSetup.classList.remove('visible');
+            startGameBtn.style.display = 'none';
+            gameLogEntries.innerHTML = '';
+            
+            // Reset turn order screen
+            document.getElementById('roll-turn-order-btn').classList.remove('hidden');
+            document.getElementById('roll-turn-order-btn').disabled = false;
+            document.getElementById('begin-game-btn').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
