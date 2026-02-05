@@ -81,6 +81,28 @@
             max-width: 600px;
         }
 
+        .qr-share-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 12px;
+            color: #10b981;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .qr-share-btn:hover {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(16, 185, 129, 0.2));
+            border-color: rgba(16, 185, 129, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+
         .emoji {
             background: none !important;
             background-clip: unset !important;
@@ -534,6 +556,9 @@
                 <p class="subtitle">
                     Comprehensive guides, tools, and references for mastering knife throwing competitions. From score sheets to tournament management, we've got you covered.
                 </p>
+                <button class="qr-share-btn" onclick="openModal('qrCodeModal')" title="Share App QR Code">
+                    <span style="margin-right: 6px;">📲</span> Share App
+                </button>
             </div>
 
             <div class="resources-grid">
@@ -593,6 +618,21 @@
                 <button class="resource-button" onclick="openModal('tournamentModal')">Learn More</button>
             </div>
         </div>
+        </div>
+    </div>
+
+    <!-- QR Code Share Modal -->
+    <div id="qrCodeModal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <span class="close" onclick="closeModal('qrCodeModal')">&times;</span>
+            <h2><span class="emoji">📲</span> Share Triple Nickel Lite</h2>
+            <p style="color: #94a3b8; margin-bottom: 20px;">Scan this QR code to open the app on another device</p>
+            <div style="background: white; padding: 20px; border-radius: 15px; display: inline-block; margin-bottom: 20px;">
+                <img src="assets/TripleNickelLITE.png" alt="Triple Nickel Lite QR Code" style="max-width: 250px; width: 100%; height: auto; display: block;">
+            </div>
+            <p style="color: #64748b; font-size: 0.85rem;">
+                Share this with fellow throwers so they can follow along on their own device!
+            </p>
         </div>
     </div>
 
