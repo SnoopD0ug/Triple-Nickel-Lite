@@ -339,6 +339,31 @@
             box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4); 
         }
 
+        /* Dagger & Die Game Styling */
+        .dagger-die .game-icon-wrapper { 
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.3));
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .dagger-die:hover { 
+            border-color: rgba(239, 68, 68, 0.3); 
+            box-shadow: 
+                0 20px 40px rgba(239, 68, 68, 0.15),
+                0 0 0 1px rgba(239, 68, 68, 0.1) inset;
+        }
+        .dagger-die .game-title { 
+            background: linear-gradient(135deg, #ef4444, #f87171); 
+            background-clip: text; 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .dagger-die .start-button { 
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+        .dagger-die .start-button:hover { 
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4); 
+        }
+
 
 
         /* Responsive overrides for shared styles */
@@ -593,6 +618,38 @@
                             Create your own knife throwing game with fully customizable rounds, scoring, distances, and tiebreaker rules. Perfect for unique challenges and training.
                         </p>
                         <div class="start-button">Create Game</div>
+                    </a>
+
+                    <a href="D&D.html" class="game-card dagger-die">
+                        <div class="game-header">
+                            <div class="game-icon-wrapper">🎲</div>
+                            <div class="game-title-section">
+                                <h3 class="game-title">Dagger & Die</h3>
+                                <span class="game-tagline">Dice-based combat</span>
+                            </div>
+                        </div>
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <span class="stat-label">Players</span>
+                                <span class="stat-value red">2 - 6</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Starting HP</span>
+                                <span class="stat-value green">50</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Dice</span>
+                                <span class="stat-value orange">3 × D20</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Goal</span>
+                                <span class="stat-value yellow">Last Standing</span>
+                            </div>
+                        </div>
+                        <p class="game-description">
+                            Roll three D20s to determine your targets, throw your knives at the corresponding numbers, then deal damage to your opponents. Last thrower standing wins!
+                        </p>
+                        <div class="start-button">Play Now</div>
                     </a>
                 </div>
             </div>
