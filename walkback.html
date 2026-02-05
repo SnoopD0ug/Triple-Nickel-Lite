@@ -406,17 +406,21 @@
             .game-header {
                 flex-direction: column !important;
                 align-items: stretch !important;
-                gap: 10px !important;
+                gap: 8px !important;
             }
             
             .action-buttons {
-                flex-direction: column !important;
-                gap: 8px !important;
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 6px !important;
+                padding-right: 0 !important;
             }
             
             .action-button {
                 width: 100% !important;
                 text-align: center;
+                padding: 8px 4px !important;
+                font-size: 0.75rem !important;
             }
             
             /* Settings panel for small screens */
@@ -428,13 +432,19 @@
                 grid-template-columns: 1fr !important;
             }
             
-            /* Reduce font sizes slightly for very narrow screens */
+            /* Compact game info for mobile */
+            .game-info {
+                margin-bottom: 10px !important;
+                padding: 10px !important;
+            }
+            
             .current-game {
-                font-size: 1.4rem !important;
+                font-size: 1.2rem !important;
+                margin-bottom: 4px !important;
             }
             
             .game-status {
-                font-size: 0.9rem !important;
+                font-size: 0.8rem !important;
             }
         }
         
@@ -497,10 +507,11 @@
                 border-right: none;
                 border-bottom: 2px solid #475569;
                 flex-direction: row;
-                flex-wrap: wrap;
+                flex-wrap: nowrap;
                 justify-content: center;
-                gap: 10px;
-                padding: 15px;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 8px;
                 transform: none !important;
             }
             
@@ -513,22 +524,26 @@
             }
             
             .sidebar-header {
-                width: 100%;
-                margin-bottom: 15px;
-                padding-bottom: 10px;
+                width: auto;
+                flex-shrink: 0;
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+                padding-right: 8px;
+                border-right: 1px solid rgba(71, 85, 105, 0.3);
             }
             
             .nav-button {
-                flex: 1;
-                min-width: 120px;
-                max-width: 150px;
-                padding: 12px;
-                font-size: 0.9rem;
+                flex: 1 1 0;
+                min-width: 0;
+                max-width: none;
+                padding: 6px 4px;
+                font-size: 0.65rem;
             }
             
             .game-interface {
                 margin-left: 0;
-                padding: 20px;
+                padding: 15px;
             }
             
             .game-interface.expanded {
