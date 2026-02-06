@@ -8826,6 +8826,9 @@
             
             saveGameState(); // Auto-save after settings change
             // Settings notification removed
+            
+            // Close settings panel after applying
+            document.getElementById('settingsPanel').style.display = 'none';
         }
 
         function clearScores() {
