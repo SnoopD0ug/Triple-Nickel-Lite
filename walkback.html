@@ -6417,38 +6417,63 @@
                             transform: scale(1.02);
                         }
                         @media (max-width: 768px) {
-                            .victory-container { padding: 1vh 2vw; margin: 0.5vh 1vw; }
-                            .victory-header { font-size: clamp(1.2rem, 6vw, 2rem); }
+                            .victory-container { 
+                                padding: 1.5vh 2vw; 
+                                margin: 0.5vh 1vw; 
+                                height: calc(100vh - 1vh);
+                                overflow-y: auto;
+                            }
+                            .victory-header { font-size: clamp(1rem, 5vw, 1.5rem); margin-bottom: 0.5vh; }
+                            .victory-subtitle { font-size: clamp(0.8rem, 3vw, 1rem); margin-bottom: 1vh; }
                             #podiumResults {
                                 flex-direction: column !important;
                                 align-items: center !important;
-                                gap: 2vh !important;
-                                max-height: 70vh !important;
+                                gap: 1.5vh !important;
+                                max-height: none !important;
+                                overflow-y: visible !important;
                             }
                             .podium-card {
-                                width: 80vw !important;
+                                width: 85vw !important;
                                 max-width: 350px !important;
-                                height: 35vh !important;
-                                min-height: 280px !important;
+                                height: auto !important;
+                                min-height: 120px !important;
+                                max-height: 25vh !important;
                                 margin-bottom: 0 !important;
+                                padding: 1.5vh 2vw !important;
                             }
                             .podium-card.podium-first {
                                 transform: scale(1.0) !important;
-                                height: 40vh !important;
+                                min-height: 140px !important;
+                                max-height: 28vh !important;
                             }
                             .podium-card.podium-second {
                                 transform: scale(1.0) !important;
-                                height: 37vh !important;
+                                min-height: 130px !important;
+                                max-height: 26vh !important;
                             }
                             .podium-card.podium-third {
                                 transform: scale(1.0) !important;
-                                height: 35vh !important;
+                                min-height: 120px !important;
+                                max-height: 24vh !important;
                             }
                             .podium-stats {
-                                gap: 0.2vh !important;
+                                gap: 0.3vh !important;
                             }
                             .podium-stat {
-                                padding: 0.3vh 0.5vw !important;
+                                padding: 0.4vh 1vw !important;
+                                font-size: 0.75rem !important;
+                            }
+                            .victory-buttons {
+                                margin-top: 1.5vh;
+                                padding: 1.5vh 0;
+                                position: sticky;
+                                bottom: 0;
+                                background: linear-gradient(to top, rgba(30, 41, 59, 1) 0%, rgba(30, 41, 59, 0.95) 80%, transparent 100%);
+                            }
+                            .victory-button {
+                                padding: 1.5vh 4vw !important;
+                                font-size: 1rem !important;
+                                min-width: 120px !important;
                             }
                         }
                     </style>
