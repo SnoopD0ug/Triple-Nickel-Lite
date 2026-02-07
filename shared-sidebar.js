@@ -36,6 +36,11 @@ function generateSidebarHTML() {
                 <div class="sidebar-subtitle">${NAVIGATION_CONFIG.subtitle}</div>
             </div>
             ${navItemsHTML}
+            <div class="sidebar-spacer"></div>
+            <a href="https://m3simplymagic.myshopify.com/" target="_blank" rel="noopener noreferrer" class="nav-button nav-button-proshop">
+                <div class="nav-icon">🛒</div>
+                <div class="nav-text">Pro Shop</div>
+            </a>
         </div>
         <button class="sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
     `;
