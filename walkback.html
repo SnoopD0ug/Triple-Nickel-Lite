@@ -35,6 +35,7 @@
             max-width: none !important;
             width: 100% !important;
             margin: 0 !important;
+            margin-left: clamp(250px, 20vw, 300px);
             padding: 0 !important;
             min-height: 100vh;
             min-width: 320px;
@@ -509,64 +510,20 @@
 
         /* Medium screens and smaller */
         @media (max-width: 1024px) {
-            .sidebar {
-                width: clamp(200px, 25vw, 250px);
-            }
-            
-            .sidebar-toggle {
-                left: clamp(200px, 25vw, 250px);
+            .container {
+                margin-left: clamp(200px, 25vw, 250px);
             }
             
             .game-interface {
-                margin-left: clamp(200px, 25vw, 250px);
+                margin-left: 0;
             }
         }
 
-        /* Small screens */
+        /* Small screens - container and game-interface only; sidebar styles from shared-sidebar.css */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: 2px solid #475569;
-                flex-direction: row;
-                flex-wrap: nowrap;
-                justify-content: center;
-                align-items: flex-start;
-                gap: 6px;
-                padding: 8px;
-                transform: none !important;
-            }
-            
-            .sidebar.collapsed {
-                transform: none !important;
-            }
-            
-            .sidebar-toggle {
-                display: none;
-            }
-            
-            .sidebar-header {
-                width: auto;
-                flex-shrink: 0;
-                margin-bottom: 0;
-                padding-bottom: 0;
-                border-bottom: none;
-                padding-right: 8px;
-                border-right: 1px solid rgba(71, 85, 105, 0.3);
-            }
-            
-            .nav-button {
-                flex: 1 1 0;
-                min-width: 0;
-                max-width: none;
-                padding: 6px 4px;
-                font-size: 0.65rem;
+                margin-left: 0;
             }
             
             .game-interface {
@@ -581,10 +538,10 @@
     </style>
 </head>
 <body>
+    <!-- Shared Navigation (same structure as Home/Resources for consistent mobile nav) -->
+    <div id="shared-navigation"></div>
+    
     <div class="container">
-        <!-- Shared Navigation will be loaded here -->
-        <div id="shared-navigation"></div>
-        
         <!-- Game Interface -->
         <div id="gameInterface" class="game-interface main-content">
             <div class="game-header">
