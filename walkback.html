@@ -629,7 +629,7 @@
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Number of Rounds</label>
-                        <select id="roundsSelect" onchange="updateRoundsCount()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <select id="roundsSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="1">1 Round</option>
                             <option value="2">2 Rounds</option>
                             <option value="3">3 Rounds</option>
@@ -654,7 +654,7 @@
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Throws per Round</label>
-                        <select id="throwsPerRoundSelect" onchange="updateThrowsPerRound()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <select id="throwsPerRoundSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="1">1 Throw</option>
                             <option value="2">2 Throws</option>
                             <option value="3" selected>3 Throws</option>
@@ -679,7 +679,7 @@
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Number of Distances</label>
-                        <select id="numDistancesSelect" onchange="updateNumDistances()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <select id="numDistancesSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="1">1 Distance</option>
                             <option value="2">2 Distances</option>
                             <option value="3">3 Distances</option>
@@ -704,7 +704,7 @@
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Max Points per Throw</label>
-                        <select id="maxScoreSelect" onchange="updateMaxScore()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <select id="maxScoreSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="1">1 Point</option>
                             <option value="2">2 Points</option>
                             <option value="3">3 Points</option>
@@ -735,14 +735,14 @@
                                 <span>🔄</span>
                             </span>
                         </label>
-                        <select id="playModeSelect" onchange="updatePlayMode()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <select id="playModeSelect" onchange="onPlayModeSelectChange()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="sequential">Sequential Distance (2m→3m→4m→5m→6m, repeat)</option>
-                            <option value="consecutive">Consecutive Rounds (all rounds at 2m, then all at 3m, etc.)</option>
+                            <option value="consecutive" selected>Consecutive Rounds (all rounds at 2m, then all at 3m, etc.)</option>
                         </select>
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Distance Preset</label>
-                        <select id="distancePresetSelect" onchange="updateDistancePreset()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
+                        <select id="distancePresetSelect" onchange="onDistancePresetSelectChange()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="amateur">Amateur (2m, 3m, 4m, 5m, 6m...)</option>
                             <option value="professional">Professional (3m, 4m, 5m, 6m, 7m...)</option>
                             <option value="custom">Custom (Set your own)</option>
@@ -8350,6 +8350,16 @@
             }
         }
 
+        /** When Play Mode dropdown changes, update the distances-on-top checkbox to the default for that mode (Sequential = checked, Consecutive = unchecked). Does not apply settings. */
+        function onPlayModeSelectChange() {
+            var playModeSelect = document.getElementById('playModeSelect');
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            if (playModeSelect && distancesOnTopCheckbox) {
+                distancesOnTopCheckbox.checked = (playModeSelect.value === 'sequential');
+                markSettingsChanged();
+            }
+        }
+
         function updatePlayMode() {
             if (hasGameStarted()) {
                 alert('Cannot change play mode after game has started! Reset the game to change this setting.');
@@ -8436,187 +8446,52 @@
             // Settings notification removed
         }
 
-        function updateDistancePreset() {
+        /** Only updates form/UI when distance preset dropdown changes. Nothing is applied to gameState until Apply is clicked. */
+        function onDistancePresetSelectChange() {
             var preset = document.getElementById('distancePresetSelect').value;
             var customGroup = document.getElementById('customDistanceGroup');
             
-            // Check if this is a custom preset (starts with "custom_")
-            if (preset && preset.startsWith('custom_')) {
-                var presetName = preset.substring(7); // Remove "custom_" prefix
-                loadCustomPreset(presetName);
-                return;
-            }
-            
             if (customGroup) {
-                // Show custom distance inputs for both 'custom' and custom presets
-                var shouldShowCustom = preset === 'custom' || preset.startsWith('custom_');
+                var shouldShowCustom = preset === 'custom' || (preset && preset.startsWith('custom_'));
                 customGroup.style.display = shouldShowCustom ? 'block' : 'none';
             }
             
-            if (preset === 'custom') {
-                // Handle custom preset selection
-                if (!hasGameStarted()) {
-                    // Set the Game Name to Custom
-                    gameState.gameName = 'Custom (Set your own)';
-                    gameState.distancePreset = 'custom';
-                    
-                    // Update the Game Name input field
-                    var gameNameInput = document.getElementById('gameNameInput');
-                    if (gameNameInput) {
-                        gameNameInput.value = 'Custom (Set your own)';
-                    }
-                    
-                    // Update custom distance inputs to show current distances
-                    updateCustomDistanceInputs();
-                }
+            if (preset && preset.startsWith('custom_')) {
+                var presetName = preset.substring(7);
+                populateFormFromCustomPreset(presetName);
                 return;
             }
             
-            if (!hasGameStarted() && preset !== 'custom') {
-                // Get the distances for this preset
-                var presetDistances = getDefaultDistances(preset);
-                
-                // Update gameState with the preset distances and number of distances
-                gameState.distances = presetDistances;
-                gameState.numDistances = presetDistances.length;
-                gameState.distancePreset = preset;
-                
-                // Set the Game Name to the selected preset
-                var presetDisplayName = getPresetDisplayName(preset);
-                gameState.gameName = presetDisplayName;
-                
-                // Update the Game Name input field
+            if (preset === 'custom') {
                 var gameNameInput = document.getElementById('gameNameInput');
-                if (gameNameInput) {
-                    gameNameInput.value = presetDisplayName;
-                }
-                
-                // Set throws per round to 3 for all default presets
-                gameState.throwsPerRound = 3;
-                // Update the throws per round dropdown to reflect this
-                var throwsSelect = document.getElementById('throwsPerRoundSelect');
-                if (throwsSelect) {
-                    throwsSelect.value = 3;
-                }
-                
-                // Set specific rounds and max score for Dangerfest presets
-                if (preset.startsWith('dangerfest_')) {
-                    gameState.rounds = 4;
-                    gameState.maxScore = 5;
-                    
-                    // Update the rounds dropdown
-                    var roundsSelect = document.getElementById('roundsSelect');
-                    if (roundsSelect) {
-                        roundsSelect.value = 4;
-                    }
-                    
-                    // Update the max score dropdown
-                    var maxScoreSelect = document.getElementById('maxScoreSelect');
-                    if (maxScoreSelect) {
-                        maxScoreSelect.value = 5;
-                    }
-                }
-                
-                // Set specific settings for AKTA preset
-                if (preset === 'akta') {
-                    gameState.rounds = 4;
-                    gameState.throwsPerRound = 5;
-                    gameState.maxScore = 5;
-                    
-                    // Update the rounds dropdown
-                    var roundsSelect = document.getElementById('roundsSelect');
-                    if (roundsSelect) {
-                        roundsSelect.value = 4;
-                    }
-                    
-                    // Update the throws per round dropdown
-                    var throwsSelect = document.getElementById('throwsPerRoundSelect');
-                    if (throwsSelect) {
-                        throwsSelect.value = 5;
-                    }
-                    
-                    // Update the max score dropdown
-                    var maxScoreSelect = document.getElementById('maxScoreSelect');
-                    if (maxScoreSelect) {
-                        maxScoreSelect.value = 5;
-                    }
-                }
-                
-                // Set specific settings for Blade Aces presets
-                if (preset === 'blade_aces_am_knife' || preset === 'blade_aces_pro_knife' || preset === 'blade_aces_am_hawk' || preset === 'blade_aces_pro_hawk') {
-                    gameState.rounds = 4;
-                    gameState.maxScore = 5;
-                    
-                    // Update the rounds dropdown
-                    var roundsSelect = document.getElementById('roundsSelect');
-                    if (roundsSelect) {
-                        roundsSelect.value = 4;
-                    }
-                    
-                    // Update the max score dropdown
-                    var maxScoreSelect = document.getElementById('maxScoreSelect');
-                    if (maxScoreSelect) {
-                        maxScoreSelect.value = 5;
-                    }
-                }
-                
-                // Update the number of distances dropdown to reflect the preset
-                var numDistancesSelect = document.getElementById('numDistancesSelect');
-                if (numDistancesSelect) {
-                    numDistancesSelect.value = presetDistances.length;
-                }
-                
-                // Update player scores arrays to match new distances and throws per round
-                gameState.players.forEach(function(player) {
-                    for (var r = 0; r < gameState.rounds; r++) {
-                        if (!player.scores[r]) {
-                            player.scores[r] = Array(gameState.distances.length).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); });
-                        } else {
-                            // Adjust existing round to match new distance count
-                            if (player.scores[r].length > gameState.distances.length) {
-                                player.scores[r] = player.scores[r].slice(0, gameState.distances.length);
-                            } else if (player.scores[r].length < gameState.distances.length) {
-                                for (var d = player.scores[r].length; d < gameState.distances.length; d++) {
-                                    player.scores[r].push(Array(gameState.throwsPerRound).fill(null));
-                                }
-                            }
-                            
-                            // Adjust existing distances to match new throws per round
-                            for (var d = 0; d < player.scores[r].length; d++) {
-                                if (player.scores[r][d]) {
-                                    if (player.scores[r][d].length > gameState.throwsPerRound) {
-                                        player.scores[r][d] = player.scores[r][d].slice(0, gameState.throwsPerRound);
-                                    } else if (player.scores[r][d].length < gameState.throwsPerRound) {
-                                        for (var t = player.scores[r][d].length; t < gameState.throwsPerRound; t++) {
-                                            player.scores[r][d].push(null);
-                                        }
-                                    }
-                                } else {
-                                    player.scores[r][d] = Array(gameState.throwsPerRound).fill(null);
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Reset player position if they're beyond the new number of distances
-                    if (player.currentDistance > gameState.distances.length) {
-                        player.currentDistance = gameState.distances.length;
-                        player.viewingDistance = gameState.distances.length;
-                    }
-                    
-                    // Recalculate stats
-                    recalculatePlayerStats(player);
-                });
-                
+                if (gameNameInput) gameNameInput.value = 'Custom (Set your own)';
                 updateCustomDistanceInputs();
-                renderPlayers();
-                updateGameDisplay();
-                // Settings notification removed
-            } else if (hasGameStarted() && preset !== 'custom') {
-                showTimedNotification('⚠️ Cannot change preset after game starts. Use custom distances or reset game.', 3000);
-                document.getElementById('distancePresetSelect').value = 'custom';
-                if (customGroup) customGroup.style.display = 'block';
             }
+        }
+        
+        /** Populates form fields from a custom preset without applying to gameState or players. */
+        function populateFormFromCustomPreset(presetName) {
+            var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
+            var preset = customPresets[presetName];
+            if (!preset) return;
+            var oldDistances = gameState.distances ? gameState.distances.slice() : [];
+            gameState.distances = preset.distances ? preset.distances.slice() : [];
+            document.getElementById('roundsSelect').value = preset.rounds !== undefined ? preset.rounds : 4;
+            document.getElementById('throwsPerRoundSelect').value = preset.throwsPerRound !== undefined ? preset.throwsPerRound : 3;
+            document.getElementById('numDistancesSelect').value = (preset.distances && preset.distances.length) ? preset.distances.length : (preset.numDistances || 5);
+            document.getElementById('maxScoreSelect').value = preset.maxScore !== undefined ? preset.maxScore : 5;
+            document.getElementById('playModeSelect').value = preset.playMode || 'consecutive';
+            document.getElementById('tiebreakerSelect').value = preset.tiebreakerMode || 'sudden-death-podium-match';
+            var gameNameInput = document.getElementById('gameNameInput');
+            if (gameNameInput) gameNameInput.value = preset.gameName || presetName + ' (Custom Preset)';
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            if (distancesOnTopCheckbox) distancesOnTopCheckbox.checked = preset.playMode === 'sequential';
+            updateCustomDistanceInputs();
+            gameState.distances = oldDistances;
+        }
+        
+        function updateDistancePreset() {
+            onDistancePresetSelectChange();
         }
 
         function getPresetDisplayName(preset) {
@@ -8827,10 +8702,13 @@
             var newRounds = parseInt(document.getElementById('roundsSelect').value);
             var newNumDistances = parseInt(document.getElementById('numDistancesSelect').value);
             var newMaxScore = parseInt(document.getElementById('maxScoreSelect').value);
+            var newThrowsPerRound = parseInt(document.getElementById('throwsPerRoundSelect').value);
             var newPlayMode = document.getElementById('playModeSelect').value;
             var newDistancePreset = document.getElementById('distancePresetSelect').value;
             var newTiebreakerMode = document.getElementById('tiebreakerSelect').value;
             var newGameName = document.getElementById('gameNameInput').value.trim();
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            var newDistancesOnTop = distancesOnTopCheckbox ? distancesOnTopCheckbox.checked : false;
             // Check if game has started
             if (hasGameStarted()) {
                 alert('Cannot change settings after game has started! Reset the game to change settings.');
@@ -8840,17 +8718,29 @@
             // Update game state
             gameState.rounds = newRounds;
             gameState.numDistances = newNumDistances;
+            gameState.throwsPerRound = newThrowsPerRound;
             gameState.maxScore = newMaxScore;
             gameState.playMode = newPlayMode;
             gameState.distancePreset = newDistancePreset;
             gameState.tiebreakerMode = newTiebreakerMode;
             gameState.gameName = newGameName;
+            gameState.distancesOnTop = newDistancesOnTop;
             
             // Update target rings
             gameState.targetRings = generateTargetRings();
             
             // Update distances based on preset
-            if (newDistancePreset === 'custom') {
+            if (newDistancePreset && newDistancePreset.startsWith('custom_')) {
+                var presetName = newDistancePreset.substring(7);
+                var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
+                var preset = customPresets[presetName];
+                if (preset && preset.distances) {
+                    gameState.distances = preset.distances.slice();
+                    gameState.numDistances = gameState.distances.length;
+                } else {
+                    gameState.distances = getDefaultDistances('amateur', newNumDistances);
+                }
+            } else if (newDistancePreset === 'custom') {
                 var customDistances = [];
                 var distanceInputs = document.querySelectorAll('#customDistanceInputs input');
                 for (var i = 0; i < distanceInputs.length; i++) {
@@ -8865,12 +8755,11 @@
                     gameState.distances = customDistances;
                 } else {
                     gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
-                    gameState.distancePreset = newDistancePreset;
                 }
             } else {
                 gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
-                gameState.distancePreset = newDistancePreset;
             }
+            var numDistancesToUse = gameState.numDistances;
             
             // Update player scores arrays for new rounds and distances count
             gameState.players.forEach(function(player) {
@@ -8879,19 +8768,19 @@
                     player.scores = player.scores.slice(0, newRounds);
                 } else if (player.scores.length < newRounds) {
                     for (var i = player.scores.length; i < newRounds; i++) {
-                        player.scores.push(Array(newNumDistances).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); }));
+                        player.scores.push(Array(numDistancesToUse).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); }));
                     }
                 }
                 
                 // Update each round to match new distance count
                 for (var r = 0; r < newRounds; r++) {
                     if (!player.scores[r]) {
-                        player.scores[r] = Array(newNumDistances).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); });
+                        player.scores[r] = Array(numDistancesToUse).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); });
                     } else {
-                        if (player.scores[r].length > newNumDistances) {
-                            player.scores[r] = player.scores[r].slice(0, newNumDistances);
-                        } else if (player.scores[r].length < newNumDistances) {
-                            for (var d = player.scores[r].length; d < newNumDistances; d++) {
+                        if (player.scores[r].length > numDistancesToUse) {
+                            player.scores[r] = player.scores[r].slice(0, numDistancesToUse);
+                        } else if (player.scores[r].length < numDistancesToUse) {
+                            for (var d = player.scores[r].length; d < numDistancesToUse; d++) {
                                 player.scores[r].push(Array(gameState.throwsPerRound).fill(null));
                             }
                         }
@@ -8903,9 +8792,9 @@
                     player.currentRound = newRounds;
                     player.viewingRound = newRounds;
                 }
-                if (player.currentDistance > newNumDistances) {
-                    player.currentDistance = newNumDistances;
-                    player.viewingDistance = newNumDistances;
+                if (player.currentDistance > numDistancesToUse) {
+                    player.currentDistance = numDistancesToUse;
+                    player.viewingDistance = numDistancesToUse;
                 }
                 
                 // Reset positions for mode/setting changes
