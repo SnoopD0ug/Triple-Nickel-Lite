@@ -356,6 +356,10 @@
 
         /* Mobile Portrait */
         @media (max-width: 768px) {
+            body {
+                padding: 0;
+            }
+            
             .content-wrapper {
                 margin-left: 0;
                 padding: 20px;
@@ -414,12 +418,8 @@
             }
         }
 
-        /* Very small screens */
+        /* Very small screens - no body padding so shared nav stays full-bleed like Home/Resources */
         @media (max-width: 480px) {
-            body {
-                padding: 8px;
-            }
-            
             .content-wrapper {
                 padding: 16px;
             }
