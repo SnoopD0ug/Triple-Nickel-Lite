@@ -459,7 +459,7 @@
 
             <div class="game-info">
                 <div class="current-game" id="currentGameTitle">Custom</div>
-                <div class="game-status" id="gameStatus">🎯 Custom Game • 5 Rounds • 3 Throws per Round • Max Score: 5</div>
+                <div class="game-status" id="gameStatus">🎯 Custom Game • 4 Rounds • 3 Throws per Round • Max Score: 5</div>
                 <div id="gameNameDisplay" style="color: #94a3b8; font-size: 1rem; margin-top: 5px; display: none;"></div>
                 <div id="finalizedBanner" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; display: none;">🔒 GAME FINALIZED - RESULTS LOCKED 🔒</div>
             </div>
@@ -492,7 +492,7 @@
                         </div>
                         <div class="config-item">
                             <label class="config-label">Number of Rounds</label>
-                            <input type="number" id="roundsInput" min="1" max="20" value="5" class="config-input">
+                            <input type="number" id="roundsInput" min="1" max="20" value="4" class="config-input">
                         </div>
                         <div class="config-item">
                             <label class="config-label">Throws per Round</label>
@@ -700,7 +700,7 @@
         // Game state
         var gameState = {
             type: 'Custom',
-            rounds: 5,
+            rounds: 4,
             throwsPerRound: 3,
             maxScore: 5,
             targetRings: [5, 4, 3, 2, 1, 0],
@@ -2973,7 +2973,7 @@
             }
             var applyBtn = document.getElementById('applySettingsBtn');
             if (applyBtn) applyBtn.classList.remove('apply-glow');
-            var newRounds = 5;
+            var newRounds = 4;
             var newThrows = 3;
             var newMaxScore = 5;
             var newNumDistances = 5;
@@ -3165,7 +3165,7 @@
 
         function resetGame() {
             if (confirm('Are you sure you want to reset the current game? All scores and settings will be reset to defaults.')) {
-                gameState.rounds = 5;
+                gameState.rounds = 4;
                 gameState.throwsPerRound = 3;
                 gameState.maxScore = 5;
                 gameState.targetRings = [5, 4, 3, 2, 1, 0];
@@ -5362,7 +5362,7 @@
             }
             
             // Apply preset settings - use preset values directly with fallbacks
-            gameState.rounds = preset.rounds !== undefined ? preset.rounds : 5;
+            gameState.rounds = preset.rounds !== undefined ? preset.rounds : 4;
             gameState.throwsPerRound = preset.throwsPerRound !== undefined ? preset.throwsPerRound : 3;
             gameState.maxScore = preset.maxScore !== undefined ? preset.maxScore : 5;
             gameState.numDistances = preset.numDistances !== undefined ? preset.numDistances : 5;
@@ -5391,7 +5391,7 @@
             
             var roundsInput = document.getElementById('roundsInput');
             if (roundsInput) {
-                roundsInput.value = preset.rounds !== undefined ? preset.rounds : 5;
+                roundsInput.value = preset.rounds !== undefined ? preset.rounds : 4;
             }
             
             var throwsInput = document.getElementById('throwsInput');
@@ -5646,7 +5646,7 @@
         function clearPlayers() {
             showClearPlayersConfirm('Remove all players? This will delete all players and their data and return all settings to default.', function() {
                 // Reset all settings to default values
-                gameState.rounds = 5;
+                gameState.rounds = 4;
                 gameState.throwsPerRound = 3;
                 gameState.maxScore = 5;
                 gameState.targetRings = [5, 4, 3, 2, 1, 0];
