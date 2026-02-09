@@ -472,7 +472,7 @@
                         </div>
                         <div class="config-item">
                             <label class="config-label">Number of Variables</label>
-                            <input type="number" id="numDistancesSelect" class="config-input" min="1" max="20" value="5">
+                            <input type="number" id="numDistancesSelect" class="config-input" min="1" max="20" value="5" onchange="onNumDistancesChange()">
                         </div>
                         <div class="config-item">
                             <label class="config-label" style="display: flex; align-items: center; gap: 8px;">
@@ -785,6 +785,9 @@
                     break;
                 case 'professional':
                     distances = ['3 Meters', '4 Meters', '5 Meters', '6 Meters', '7 Meters', '8 Meters', '9 Meters', '10 Meters', '11 Meters', '12 Meters', '13 Meters', '14 Meters', '15 Meters', '16 Meters', '17 Meters', '18 Meters', '19 Meters', '20 Meters', '21 Meters', '22 Meters'];
+                    break;
+                case 'texas-t':
+                    distances = ['Card 1', 'Card 2', 'Card 3', 'Card 4', 'Card 5'];
                     break;
                 default:
                     distances = ['2 Meters', '3 Meters', '4 Meters', '5 Meters', '6 Meters', '7 Meters', '8 Meters', '9 Meters', '10 Meters', '11 Meters', '12 Meters', '13 Meters', '14 Meters', '15 Meters', '16 Meters', '17 Meters', '18 Meters', '19 Meters', '20 Meters', '21 Meters'];
@@ -2170,17 +2173,24 @@
             
             // Remove preset button is always enabled since it doesn't affect game state
             
-            // Update distance preset display
-            updateDistancePreset();
+            // Sync custom distance panel visibility from gameState (do NOT call updateDistancePreset
+            // here or it would re-trigger the preset loader and cause recursion when switching modes)
+            var customPanel = document.getElementById('customDistancePanel');
+            if (customPanel) {
+                var dp = gameState.distancePreset || '';
+                if (dp === 'texas-t' || dp === 'silhouette' || dp === 'custom' || (dp && dp.startsWith('custom_'))) {
+                    customPanel.style.display = 'block';
+                } else if (dp === '' || dp === 'amateur' || dp === 'professional') {
+                    customPanel.style.display = 'none';
+                }
+            }
             
             // Update notes display
             updateNotesDisplay();
             
-            // Generate distance label inputs if the section is visible (not collapsed)
-            var distanceLabelsSection = document.getElementById('distanceLabelsSection');
-            if (distanceLabelsSection && !distanceLabelsSection.classList.contains('collapsed')) {
-                generateDistanceLabelInputs();
-            }
+            // Always refresh variable label inputs so they show the current preset's labels
+            // (e.g. when user had Variable Labels expanded and switched from Silhouette to Texas T)
+            generateDistanceLabelInputs();
         }
         
         // Function to update the notes display based on current preset
@@ -2338,42 +2348,49 @@
             updateNotesDisplay();
         }
 
-        function updateNumDistances() {
+        // Called when user changes Number of Variables: refresh Variable Labels grid immediately
+        // so new inputs are visible for labeling; actual game/player update happens on Apply
+        function onNumDistancesChange() {
             if (hasGameStarted()) {
-                alert('Cannot change number of distances after game has started! Reset the game to change this setting.');
+                alert('Cannot change number of variables after game has started! Reset the game to change this setting.');
                 document.getElementById('numDistancesSelect').value = gameState.numDistances;
                 return;
             }
-            
-            var newNumDistances = parseInt(document.getElementById('numDistancesSelect').value);
+            var raw = parseInt(document.getElementById('numDistancesSelect').value, 10);
+            if (raw < 1 || isNaN(raw)) {
+                document.getElementById('numDistancesSelect').value = gameState.numDistances || 5;
+                return;
+            }
+            if (raw > 20) {
+                document.getElementById('numDistancesSelect').value = 20;
+            }
+            // Refresh Variable Labels grid so new variable input(s) appear immediately
+            generateDistanceLabelInputs();
+            markSettingsChanged();
+        }
+
+        function updateNumDistances() {
+            // Legacy: apply number of variables immediately (e.g. from preset load). Use onNumDistancesChange for user edits.
+            if (hasGameStarted()) {
+                document.getElementById('numDistancesSelect').value = gameState.numDistances;
+                return;
+            }
+            var newNumDistances = parseInt(document.getElementById('numDistancesSelect').value, 10) || gameState.numDistances;
             if (newNumDistances === gameState.numDistances) return;
-            
             gameState.numDistances = newNumDistances;
-            
-            // Update distances based on current preset
             var preset = document.getElementById('distancePresetSelect').value;
             if (preset && preset !== 'custom' && preset !== '') {
                 gameState.distances = getDefaultDistances(preset, newNumDistances);
             } else {
-                // For custom or no preset, adjust the distances array length
                 if (gameState.distances.length > newNumDistances) {
                     gameState.distances = gameState.distances.slice(0, newNumDistances);
-                } else if (gameState.distances.length < newNumDistances) {
-                    // Add default distance labels for new distances
+                } else {
                     while (gameState.distances.length < newNumDistances) {
-                        var defaultLabel = (gameState.distances.length + 2) + ' Meters';
-                        gameState.distances.push(defaultLabel);
+                        gameState.distances.push((gameState.distances.length + 2) + ' Meters');
                     }
                 }
             }
-            
-            // Always regenerate distance inputs if the collapsible section is visible
-            var distanceLabelsSection = document.getElementById('distanceLabelsSection');
-            if (distanceLabelsSection && !distanceLabelsSection.classList.contains('collapsed')) {
-                generateDistanceLabelInputs();
-            }
-            
-            // Reset all players' scores arrays to match new settings (rounds and numDistances are independent)
+            generateDistanceLabelInputs();
             gameState.players.forEach(function(player) {
                 player.scores = Array(gameState.rounds).fill(null).map(function() { 
                     return Array(gameState.numDistances).fill(null).map(function() { 
@@ -2391,14 +2408,12 @@
                 player.viewingDistance = 1;
                 player.gameComplete = false;
             });
-            
             updateGameDisplay();
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
+                updateLeaderboardWindow();
             }
-            
             showTimedNotification('📏 Number of distances updated to ' + newNumDistances + '!', 2000);
         }
 
@@ -2793,7 +2808,11 @@
                 return;
             }
             
-            var numDistances = gameState.numDistances || 5;
+            // Use the Number of Variables input value so when user adds a variable the new
+            // input appears immediately in the Variable Labels section (applied to game on Apply)
+            var inputEl = document.getElementById('numDistancesSelect');
+            var fromInput = inputEl ? parseInt(inputEl.value, 10) : NaN;
+            var numDistances = (fromInput >= 1 && fromInput <= 20) ? fromInput : (gameState.numDistances || 5);
             var distancePreset = gameState.distancePreset || '';
             
             // Clear existing content
