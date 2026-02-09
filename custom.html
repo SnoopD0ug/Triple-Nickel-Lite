@@ -475,7 +475,13 @@
                             <input type="number" id="numDistancesSelect" class="config-input" min="1" max="20" value="5">
                         </div>
                         <div class="config-item">
-                            <label class="config-label">Play Mode</label>
+                            <label class="config-label" style="display: flex; align-items: center; gap: 8px;">
+                                <span>Play Mode</span>
+                                <span style="display: flex; align-items: center; gap: 4px;">
+                                    <input type="checkbox" id="distancesOnTopCheckbox" onchange="updateDistancesOnTop()" style="width: 14px; height: 14px; cursor: pointer;">
+                                    <span>🔄</span>
+                                </span>
+                            </label>
                             <select id="playModeSelect" onchange="updatePlayMode()" class="config-input">
                                 <option value="sequential" selected>Sequential (2m→3m→4m→5m→6m, repeat)</option>
                                 <option value="consecutive">Consecutive (all rounds at 2m, then all at 3m, etc.)</option>
@@ -651,6 +657,7 @@
             distancePreset: '',
             numDistances: 5,
             playMode: 'sequential', // 'sequential' or 'consecutive'
+            distancesOnTop: true, // true = Variable row on top, false = Rounds row on top (like walkback)
             isWalkback: false,
             isGolf: false,
             players: [],
@@ -1653,12 +1660,13 @@
                 '</div></div></div>' +
                 (isEliminatedFromTiebreaker ? '<div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; color: #ef4444; font-weight: 500; font-size: 0.9rem;">❌ Eliminated from Tiebreaker</div>' : '') +
                 (gameState.inTiebreaker && !isInTiebreaker && !isEliminatedFromTiebreaker ? '<div style="background: rgba(59, 130, 246, 0.1); border: 1px solid #3b82f6; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; color: #3b82f6; font-weight: 500; font-size: 0.9rem;">⏸️ Waiting for Tiebreaker to Complete</div>' : '') +
-                '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid #475569;">' +
-                '<span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Rounds:</span>' +
-                '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' + roundNavButtons + '</div></div>' +
-                '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px; padding: 10px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid #475569;">' +
-                '<span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Variable:</span>' +
-                '<div style="display: flex; gap: 5px; flex-wrap: wrap;">' + distanceNavButtons + '</div></div>' +
+                '<div style="margin-bottom: 15px; padding: 10px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid #475569;">' +
+                (gameState.distancesOnTop ?
+                    '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Variable:</span><div style="display: flex; gap: 5px; flex-wrap: wrap;">' + distanceNavButtons + '</div></div>' +
+                    '<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Rounds:</span><div style="display: flex; gap: 5px; flex-wrap: wrap;">' + roundNavButtons + '</div></div>' :
+                    '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;"><span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Rounds:</span><div style="display: flex; gap: 5px; flex-wrap: wrap;">' + roundNavButtons + '</div></div>' +
+                    '<div style="display: flex; align-items: center; gap: 10px;"><span style="font-size: 0.8rem; color: #94a3b8; font-weight: 500;">Variable:</span><div style="display: flex; gap: 5px; flex-wrap: wrap;">' + distanceNavButtons + '</div></div>') +
+                '</div>' +
                 (isViewingPastRound ? '<div style="background: rgba(139, 92, 246, 0.1); border: 1px solid #8b5cf6; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; color: #a855f7; font-weight: 500; font-size: 0.9rem;">📜 Viewing Past Round - ' + 
                     (gameState.distances[displayRound - 1] ? gameState.distances[displayRound - 1] + ' (Round ' + displayRound + ')' : 'Round ' + displayRound) + '</div>' : '') +
                 (isViewingFutureRound ? '<div style="background: rgba(139, 92, 246, 0.1); border: 1px solid #8b5cf6; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; color: #a855f7; font-weight: 500; font-size: 0.9rem;">🔮 Viewing Future Round - ' + 
@@ -2113,6 +2121,11 @@
             document.getElementById('numDistancesSelect').value = gameState.numDistances || 5;
             document.getElementById('playModeSelect').value = gameState.playMode || 'sequential';
             document.getElementById('distancePresetSelect').value = gameState.distancePreset !== undefined ? gameState.distancePreset : '';
+            if (gameState.distancesOnTop === undefined || gameState.distancesOnTop === null) {
+                gameState.distancesOnTop = (gameState.playMode === 'sequential');
+            }
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            if (distancesOnTopCheckbox) distancesOnTopCheckbox.checked = gameState.distancesOnTop;
             var hideScoreTilesCheckbox = document.getElementById('hideScoreTilesCheckbox');
             if (hideScoreTilesCheckbox) {
                 hideScoreTilesCheckbox.checked = gameState.hideScoreTiles || false;
@@ -2389,6 +2402,14 @@
             showTimedNotification('📏 Number of distances updated to ' + newNumDistances + '!', 2000);
         }
 
+        function updateDistancesOnTop() {
+            var checkbox = document.getElementById('distancesOnTopCheckbox');
+            if (checkbox) {
+                gameState.distancesOnTop = checkbox.checked;
+                renderPlayers();
+            }
+        }
+        
         function updatePlayMode() {
             if (hasGameStarted()) {
                 alert('Cannot change play mode after game has started! Reset the game to change this setting.');
@@ -2400,6 +2421,11 @@
             if (newPlayMode === gameState.playMode) return;
             
             gameState.playMode = newPlayMode;
+            
+            // Set default checkbox state based on play mode (like walkback)
+            gameState.distancesOnTop = (newPlayMode === 'sequential');
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            if (distancesOnTopCheckbox) distancesOnTopCheckbox.checked = gameState.distancesOnTop;
             
             // Reset all players to starting position since play mode affects progression
             gameState.players.forEach(function(player) {
@@ -2879,6 +2905,7 @@
             var newTiebreakerMode = 'sudden-death';
             var newFinalizationMode = 'auto';
             var newGameName = '';
+            gameState.distancesOnTop = true;
             gameState.rounds = newRounds;
             gameState.throwsPerRound = newThrows;
             gameState.maxScore = newMaxScore;
@@ -2926,6 +2953,8 @@
             document.getElementById('numDistancesSelect').value = newNumDistances;
             document.getElementById('playModeSelect').value = newPlayMode;
             document.getElementById('distancePresetSelect').value = newDistancePreset;
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            if (distancesOnTopCheckbox) distancesOnTopCheckbox.checked = gameState.distancesOnTop;
             var hideScoreTilesCheckbox = document.getElementById('hideScoreTilesCheckbox');
             if (hideScoreTilesCheckbox) hideScoreTilesCheckbox.checked = false;
             var gameNotesInput = document.getElementById('gameNotesInput');
@@ -2997,6 +3026,8 @@
             gameState.playMode = newPlayMode;
             gameState.distancePreset = newDistancePreset;
             gameState.distances = newDistances;
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            gameState.distancesOnTop = distancesOnTopCheckbox ? distancesOnTopCheckbox.checked : (newPlayMode === 'sequential');
             
             // Update target rings based on max score
             gameState.targetRings = [];
@@ -3048,6 +3079,11 @@
             
             saveGameState(); // Auto-save after settings change
             showTimedNotification('⚙️ Settings applied successfully!', 2000);
+            
+            // Close settings panel after applying
+            var settingsPanel = document.getElementById('settingsPanel');
+            if (settingsPanel) settingsPanel.style.display = 'none';
+            settingsVisible = false;
         }
 
         function resetGame() {
@@ -5113,6 +5149,7 @@
                     distances: currentDistances,
                     distancePreset: 'custom', // Always save as custom when saving custom preset
                     playMode: playModeSelect ? playModeSelect.value || gameState.playMode : gameState.playMode,
+                    distancesOnTop: gameState.distancesOnTop !== undefined ? gameState.distancesOnTop : (gameState.playMode === 'sequential'),
                     tiebreakerMode: tiebreakerSelect ? tiebreakerSelect.value || gameState.tiebreakerMode : gameState.tiebreakerMode,
                     finalizationMode: finalizationModeSelect ? finalizationModeSelect.value || gameState.finalizationMode : gameState.finalizationMode,
                     gameName: presetName, // Save the game name in the preset
@@ -5256,6 +5293,7 @@
             gameState.distancePreset = 'custom_' + presetName; // Store full preset identifier
             gameState.currentPresetName = presetName; // Store preset name for reference
             gameState.playMode = preset.playMode !== undefined ? preset.playMode : 'sequential';
+            gameState.distancesOnTop = preset.distancesOnTop !== undefined ? preset.distancesOnTop : (preset.playMode === 'sequential');
             gameState.tiebreakerMode = preset.tiebreakerMode !== undefined ? preset.tiebreakerMode : 'sudden-death';
             gameState.finalizationMode = preset.finalizationMode !== undefined ? preset.finalizationMode : 'auto';
             gameState.gameName = preset.gameName || presetName; // Use saved game name or preset name
@@ -5308,7 +5346,11 @@
             if (playModeSelect) {
                 playModeSelect.value = preset.playMode !== undefined ? preset.playMode : 'sequential';
             }
-            
+            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
+            if (distancesOnTopCheckbox) {
+                distancesOnTopCheckbox.checked = gameState.distancesOnTop;
+            }
+
             // Set the distance preset dropdown to the custom preset FIRST
             var distancePresetSelect = document.getElementById('distancePresetSelect');
             if (distancePresetSelect) {
