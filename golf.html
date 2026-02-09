@@ -2664,6 +2664,11 @@
 
         function resetGame() {
             if (confirm('Reset the golf game? All scores will be lost.')) {
+                if (leaderboardWindow && !leaderboardWindow.closed) {
+                    leaderboardWindow.close();
+                    leaderboardWindow = null;
+                    localStorage.removeItem('golfLeaderboardOpen');
+                }
                 location.reload();
             }
         }
