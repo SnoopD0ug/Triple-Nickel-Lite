@@ -9801,6 +9801,22 @@
             if (gameState.playersImported && gameState.gameName) {
                 revertTournamentEventStatus();
             }
+
+            // Close any open popup windows (leaderboard, victory, track progress)
+            if (leaderboardWindow && !leaderboardWindow.closed) {
+                leaderboardWindow.close();
+                leaderboardWindow = null;
+                localStorage.removeItem('walkbackLeaderboardOpen');
+            }
+            if (victoryWindow && !victoryWindow.closed) {
+                victoryWindow.close();
+                victoryWindow = null;
+            }
+            if (trackProgressWindow && !trackProgressWindow.closed) {
+                trackProgressWindow.close();
+                trackProgressWindow = null;
+                localStorage.removeItem('walkbackTrackProgressOpen');
+            }
             
             // Reset game state to initial values
             gameState = {
