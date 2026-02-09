@@ -197,7 +197,7 @@
         <div id="gameInterface" class="game-interface">
             <div class="game-header">
                 <div class="action-buttons">
-                    <button class="action-button leaderboard-btn" onclick="toggleLeaderboard()">🏆 Leaderboard</button>
+                    <button class="action-button leaderboard-btn" onclick="openLeaderboardWindow()">🏆 Leaderboard</button>
                     <button class="action-button stats-btn" onclick="showStats()">📊 Stats</button>
                     <button class="action-button settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
                     <button class="action-button settings-btn" onclick="exportData()">💾 Export</button>
@@ -360,6 +360,7 @@
 
         var playerId = 1;
         var leaderboardVisible = false;
+        var leaderboardWindow = null;
         var leaderboardDragging = false;
         var leaderboardOffset = { x: 0, y: 0 };
         var settingsVisible = false;
@@ -1451,14 +1452,261 @@
         }
 
         function toggleLeaderboard() {
-            leaderboardVisible = !leaderboardVisible;
-            var window = document.getElementById('leaderboardWindow');
-            if (leaderboardVisible) {
-                window.classList.add('show');
-                updateLeaderboard();
-                setupLeaderboardDragging();
+            openLeaderboardWindow();
+        }
+
+        // SEPARATE WINDOW LEADERBOARD FUNCTIONS (same behavior as Walkback/Custom)
+        function openLeaderboardWindow() {
+            if (leaderboardWindow && !leaderboardWindow.closed) {
+                leaderboardWindow.focus();
+                if (gameState.inTiebreaker) {
+                    updateLeaderboardWindow();
+                } else {
+                    updateLeaderboardWindow();
+                }
+                return;
+            }
+
+            var windowFeatures = 'width=1200,height=800,scrollbars=no,resizable=yes,location=no,menubar=no,toolbar=no';
+            var position = getMultiMonitorWindowPosition();
+            windowFeatures += ',left=' + position.left + ',top=' + position.top;
+
+            leaderboardWindow = window.open('', 'leaderboard', windowFeatures);
+
+            if (!leaderboardWindow) {
+                alert('Pop-up blocked! Please allow pop-ups for this site to use the leaderboard window.');
+                return;
+            }
+
+            leaderboardWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>🏆 ${gameState.gameName || 'Golf Championship'} - Live Leaderboard</title>
+                    <style>
+                        body { margin: 0; padding: 0; background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%); height: 100vh; width: 100vw; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+                        .leaderboard-container { background: rgba(30, 41, 59, 0.95); width: 100%; height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+                        .leaderboard-header { background: linear-gradient(45deg, #10b981, #059669); color: white; padding: 2vh 2vw; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.2vh solid #34d399; flex-shrink: 0; min-height: 8vh; }
+                        .leaderboard-title { display: flex; align-items: center; gap: 1.5vw; }
+                        .leaderboard-title span { font-size: clamp(2rem, 4vw, 2.8rem); }
+                        .leaderboard-title div { font-size: clamp(1.4rem, 2.8vw, 2.1rem); font-weight: bold; }
+                        #leaderboardGameName { font-size: clamp(1.8rem, 4.5vw, 3.2rem); font-weight: 900; line-height: 1.1; }
+                        #leaderboardSubtitle { font-size: clamp(1rem, 2.4vw, 1.6rem); color: rgba(255,255,255,0.8); margin-top: 0.2vh; }
+                        .leaderboard-status { font-size: clamp(0.6rem, 1.4vw, 1rem); color: #34d399; font-weight: 600; margin-top: 0.3vh; opacity: 0; transition: opacity 0.3s ease; }
+                        .leaderboard-status.show { opacity: 1; }
+                        .leaderboard-content { padding: 2vh 2vw; flex: 1; color: #e2e8f0; display: grid; gap: 1.5vh 3vw; align-items: start; overflow-y: auto; max-height: calc(100vh - 8vh); }
+                        .leaderboard-content.two-column { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(10, auto); grid-auto-flow: column; }
+                        .leaderboard-content.single-column { grid-template-columns: 1fr; gap: 0.5vh; }
+                        .leaderboard-content.single-column.few-players-1-2 { gap: 2vh; }
+                        .leaderboard-content.single-column.few-players-3-4 { gap: 1.5vh; }
+                        .leaderboard-content.single-column.few-players-5-6 { gap: 1vh; }
+                        .leaderboard-content.single-column.few-players-7-8 { gap: 0.8vh; }
+                        .leaderboard-content.single-column.few-players-9-10 { gap: 0.6vh; }
+                        .leaderboard-item { background: rgba(51, 65, 85, 0.8); border: 0.2vh solid rgba(255, 255, 255, 0.1); border-radius: 1.5vh; padding: 1.5vh 1.5vw; display: flex; align-items: center; transition: all 0.3s ease; min-height: 6vh; }
+                        .leaderboard-content.single-column.few-players-1-2 .leaderboard-item { min-height: 12vh; padding: 2.5vh 2vw; }
+                        .leaderboard-content.single-column.few-players-3-4 .leaderboard-item { min-height: 10vh; padding: 2vh 1.8vw; }
+                        .leaderboard-content.single-column.few-players-5-6 .leaderboard-item { min-height: 8vh; padding: 1.8vh 1.6vw; }
+                        .leaderboard-content.single-column.few-players-7-8 .leaderboard-item { min-height: 7vh; padding: 1.6vh 1.5vw; }
+                        .leaderboard-content.single-column.few-players-9-10 .leaderboard-item { min-height: 6.5vh; padding: 1.5vh 1.5vw; }
+                        .leaderboard-item:hover { transform: translateY(-0.2vh); box-shadow: 0 0.8vh 2.5vh rgba(0, 0, 0, 0.3); }
+                        .rank-1 { border-color: #ffd700; }
+                        .rank-2 { border-color: #c0c0c0; }
+                        .rank-3 { border-color: #cd7f32; }
+                        .no-players { text-align: center; color: #94a3b8; font-size: clamp(1rem, 2vw, 1.2rem); padding: 4vh 2vw; width: 100%; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+                        .leaderboard-trophy { font-size: clamp(1.6rem, 3.2vw, 2.2rem); margin-right: 1.2vw; width: 2.5vw; min-width: 40px; text-align: center; }
+                        .leaderboard-rank { font-size: clamp(1.1rem, 2.4vw, 1.6rem); font-weight: bold; width: 2vw; min-width: 35px; text-align: center; margin-right: 1.2vw; }
+                        .leaderboard-info { flex: 1; min-width: 0; }
+                        .leaderboard-name { font-size: clamp(1.2rem, 2.6vw, 1.6rem); font-weight: bold; color: white; margin-bottom: 0.5vh; }
+                        .leaderboard-stats { display: flex; flex-wrap: wrap; gap: 1vw; font-size: clamp(0.7rem, 1.4vw, 1rem); color: #e2e8f0; align-items: center; }
+                        .leaderboard-stat { white-space: nowrap; display: flex; align-items: center; gap: 0.5vw; }
+                        .leaderboard-score { font-size: clamp(1.8rem, 3.8vw, 2.8rem); font-weight: bold; color: #10b981; text-align: center; min-width: 6vw; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+                        .rank-1 .leaderboard-score { color: #ffd700; font-size: clamp(2rem, 4.2vw, 3rem); }
+                        .rank-2 .leaderboard-score { color: #c0c0c0; font-size: clamp(1.9rem, 4vw, 2.9rem); }
+                        .rank-3 .leaderboard-score { color: #cd7f32; font-size: clamp(1.85rem, 3.9vw, 2.85rem); }
+                        .leaderboard-score-label { font-size: clamp(0.5rem, 0.9vw, 0.7rem); color: rgba(255,255,255,0.8); margin-top: 0.3vh; }
+                        .leaderboard-score-breakdown { font-size: clamp(0.7rem, 1.3vw, 0.9rem); color: #ef4444; margin-top: 0.2vh; }
+                        @media (max-width: 768px) { .leaderboard-content { grid-template-columns: 1fr !important; } .leaderboard-item { padding: 2vh 3vw; flex-direction: column; gap: 1vh; text-align: center; } .leaderboard-stats { justify-content: center; } .leaderboard-score { min-width: auto; margin-top: 1vh; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="leaderboard-container">
+                        <div class="leaderboard-header">
+                            <div class="leaderboard-title">
+                                <span>🏆</span>
+                                <div>
+                                    <div id="leaderboardGameName">${gameState.gameName || 'Golf Championship'}</div>
+                                    <div id="leaderboardSubtitle">Live Leaderboard</div>
+                                    <div id="leaderboardStatus" class="leaderboard-status"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="leaderboard-content" id="leaderboardContent"></div>
+                    </div>
+                </body>
+                </html>
+            `);
+
+            leaderboardWindow.document.close();
+
+            if (gameState.inTiebreaker) {
+                updateLeaderboardWindow();
             } else {
-                window.classList.remove('show');
+                updateLeaderboardWindow();
+            }
+
+            localStorage.setItem('golfLeaderboardOpen', 'true');
+
+            setTimeout(function() { updateLeaderboardWindow(); }, 100);
+
+            var refreshInterval = setInterval(function() {
+                if (!leaderboardWindow || leaderboardWindow.closed) {
+                    clearInterval(refreshInterval);
+                } else {
+                    updateLeaderboardWindow();
+                }
+            }, 2000);
+
+            leaderboardWindow.addEventListener('beforeunload', function() {
+                leaderboardWindow = null;
+                localStorage.removeItem('golfLeaderboardOpen');
+            });
+        }
+
+        function updateLeaderboardWindow() {
+            if (!leaderboardWindow || leaderboardWindow.closed) return;
+
+            var content = leaderboardWindow.document.getElementById('leaderboardContent');
+            var subtitle = leaderboardWindow.document.getElementById('leaderboardSubtitle');
+            if (!content || !subtitle) return;
+
+            leaderboardWindow.document.title = '🏆 ' + (gameState.gameName || 'Golf Championship') + ' - Live Leaderboard';
+
+            var headerTitleDiv = leaderboardWindow.document.querySelector('.leaderboard-title div');
+            if (headerTitleDiv) {
+                var titleEl = headerTitleDiv.querySelector('div');
+                if (titleEl) titleEl.textContent = gameState.gameName || 'Golf Championship';
+            }
+
+            var statusElement = leaderboardWindow.document.getElementById('leaderboardStatus');
+            if (statusElement) {
+                if (gameState.gameFinalized) {
+                    statusElement.innerHTML = '🔒 FINALIZED RESULTS - SCORES LOCKED';
+                    statusElement.className = 'leaderboard-status show';
+                } else if (gameState.inTiebreaker) {
+                    statusElement.innerHTML = '🔥 TIEBREAKER ROUND ' + gameState.tiebreakerRound + ' - ' + (gameState.tiebreakerPlayers ? gameState.tiebreakerPlayers.length : 0) + ' players tied';
+                    statusElement.className = 'leaderboard-status show';
+                } else {
+                    statusElement.innerHTML = '';
+                    statusElement.className = 'leaderboard-status';
+                }
+            }
+
+            if (gameState.inTiebreaker && gameState.tiebreakerPlayers && gameState.tiebreakerPlayers.length) {
+                subtitle.textContent = 'Tiebreaker Round ' + gameState.tiebreakerRound + ' - ' + gameState.tiebreakerPlayers.length + ' players tied';
+            } else {
+                var completedPlayers = gameState.players.filter(function(p) { return p.gameComplete; }).length;
+                subtitle.textContent = completedPlayers + '/' + gameState.players.length + ' players completed';
+            }
+
+            content.innerHTML = '';
+
+            if (gameState.players.length === 0) {
+                var noPlayersDiv = leaderboardWindow.document.createElement('div');
+                noPlayersDiv.className = 'no-players';
+                noPlayersDiv.innerHTML = '👥 No players added yet<br><span style="font-size: 0.9rem; opacity: 0.7; margin-top: 10px; display: block;">Add players to see live rankings</span>';
+                content.appendChild(noPlayersDiv);
+                return;
+            }
+
+            var sortedPlayers = gameState.players.slice().sort(function(a, b) {
+                var aTotal = a.total + (a.tiebreakerTotal || 0);
+                var bTotal = b.total + (b.tiebreakerTotal || 0);
+                return aTotal - bTotal;
+            });
+
+            var playersToShow = sortedPlayers.slice(0, 20);
+            var playerCount = playersToShow.length;
+
+            if (playerCount <= 10) {
+                var sizeClass = playerCount <= 2 ? ' few-players-1-2' : playerCount <= 4 ? ' few-players-3-4' : playerCount <= 6 ? ' few-players-5-6' : playerCount <= 8 ? ' few-players-7-8' : ' few-players-9-10';
+                content.className = 'leaderboard-content single-column' + sizeClass;
+            } else {
+                content.className = 'leaderboard-content two-column';
+            }
+
+            playersToShow.forEach(function(player, index) {
+                var rank = index + 1;
+                var trophy = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎯';
+                var rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                var totalScore = player.total + (player.tiebreakerTotal || 0);
+                var performance = totalScore < gameState.par ? 'Under Par' : totalScore === gameState.par ? 'At Par' : 'Over Par';
+
+                var item = leaderboardWindow.document.createElement('div');
+                item.className = 'leaderboard-item ' + rankClass;
+
+                if (rank === 1 && gameState.gameFinalized) {
+                    item.style.background = 'linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1))';
+                    item.style.border = '2px solid #fbbf24';
+                    item.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.3)';
+                }
+                if (gameState.inTiebreaker && player.hiddenForTiebreaker) {
+                    item.style.opacity = '0.5';
+                    item.style.filter = 'grayscale(70%)';
+                }
+
+                var scoreBreakdown = '';
+                if (player.tiebreakerTotal) {
+                    scoreBreakdown = '<div class="leaderboard-score-breakdown">(' + player.total + ' + ' + player.tiebreakerTotal + ' TB)</div>';
+                }
+
+                var statsHtml = '<div class="leaderboard-stats"><div class="leaderboard-stat">' + performance + '</div>';
+                if (player.bullseyes > 0) statsHtml += '<span>•</span><div class="leaderboard-stat" style="color: #10b981;">🎯 ' + player.bullseyes + ' Hits</div>';
+                if (player.tripleNickels > 0) statsHtml += '<span>•</span><div class="leaderboard-stat" style="color: #a855f7;">🔥 ' + player.tripleNickels + ' Perfect Rounds</div>';
+                statsHtml += '</div>';
+
+                item.innerHTML =
+                    '<div class="leaderboard-trophy">' + trophy + '</div>' +
+                    '<div class="leaderboard-rank" style="color: ' + (rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#64748b') + ';">#' + rank + '</div>' +
+                    '<div class="leaderboard-info">' +
+                        '<div class="leaderboard-name">' + player.name + (rank === 1 && gameState.gameFinalized ? ' 🏆' : '') + '</div>' +
+                        statsHtml + scoreBreakdown +
+                    '</div>' +
+                    '<div class="leaderboard-score"><div>' + totalScore + '</div><div class="leaderboard-score-label">STROKES</div></div>';
+
+                content.appendChild(item);
+            });
+
+            if (gameState.inTiebreaker && gameState.tiebreakerPlayers && gameState.tiebreakerPlayers.length) {
+                var tiebreakerStatus = leaderboardWindow.document.createElement('div');
+                tiebreakerStatus.style.cssText = 'background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; padding: 10px; border-radius: 8px; margin-top: 15px; text-align: center; color: #f87171; font-size: 0.9rem; grid-column: 1 / -1;';
+                tiebreakerStatus.innerHTML = '🔥 Tiebreaker Round ' + gameState.tiebreakerRound + ' in progress<br>' + gameState.tiebreakerPlayers.length + ' players competing for victory';
+                content.appendChild(tiebreakerStatus);
+            }
+        }
+
+        function getMultiMonitorWindowPosition() {
+            try {
+                if (window.screen && window.screen.availWidth) {
+                    var primaryScreenWidth = window.screen.availWidth;
+                    var primaryScreenHeight = window.screen.availHeight;
+                    var totalScreenWidth = window.screen.width;
+                    var totalScreenHeight = window.screen.height;
+                    var widthDifference = totalScreenWidth - primaryScreenWidth;
+                    var heightDifference = totalScreenHeight - primaryScreenHeight;
+                    if (totalScreenWidth > primaryScreenWidth * 1.2) {
+                        return { left: primaryScreenWidth + 50, top: 50, multiMonitor: true };
+                    }
+                    if (widthDifference > 200 || heightDifference > 200) {
+                        var leftPosition = widthDifference > heightDifference ? primaryScreenWidth + 50 : 50;
+                        var topPosition = widthDifference > heightDifference ? 50 : primaryScreenHeight + 50;
+                        return { left: leftPosition, top: topPosition, multiMonitor: true };
+                    }
+                }
+                return { left: 100, top: 100, multiMonitor: false };
+            } catch (e) {
+                return { left: 100, top: 100, multiMonitor: false };
             }
         }
 
@@ -1539,6 +1787,11 @@
                 tiebreakerStatus.innerHTML = '🔥 Tiebreaker Round ' + gameState.tiebreakerRound + ' in progress<br>' + 
                     gameState.tiebreakerPlayers.length + ' players competing for victory';
                 content.appendChild(tiebreakerStatus);
+            }
+
+            // Keep pop-out leaderboard window in sync if open
+            if (leaderboardWindow && !leaderboardWindow.closed) {
+                updateLeaderboardWindow();
             }
         }
 
