@@ -8638,8 +8638,19 @@
 
         function getDefaultDistances(preset, numDistances) {
             var distances = [];
+            var n = numDistances || 5;
             
-            if (preset === 'dangerfest_am_knife') {
+            if (preset === 'amateur') {
+                for (var i = 0; i < n; i++) {
+                    distances.push((2 + i) + ' Meters');
+                }
+                return distances;
+            } else if (preset === 'professional') {
+                for (var i = 0; i < n; i++) {
+                    distances.push((3 + i) + ' Meters');
+                }
+                return distances;
+            } else if (preset === 'dangerfest_am_knife') {
                 distances = ['2 Meters', '3 Meters', '4 Meters', '5 Meters', '6 Meters'];
             } else if (preset === 'dangerfest_pro_knife') {
                 distances = ['3 Meters', '4 Meters', '5 Meters', '6 Meters', '7 Meters'];
@@ -8764,6 +8775,7 @@
             gameState.distancePreset = newDistancePreset;
             gameState.tiebreakerMode = newTiebreakerMode;
             gameState.gameName = newGameName;
+            gameState.distancesOnTop = false; // Default for consecutive mode
             gameState.targetRings = generateTargetRings();
             gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
             gameState.players.forEach(function(player) {
