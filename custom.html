@@ -35,16 +35,23 @@
         }
         
         .container {
-            max-width: 100% !important;
-            width: 100% !important;
+            max-width: calc(100vw - clamp(250px, 20vw, 300px)) !important;
+            width: calc(100% - clamp(250px, 20vw, 300px)) !important;
             margin: 0 !important;
-            margin-left: clamp(250px, 20vw, 300px);
+            margin-left: clamp(250px, 20vw, 300px) !important;
             padding: 0 !important;
             min-height: 100vh;
             min-width: 0;
             display: flex;
             flex-direction: row;
             overflow-x: hidden;
+            transition: margin-left 0.3s ease, width 0.3s ease, max-width 0.3s ease;
+        }
+
+        .container.expanded {
+            margin-left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
         }
 
         /* Sidebar styles handled by shared-sidebar.css */
@@ -111,6 +118,18 @@
             display: grid !important;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
             gap: 20px !important;
+        }
+        
+        /* Settings panel: full-width selects so dropdowns don't clip */
+        #settingsPanel .config-input {
+            width: 100%;
+            min-width: 0;
+            box-sizing: border-box;
+        }
+        
+        #settingsPanel select.config-input {
+            max-width: 100%;
+            appearance: auto;
         }
         
         #customDistanceInputs {
@@ -341,7 +360,9 @@
 
         @media (max-width: 1024px) {
             .container {
-                margin-left: clamp(200px, 25vw, 250px);
+                margin-left: clamp(200px, 25vw, 250px) !important;
+                width: calc(100% - clamp(200px, 25vw, 250px)) !important;
+                max-width: calc(100vw - clamp(200px, 25vw, 250px)) !important;
             }
             
             .action-buttons {
@@ -352,7 +373,9 @@
         @media (max-width: 768px) {
             .container {
                 flex-direction: column !important;
-                margin-left: 0;
+                margin-left: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
             }
             
             .game-interface {
@@ -367,6 +390,16 @@
             
             #settingsPanel .config-grid {
                 grid-template-columns: 1fr !important;
+            }
+            
+            /* Settings panel: scrollable on mobile so dropdowns stay in view */
+            #settingsPanel {
+                max-height: min(85vh, 700px) !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                -webkit-overflow-scrolling: touch;
+                padding: 16px !important;
+                margin-bottom: 20px !important;
             }
             
             .pagination-controls {
@@ -1203,14 +1236,16 @@
             }
         }
 
-        // Custom sidebar toggle function for game-interface
+        // Custom sidebar toggle function for container and game-interface
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const container = document.querySelector('.container');
             const gameInterface = document.querySelector('.game-interface');
             const toggle = document.getElementById('sidebarToggle');
             
-            if (sidebar && gameInterface && toggle) {
+            if (sidebar && container && gameInterface && toggle) {
                 sidebar.classList.toggle('collapsed');
+                container.classList.toggle('expanded');
                 gameInterface.classList.toggle('expanded');
                 
                 // Update toggle button text
@@ -2087,6 +2122,11 @@
             if (settingsVisible) {
                 panel.style.display = 'block';
                 updateSettingsPanel();
+                
+                // On mobile, scroll panel into view so dropdowns don't go off-screen
+                if (window.innerWidth <= 768 && panel.scrollIntoView) {
+                    setTimeout(function() { panel.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
+                }
                 
                 // Update custom distance panel visibility based on current preset
                 var customPanel = document.getElementById('customDistancePanel');
