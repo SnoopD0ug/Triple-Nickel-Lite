@@ -209,6 +209,16 @@
             gap: 15px !important;
         }
         
+        /* Apply Changes button glow when settings have been modified */
+        #applySettingsBtn.apply-glow {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 40px rgba(16, 185, 129, 0.4);
+            animation: apply-glow-pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes apply-glow-pulse {
+            0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 40px rgba(16, 185, 129, 0.4); }
+            50% { box-shadow: 0 0 28px rgba(16, 185, 129, 1), 0 0 50px rgba(16, 185, 129, 0.6); }
+        }
+        
         /* Responsive game info */
         .game-info {
             margin-bottom: 15px !important;
@@ -598,9 +608,12 @@
 
             <!-- Settings Panel -->
             <div id="settingsPanel" style="background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; border-radius: 15px; padding: 25px; margin-bottom: 30px; display: none;">
-                <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; gap: 10px;">
-                    <span>⚙️</span>
-                    <span>Walkback Settings</span>
+                <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span>⚙️</span>
+                        <span>Walkback Settings</span>
+                    </div>
+                    <button onclick="resetSettingsToDefaultsInPanel()" style="background: #64748b; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease;">Reset</button>
                 </div>
                 
                 <!-- Game Started Warning -->
@@ -748,8 +761,10 @@
                     </div>
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Save Current Settings</label>
-                        <button id="savePresetBtn" onclick="saveGamePreset()" style="background: #059669; border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">💾 Save as Preset</button>
-                        <button onclick="removeSelectedPreset()" style="background: #ef4444; border: none; color: white; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; margin-top: 5px;">🗑️ Remove Preset</button>
+                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center; flex-wrap: nowrap;">
+                            <button id="savePresetBtn" onclick="saveGamePreset()" style="background: #059669; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; min-width: 120px;">💾 Save as Preset</button>
+                            <button onclick="removeSelectedPreset()" style="background: #ef4444; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; min-width: 120px;">🗑️ Remove Preset</button>
+                        </div>
                     </div>
 
                 </div>
@@ -765,11 +780,10 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
+                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;">
                     <button id="applySettingsBtn" onclick="applySettings()" style="background: #10b981; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Apply Changes</button>
                     <button onclick="clearScores()" style="background: #f59e0b; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Clear Scores</button>
                     <button onclick="clearPlayers()" style="background: #ef4444; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Clear Players</button>
-                    <button onclick="exportData()" style="background: #8b5cf6; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Export Data</button>
                 </div>
                 
                 <!-- Tournament Status Management -->
@@ -8095,6 +8109,7 @@
             if (applyBtn) {
                 applyBtn.disabled = gameStarted;
                 applyBtn.style.opacity = gameStarted ? '0.5' : '1';
+                applyBtn.classList.remove('apply-glow');
             }
             
             var savePresetBtn = document.getElementById('savePresetBtn');
@@ -8720,7 +8735,83 @@
                 ((pointsInCompletedSets / maxPossibleInCompletedSets) * 100).toFixed(1) : 0;
         }
 
+        function markSettingsChanged() {
+            var applyBtn = document.getElementById('applySettingsBtn');
+            if (applyBtn && !applyBtn.disabled) {
+                applyBtn.classList.add('apply-glow');
+            }
+        }
+        
+        function resetSettingsToDefaultsInPanel() {
+            if (hasGameStarted()) {
+                alert('Cannot reset settings after game has started! Reset the game to change settings.');
+                return;
+            }
+            var applyBtn = document.getElementById('applySettingsBtn');
+            if (applyBtn) applyBtn.classList.remove('apply-glow');
+            var newRounds = 4;
+            var newNumDistances = 5;
+            var newMaxScore = 5;
+            var newPlayMode = 'consecutive';
+            var newDistancePreset = 'amateur';
+            var newTiebreakerMode = 'sudden-death-podium-match';
+            var newGameName = '';
+            gameState.rounds = newRounds;
+            gameState.throwsPerRound = 3;
+            gameState.numDistances = newNumDistances;
+            gameState.maxScore = newMaxScore;
+            gameState.playMode = newPlayMode;
+            gameState.distancePreset = newDistancePreset;
+            gameState.tiebreakerMode = newTiebreakerMode;
+            gameState.gameName = newGameName;
+            gameState.targetRings = generateTargetRings();
+            gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
+            gameState.players.forEach(function(player) {
+                if (player.scores.length > newRounds) {
+                    player.scores = player.scores.slice(0, newRounds);
+                } else if (player.scores.length < newRounds) {
+                    for (var i = player.scores.length; i < newRounds; i++) {
+                        player.scores.push(Array(newNumDistances).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); }));
+                    }
+                }
+                for (var r = 0; r < newRounds; r++) {
+                    if (!player.scores[r]) {
+                        player.scores[r] = Array(newNumDistances).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); });
+                    } else {
+                        if (player.scores[r].length > newNumDistances) {
+                            player.scores[r] = player.scores[r].slice(0, newNumDistances);
+                        } else if (player.scores[r].length < newNumDistances) {
+                            for (var d = player.scores[r].length; d < newNumDistances; d++) {
+                                player.scores[r].push(Array(gameState.throwsPerRound).fill(null));
+                            }
+                        } else {
+                            for (var d = 0; d < newNumDistances; d++) {
+                                player.scores[r][d] = Array(gameState.throwsPerRound).fill(null);
+                            }
+                        }
+                    }
+                }
+                player.currentRound = 1;
+                player.currentDistance = 1;
+                player.currentThrow = 1;
+                player.viewingRound = 1;
+                player.viewingDistance = 1;
+                player.gameComplete = false;
+                recalculatePlayerStats(player);
+            });
+            updateGameDisplay();
+            renderPlayers();
+            updateSettingsPanel();
+            updateCustomDistanceInputs();
+            refreshLeaderboardIfOpen();
+            refreshTrackProgressIfOpen();
+            saveGameState();
+            showTimedNotification('Settings reset to defaults.', 2000);
+        }
+        
         function applySettings() {
+            var applyBtn = document.getElementById('applySettingsBtn');
+            if (applyBtn) applyBtn.classList.remove('apply-glow');
             var newRounds = parseInt(document.getElementById('roundsSelect').value);
             var newNumDistances = parseInt(document.getElementById('numDistancesSelect').value);
             var newMaxScore = parseInt(document.getElementById('maxScoreSelect').value);
@@ -8832,20 +8923,8 @@
         }
 
         function clearScores() {
-            showClearScoresConfirm('Clear all scores? This will reset all player scores to zero and return all settings to default.', function() {
-                // Reset all settings to default values
-                gameState.rounds = 4;
-                gameState.throwsPerRound = 3;
-                gameState.maxScore = 5;
-                gameState.targetRings = generateTargetRings();
-                gameState.distances = ['2 Meters', '3 Meters', '4 Meters', '5 Meters', '6 Meters'];
-                gameState.distancePreset = 'amateur';
-                gameState.numDistances = 5;
-                gameState.playMode = 'consecutive';
-                gameState.gameName = '';
-                gameState.tiebreakerMode = 'sudden-death-podium-match';
-                
-                // Clear all scores for all players
+            showClearScoresConfirm('Clear all scores? This will reset all player scores to zero. Game settings and players will be kept.', function() {
+                // Clear all scores for all players (keep current game settings)
                 gameState.players.forEach(function(player) {
                     // Reset all scores to null
                     for (var r = 0; r < gameState.rounds; r++) {
@@ -8937,7 +9016,7 @@
                 // Save the cleared state
                 saveGameState();
                 
-                showTimedNotification('🧹 All scores cleared and settings reset to default! Players and names preserved.', 3000);
+                showTimedNotification('🧹 All scores cleared! Game settings and players preserved.', 3000);
             });
         }
 
@@ -11249,6 +11328,16 @@
         // Initialize the game when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             initializeGame();
+            // Glow Apply Changes when any setting is changed in the settings panel
+            var settingsPanel = document.getElementById('settingsPanel');
+            if (settingsPanel) {
+                settingsPanel.addEventListener('change', function(e) {
+                    if (e.target.matches('input, select, textarea')) markSettingsChanged();
+                });
+                settingsPanel.addEventListener('input', function(e) {
+                    if (e.target.matches('input, select, textarea')) markSettingsChanged();
+                });
+            }
             // Initialize pagination controls and dropdown after a short delay to ensure DOM is ready
             setTimeout(function() {
                 updatePaginationControls();
