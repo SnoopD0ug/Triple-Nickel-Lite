@@ -30,11 +30,20 @@
             min-width: 0;
             overflow-x: hidden;
             margin-left: clamp(250px, 20vw, 300px);
+            transition: margin-left 0.3s ease;
+        }
+        
+        .container.expanded {
+            margin-left: 0;
         }
         
         .game-interface {
             flex: 1;
             min-width: 0;
+            display: flex;
+            flex-direction: column;
+            padding: clamp(20px, 3vw, 40px);
+            padding-top: clamp(40px, 6vh, 60px);
         }
         
         .game-interface.expanded {
@@ -72,13 +81,112 @@
             gap: 10px;
         }
         
-        .par-indicator {
+        /* Game info title row – centered like Walkback/Custom */
+        .game-info-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        /* Golf help icon (question mark) */
+        .golf-help-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #10b981;
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .golf-help-icon:hover {
+            background: rgba(16, 185, 129, 0.3);
+            transform: scale(1.08);
+        }
+
+        /* Golf help modal overlay */
+        .golf-help-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .golf-help-modal-overlay.show {
+            display: flex;
+        }
+        .golf-help-modal {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #10b981;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 520px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+        .golf-help-modal h2 {
+            margin: 0 0 16px 0;
+            color: #10b981;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .golf-help-modal p {
+            margin: 0 0 14px 0;
+            color: #e2e8f0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .golf-help-modal p:last-of-type {
+            margin-bottom: 0;
+        }
+        .golf-help-modal .scoring-rules {
             background: rgba(16, 185, 129, 0.1);
             border: 1px solid #10b981;
-            padding: 10px;
+            border-radius: 10px;
+            padding: 14px 16px;
+            margin: 16px 0;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            line-height: 1.5;
+        }
+        .golf-help-modal .scoring-rules strong {
+            color: #10b981;
+        }
+        .golf-help-modal-close {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px 20px;
+            background: #10b981;
+            border: none;
+            color: white;
             border-radius: 8px;
-            text-align: center;
-            margin-bottom: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .golf-help-modal-close:hover {
+            background: #059669;
         }
         
         .golf-score-good { background: #10b981; }
@@ -91,6 +199,19 @@
         .blue { color: #3b82f6; }
         .purple { color: #8b5cf6; }
         
+        /* Add player button area (bottom, same as Walkback/Custom) */
+        .add-player {
+            margin-top: auto;
+            padding: 25px 0 30px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            min-width: 0;
+            width: 100%;
+        }
+
         /* Disabled add player button styles */
         .add-player-btn:disabled {
             opacity: 0.5;
@@ -206,7 +327,10 @@
             </div>
 
             <div class="game-info">
-                <div class="current-game" id="currentGameTitle">Golf</div>
+                <div class="game-info-title-row">
+                    <div class="current-game" id="currentGameTitle">Golf</div>
+                    <button type="button" class="golf-help-icon" onclick="openGolfHelpModal()" title="How to play &amp; scoring">?</button>
+                </div>
                 <div class="game-status" id="gameStatus">⛳ Golf Game • 5 Distances • Lower Score Wins • Par: 7</div>
                 <div id="gameNameDisplay" style="color: #94a3b8; font-size: 1rem; margin-top: 5px; display: none;"></div>
                 <div id="finalizedBanner" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; display: none;">🔒 GAME FINALIZED - RESULTS LOCKED 🔒</div>
@@ -216,12 +340,6 @@
                     🔥 TIEBREAKER IN PROGRESS 🔥<br>
                     <span id="tiebreakerInfo" style="font-size: 0.9rem; opacity: 0.9;"></span>
                 </div>
-            </div>
-
-            <div class="par-indicator">
-                <div style="font-size: 1.2rem; font-weight: bold; color: #10b981; margin-bottom: 5px;">⛳ Golf Scoring</div>
-                <div style="color: #cbd5e1; font-size: 0.9rem;">Hit Target (4-5 points) = 0 strokes • Miss Target (0-3 points) = 1 stroke</div>
-                <div style="color: #10b981; font-size: 0.8rem; margin-top: 5px;">Perfect Score: 0 strokes • Par: 7 strokes</div>
             </div>
 
             <!-- Settings Panel -->
@@ -299,16 +417,30 @@
                 </div>
             </div>
 
-            <!-- Add Player Section -->
-            <div class="player-management">
-                <button id="addPlayerBtn" class="add-player-btn" onclick="addPlayer()">+ Add Player</button>
+            <!-- Players Grid -->
+            <div id="playersGrid" class="players-grid"></div>
+
+            <!-- Add Player (bottom, same as Walkback/Custom) -->
+            <div class="add-player">
+                <button id="addPlayerBtn" class="add-player-btn" onclick="addPlayer()">👥 Add Player</button>
                 <div id="addPlayerDisabledNotice" class="add-player-disabled-notice" style="display: none;">
                     Cannot add players after scoring has begun. Reset the game to add more players.
                 </div>
             </div>
 
-            <!-- Players Grid -->
-            <div id="playersGrid" class="players-grid"></div>
+            <!-- Golf scoring / how to play modal -->
+            <div id="golfHelpModalOverlay" class="golf-help-modal-overlay" onclick="closeGolfHelpModalOnOverlay(event)">
+                <div class="golf-help-modal">
+                    <h2>⛳ Golf – How to Play</h2>
+                    <p>Game and train! Golf is designed to follow competition format while focusing on bullseye training. Each player takes turns per set at the given distances. Hits in the 4 and 5 point zone are worth 0. Hits in the 3, 2, 1, or drop are worth 1 point. The goal is to accumulate as few points as possible by the end of the game.</p>
+                    <div class="scoring-rules">
+                        <strong>Scoring:</strong><br>
+                        Hit Target (4–5 points) = 0 strokes &bull; Miss Target (0–3 points) = 1 stroke<br>
+                        <span style="color: #10b981; margin-top: 6px; display: block;">Perfect score: 0 strokes &bull; Par is set in Settings</span>
+                    </div>
+                    <button type="button" class="golf-help-modal-close" onclick="closeGolfHelpModal()">Got it</button>
+                </div>
+            </div>
 
             <!-- Floating Leaderboard Window -->
             <div id="leaderboardWindow" class="leaderboard-window">
@@ -1453,6 +1585,20 @@
 
         function toggleLeaderboard() {
             openLeaderboardWindow();
+        }
+
+        function openGolfHelpModal() {
+            var overlay = document.getElementById('golfHelpModalOverlay');
+            if (overlay) overlay.classList.add('show');
+        }
+
+        function closeGolfHelpModal() {
+            var overlay = document.getElementById('golfHelpModalOverlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+
+        function closeGolfHelpModalOnOverlay(event) {
+            if (event.target.id === 'golfHelpModalOverlay') closeGolfHelpModal();
         }
 
         // SEPARATE WINDOW LEADERBOARD FUNCTIONS (same behavior as Walkback/Custom)
@@ -2686,14 +2832,16 @@
             }, duration);
         }
 
-        // Custom sidebar toggle function for game-interface
+        // Custom sidebar toggle – expand container and game-interface when sidebar collapses (same as Custom)
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const container = document.querySelector('.container');
             const gameInterface = document.querySelector('.game-interface');
             const toggle = document.getElementById('sidebarToggle');
             
-            if (sidebar && gameInterface && toggle) {
+            if (sidebar && container && gameInterface && toggle) {
                 sidebar.classList.toggle('collapsed');
+                container.classList.toggle('expanded');
                 gameInterface.classList.toggle('expanded');
                 
                 // Update toggle button text
