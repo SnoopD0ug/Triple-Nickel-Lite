@@ -8853,12 +8853,14 @@
             if (newDistancePreset === 'custom') {
                 var customDistances = [];
                 var distanceInputs = document.querySelectorAll('#customDistanceInputs input');
-                distanceInputs.forEach(function(input) {
-                    var value = parseInt(input.value);
-                    if (!isNaN(value) && value > 0) {
-                        customDistances.push(value + ' Meters');
+                for (var i = 0; i < distanceInputs.length; i++) {
+                    var value = distanceInputs[i].value.trim();
+                    if (value) {
+                        customDistances.push(value);
+                    } else {
+                        customDistances.push(gameState.distances[i] || 'Distance ' + (i + 1));
                     }
-                });
+                }
                 if (customDistances.length > 0) {
                     gameState.distances = customDistances;
                 } else {
