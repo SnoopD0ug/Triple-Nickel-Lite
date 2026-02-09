@@ -86,6 +86,29 @@
             max-width: none !important;
             min-width: 0 !important;
             flex-shrink: 0 !important;
+            overflow: hidden;
+        }
+        
+        .player-card * {
+            box-sizing: border-box;
+            max-width: 100%;
+        }
+        
+        .player-card .round-nav-btn {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+        
+        .player-card .score-button {
+            min-width: 0;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .player-card > div {
+            min-width: 0;
         }
         
         /* Responsive header */
@@ -415,6 +438,21 @@
             
             .pagination-buttons {
                 gap: 10px !important;
+            }
+            
+            /* Compact Variable/Rounds nav buttons so 5 distances fit on one line (like Walkback) */
+            .player-card .round-nav-btn {
+                padding: 5px 6px !important;
+                font-size: 0.65rem !important;
+                min-width: 28px !important;
+                border-radius: 4px !important;
+            }
+            .player-card div[style*="gap: 5px"] {
+                gap: 3px !important;
+                flex-wrap: nowrap !important;
+            }
+            .player-card span[style*="font-size: 0.8rem"] {
+                font-size: 0.7rem !important;
             }
         }
 
