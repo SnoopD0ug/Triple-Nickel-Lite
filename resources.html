@@ -558,9 +558,7 @@
     <div class="main-container">
         <div class="main-content">
             <div class="header">
-                <h1 class="title">
-                    <span class="title-accent">Resources</span>
-                </h1>
+                <h1 class="title title-text">Resources</h1>
                 <p class="subtitle">
                     Comprehensive guides, tools, and references for mastering knife throwing competitions. From score sheets to tournament management, we've got you covered.
                 </p>
@@ -614,16 +612,16 @@
 
             <div class="resource-card">
                 <div class="resource-header">
-                    <div class="resource-icon-wrapper"><span class="emoji">🏆</span></div>
+                    <div class="resource-icon-wrapper"><span class="emoji">🖥️</span></div>
                     <div class="resource-title-section">
-                        <h3 class="resource-title">Tournaments</h3>
-                        <span class="resource-tagline">Format explanations</span>
+                        <h3 class="resource-title">Dynamic Targets</h3>
+                        <span class="resource-tagline">Projector target faces</span>
                     </div>
                 </div>
                 <p class="resource-description">
-                    Learn about different tournament formats including Single Elimination, Double Elimination, Round Robin, and Conference style.
+                    Full-screen target faces for use on a projector. Click zones or use 0–5 keys to score; they react with hit effects and can sync with the main app.
                 </p>
-                <button class="resource-button" onclick="openModal('tournamentModal')">Learn More</button>
+                <button class="resource-button" onclick="openModal('dynamicTargetsModal')">View Targets</button>
             </div>
         </div>
         </div>
@@ -889,14 +887,27 @@
         </div>
     </div>
 
-    <!-- Tournament Modal -->
-    <div id="tournamentModal" class="modal">
+    <!-- Dynamic Targets Modal -->
+    <div id="dynamicTargetsModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('tournamentModal')">&times;</span>
-            <h2><span class="emoji">🏆</span> Tournament Formats</h2>
-            <div class="game-rules" style="text-align: center; padding: 40px 20px;">
-                <p style="font-size: 1.5rem; color: #fbbf24; margin-bottom: 15px;">Tournament Info Coming Soon!</p>
-                <p style="color: #94a3b8;">We're working on bringing tournament support to Triple Nickel Lite. Stay tuned for updates!</p>
+            <span class="close" onclick="closeModal('dynamicTargetsModal')">&times;</span>
+            <h2><span class="emoji">🖥️</span> Dynamic Targets</h2>
+            <div class="game-rules" style="padding: 20px 0;">
+                <p style="color: #94a3b8; margin-bottom: 20px;">Full-screen target faces for projectors. Each opens in a new window. Score by clicking zones or pressing 0–5; use F for fullscreen.</p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 12px;">
+                        <a href="projector-targets/blade_aces_target.html" onclick="event.preventDefault(); window.open('projector-targets/blade_aces_target.html', 'BladeAcesTarget', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no');" style="color: #38bdf8; text-decoration: none; font-weight: 600; cursor: pointer;">Blade Aces target</a>
+                        <span style="color: #64748b; font-size: 0.9rem;"> — 0–5 zones, hit effects, score popups</span>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <a href="projector-targets/akta.html" onclick="event.preventDefault(); window.open('projector-targets/akta.html', 'AktaTarget', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no');" style="color: #38bdf8; text-decoration: none; font-weight: 600; cursor: pointer;">AKTA target</a>
+                        <span style="color: #64748b; font-size: 0.9rem;"> — 0–5 zones, hit effects, score popups</span>
+                    </li>
+                    <li style="margin-bottom: 12px;">
+                        <a href="projector-targets/ikthof_target.html" onclick="event.preventDefault(); window.open('projector-targets/ikthof_target.html', 'IkthofTarget', 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no');" style="color: #38bdf8; text-decoration: none; font-weight: 600; cursor: pointer;">IKTHOF target</a>
+                        <span style="color: #64748b; font-size: 0.9rem;"> — 0–5 zones, hit effects, score popups</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
