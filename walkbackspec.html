@@ -548,7 +548,7 @@
                         <div class="summary-stat-label">Rounds</div>
                     </div>
                     <div class="summary-stat">
-                        <div class="summary-stat-value">3</div>
+                        <div class="summary-stat-value" id="summaryThrowsPerDist">3</div>
                         <div class="summary-stat-label">Throws / Distance</div>
                     </div>
                     <div class="summary-stat">
@@ -602,7 +602,7 @@
         'professional':        { distances: ['3m','4m','5m','6m','7m'],  implement: 'knife', icon: '🔪', label: 'Pro Preset',      rounds: 4, throwsPerDist: 3, maxPerThrow: 5 },
         'dangerfest_am_hawk':  { distances: ['3m','4m','5m','7m'],       implement: 'hawk',  icon: '🦅', label: 'Am Hawk Preset',  rounds: 5, throwsPerDist: 3, maxPerThrow: 5 },
         'dangerfest_pro_hawk': { distances: ['3m','4m','5m','7m','9m'],  implement: 'hawk',  icon: '🦅', label: 'Pro Hawk Preset', rounds: 4, throwsPerDist: 3, maxPerThrow: 5 },
-        'akta':                { distances: ['7ft','10ft','13ft','16ft'], implement: 'knife', icon: '🎯', label: 'AKTA Preset',     rounds: 5, throwsPerDist: 3, maxPerThrow: 5 }
+        'akta':                { distances: ['7ft','10ft','13ft','16ft'], implement: 'knife', icon: '🎯', label: 'AKTA Preset',     rounds: 3, throwsPerDist: 5, maxPerThrow: 5 }
     };
 
     function selectSpec(btn) {
@@ -627,9 +627,10 @@
         document.getElementById('summaryIcon').textContent        = meta.icon || '🎯';
         document.getElementById('summaryImplementBadge').textContent =
             meta.implement ? (meta.implement.charAt(0).toUpperCase() + meta.implement.slice(1)) : '';
-        document.getElementById('summaryRounds').textContent      = rounds;
-        document.getElementById('summaryTotalThrows').textContent = totalThrows;
-        document.getElementById('summaryMaxScore').textContent    = maxScore;
+        document.getElementById('summaryRounds').textContent         = rounds;
+        document.getElementById('summaryThrowsPerDist').textContent  = throwsPerDist;
+        document.getElementById('summaryTotalThrows').textContent    = totalThrows;
+        document.getElementById('summaryMaxScore').textContent       = maxScore;
 
         var chipsEl = document.getElementById('summaryDistanceChips');
         chipsEl.innerHTML = distances.map(function(d) {
@@ -648,10 +649,11 @@
         var meta = SPEC_META[selectedSpec] || {};
         localStorage.removeItem('walkbackGameState');
         localStorage.setItem('walkbackSpec', JSON.stringify({
-            compFormat: selectedSpec,
-            specName:   selectedSpecName,
-            implement:  selectedImplement,
-            rounds:     meta.rounds || 4
+            compFormat:    selectedSpec,
+            specName:      selectedSpecName,
+            implement:     selectedImplement,
+            rounds:        meta.rounds || 4,
+            throwsPerDist: meta.throwsPerDist || 3
         }));
         window.location.href = 'walkback.html';
     }
