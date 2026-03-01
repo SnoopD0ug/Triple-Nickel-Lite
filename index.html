@@ -273,6 +273,115 @@
             text-decoration: underline;
         }
 
+        /* M3 Logo Button */
+        .m3-logo-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            display: inline-block;
+            border-radius: 12px;
+            transition: transform 0.3s ease, filter 0.3s ease;
+            filter: drop-shadow(0 0 8px rgba(99, 179, 255, 0.55)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.35));
+            animation: m3Glow 2.5s ease-in-out infinite;
+        }
+
+        .m3-logo-btn:hover {
+            transform: scale(1.08);
+            filter: drop-shadow(0 0 14px rgba(99, 179, 255, 0.85)) drop-shadow(0 0 30px rgba(59, 130, 246, 0.6));
+        }
+
+        @keyframes m3Glow {
+            0%, 100% { filter: drop-shadow(0 0 8px rgba(99, 179, 255, 0.55)) drop-shadow(0 0 18px rgba(59, 130, 246, 0.35)); }
+            50%       { filter: drop-shadow(0 0 14px rgba(99, 179, 255, 0.8)) drop-shadow(0 0 28px rgba(59, 130, 246, 0.55)); }
+        }
+
+        /* M3 Modal */
+        .m3-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .m3-modal-overlay.active {
+            display: flex;
+        }
+
+        .m3-modal {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(99, 179, 255, 0.3);
+            border-radius: 20px;
+            padding: 40px 48px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(59, 130, 246, 0.25), 0 25px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.92) translateY(12px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .m3-modal-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 1.4rem;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s ease;
+        }
+
+        .m3-modal-close:hover {
+            color: #94a3b8;
+        }
+
+        .m3-modal-logo {
+            width: clamp(60px, 12vw, 90px);
+            height: auto;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 0 12px rgba(99, 179, 255, 0.6));
+        }
+
+        .m3-modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(45deg, #60a5fa, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 14px;
+        }
+
+        .m3-modal-body {
+            font-size: 0.95rem;
+            color: #94a3b8;
+            line-height: 1.7;
+        }
+
+        .m3-modal-body a {
+            color: #60a5fa;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .m3-modal-body a:hover {
+            color: #93c5fd;
+            text-decoration: underline;
+        }
+
         /* Responsive - Tablet and Mobile */
         @media (max-width: 768px) {
             body {
@@ -397,13 +506,26 @@
                 </p>
 
 
-                <p class="version">v1.0 Lite</p>
+                <p class="version">V2.1 BETA</p>
 
                 <div class="credits">
-                    <img src="assets/m3-logo.png" alt="M3 Logo" class="credits-logo">
-                    <p class="credits-text">
-                        Provided by M3. Please direct feedback to <a href="mailto:aaron@m3simplymagic.com">aaron@m3simplymagic.com</a>
-                    </p>
+                    <button class="m3-logo-btn" onclick="document.getElementById('m3Modal').classList.add('active')" aria-label="About M3">
+                        <img src="assets/m3-logo.png" alt="M3 Logo" class="credits-logo">
+                    </button>
+                </div>
+
+                <!-- M3 Modal -->
+                <div class="m3-modal-overlay" id="m3Modal" onclick="if(event.target===this)this.classList.remove('active')">
+                    <div class="m3-modal">
+                        <button class="m3-modal-close" onclick="document.getElementById('m3Modal').classList.remove('active')" aria-label="Close">&times;</button>
+                        <img src="assets/m3-logo.png" alt="M3 Logo" class="m3-modal-logo">
+                        <div class="m3-modal-title">Provided by M3</div>
+                        <p class="m3-modal-body">
+                            We hope you enjoy Triple Nickel Lite!<br><br>
+                            Please direct any feedback or questions to<br>
+                            <a href="mailto:aaron@m3simplymagic.com">aaron@m3simplymagic.com</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -431,6 +553,12 @@
                 document.body.style.height = window.innerHeight + 'px';
                 document.body.style.width = window.innerWidth + 'px';
             }, 100);
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.getElementById('m3Modal').classList.remove('active');
+            }
         });
     </script>
 </body>
