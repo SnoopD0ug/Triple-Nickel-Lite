@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walkback – Choose Spec | Triple Nickel</title>
+    <link rel="stylesheet" href="shared-sidebar.css">
+    <link rel="stylesheet" href="shared-styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            min-height: 100vh;
+        }
+
+        /* shared-sidebar.css already sets margin-left and padding on .main-content;
+           use an inner wrapper to constrain the page content */
+        .spec-content {
+            max-width: 860px;
+            width: 100%;
+        }
+
+        /* ── Page header — matches Side Games / Training style ── */
+        .page-header {
+            margin-bottom: clamp(30px, 4vh, 50px);
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            font-family: 'Inter', sans-serif;
+            margin-bottom: clamp(12px, 2vh, 20px);
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        .title-text {
+            background: linear-gradient(135deg, #fff 0%, #e2e8f0 50%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .title-accent {
+            background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: #94a3b8;
+            line-height: 1.7;
+            max-width: 600px;
+        }
+
+        /* ── Resume banner ── */
+        .resume-banner {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            border-radius: 14px;
+            padding: 16px 20px;
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .resume-banner-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .resume-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        .resume-label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #10b981;
+            margin-bottom: 2px;
+        }
+        .resume-details {
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .resume-btn {
+            background: #10b981;
+            border: none;
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .resume-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        /* ── Step sections ── */
+        .step-section {
+            margin-bottom: 36px;
+        }
+        .step-section h2 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #64748b;
+            margin-bottom: 14px;
+        }
+
+        /* ── Spec grid ── */
+        .spec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .spec-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 2px solid #334155;
+            border-radius: 14px;
+            padding: 22px 16px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.25s ease;
+            text-align: center;
+            color: #e2e8f0;
+            font-family: inherit;
+        }
+        .spec-card:hover {
+            border-color: #60a5fa;
+            background: rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+        }
+        .spec-card.selected {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 0 1px #3b82f6, 0 8px 24px rgba(59, 130, 246, 0.25);
+        }
+        .spec-icon { font-size: 1.8rem; }
+        .spec-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+        .spec-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+        }
+        .spec-distances {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        /* ── Summary / breakdown card ── */
+        .summary-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 20px 22px;
+            margin-bottom: 24px;
+        }
+        .summary-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #1e293b;
+        }
+        .summary-big-icon {
+            font-size: 2rem;
+            line-height: 1;
+            flex-shrink: 0;
+        }
+        .summary-header-text {
+            flex: 1;
+            min-width: 0;
+        }
+        .summary-format-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1.2;
+        }
+        .summary-preset-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #64748b;
+            margin-top: 2px;
+        }
+        .summary-implement-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            flex-shrink: 0;
+        }
+
+        /* distances row */
+        .summary-distances-row {
+            margin-bottom: 16px;
+        }
+        .summary-row-label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .distance-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .distance-chip {
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #e2e8f0;
+        }
+
+        /* stats row */
+        .summary-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+        .summary-stat {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .summary-stat-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1.1;
+        }
+        .summary-stat-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            font-weight: 600;
+            margin-top: 3px;
+        }
+        .summary-stat.highlight .summary-stat-value {
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        @media (max-width: 480px) {
+            .summary-stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* ── Play button ── */
+        .play-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border: none;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 16px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+            font-family: inherit;
+            width: 100%;
+            max-width: 400px;
+        }
+        .play-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
+            filter: brightness(1.1);
+        }
+        .play-btn:active { transform: translateY(0); }
+
+        /* ── Dynamic Targets button ── */
+        .dynamic-targets-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #475569;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 9px 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            margin-top: clamp(12px, 2vh, 20px);
+        }
+        .dynamic-targets-btn:hover {
+            border-color: #22c55e;
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.08);
+        }
+
+        /* ── Dynamic Targets modal ── */
+        .dt-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .dt-modal {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+        }
+        .dt-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .dt-modal-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #f1f5f9;
+        }
+        .dt-close-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 1.3rem;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+        .dt-close-btn:hover { color: #e2e8f0; }
+        .dt-subtitle {
+            font-size: 0.82rem;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+        .dt-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .dt-option-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #4ade80;
+            padding: 14px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        .dt-option-btn:hover {
+            background: rgba(34, 197, 94, 0.18);
+            border-color: #22c55e;
+            transform: translateX(3px);
+        }
+        .dt-option-icon { font-size: 1.2rem; }
+
+        /* ── Slide-in animation ── */
+        .fade-in {
+            animation: fadeSlide 0.3s ease both;
+        }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            /* Stack sidebar above content instead of side-by-side */
+            .container {
+                flex-direction: column;
+            }
+            .title { font-size: clamp(2rem, 8vw, 2.5rem); }
+            .spec-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .spec-card { padding: 16px 10px; gap: 6px; }
+            .spec-icon { font-size: 1.5rem; }
+            .spec-name { font-size: 0.95rem; }
+            .spec-distances { font-size: 0.72rem; }
+            .play-btn { max-width: 100%; font-size: 1rem; padding: 14px 24px; }
+            .summary-card { padding: 14px 16px; }
+        }
+        @media (max-width: 400px) {
+            .title { font-size: 1.8rem; }
+            .subtitle { font-size: 0.9rem; }
+            .spec-label { display: none; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="shared-navigation"></div>
+
+    <div class="main-content">
+    <div class="spec-content">
+        <!-- Page header -->
+        <div class="page-header">
+            <h1 class="title title-text">Walkback</h1>
+            <p class="subtitle">Choose your competition format to get started.</p>
+            <button class="dynamic-targets-btn" onclick="openDynamicTargetModal()">
+                🎯 Dynamic Targets
+            </button>
+        </div>
+
+        <!-- Resume active game banner (shown if saved game detected) -->
+        <div class="resume-banner fade-in" id="resumeBanner" style="display: none;">
+            <div class="resume-banner-left">
+                <span class="resume-icon">🎮</span>
+                <div>
+                    <div class="resume-label">Active Game</div>
+                    <div class="resume-details" id="resumeDetails">—</div>
+                </div>
+            </div>
+            <button class="resume-btn" onclick="resumeGame()">Resume →</button>
+        </div>
+
+        <!-- Step 1: Tournament Spec -->
+        <div class="step-section">
+            <h2>Tournament Spec</h2>
+            <div class="spec-grid">
+                <button class="spec-card" data-spec="amateur" data-name="Am Knife" data-impl-hint="knife" onclick="selectSpec(this)">
+                    <span class="spec-icon">🔪</span>
+                    <span class="spec-name">Am Knife</span>
+                    <span class="spec-label">Am Preset</span>
+                    <span class="spec-distances">2m · 3m · 4m · 5m · 6m</span>
+                </button>
+                <button class="spec-card" data-spec="professional" data-name="Pro Knife" data-impl-hint="knife" onclick="selectSpec(this)">
+                    <span class="spec-icon">🔪</span>
+                    <span class="spec-name">Pro Knife</span>
+                    <span class="spec-label">Pro Preset</span>
+                    <span class="spec-distances">3m · 4m · 5m · 6m · 7m</span>
+                </button>
+                <button class="spec-card" data-spec="dangerfest_am_hawk" data-name="Am Hawk" data-impl-hint="hawk" onclick="selectSpec(this)">
+                    <span class="spec-icon">🦅</span>
+                    <span class="spec-name">Am Hawk</span>
+                    <span class="spec-label">Am Hawk Preset</span>
+                    <span class="spec-distances">3m · 4m · 5m · 7m</span>
+                </button>
+                <button class="spec-card" data-spec="dangerfest_pro_hawk" data-name="Pro Hawk" data-impl-hint="hawk" onclick="selectSpec(this)">
+                    <span class="spec-icon">🦅</span>
+                    <span class="spec-name">Pro Hawk</span>
+                    <span class="spec-label">Pro Hawk Preset</span>
+                    <span class="spec-distances">3m · 4m · 5m · 7m · 9m</span>
+                </button>
+                <button class="spec-card" data-spec="akta" data-name="AKTA" data-impl-hint="knife" onclick="selectSpec(this)">
+                    <span class="spec-icon">🎯</span>
+                    <span class="spec-name">AKTA</span>
+                    <span class="spec-label">AKTA Preset</span>
+                    <span class="spec-distances">7ft · 10ft · 13ft · 16ft</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary + Play (shown once a spec is chosen) -->
+        <div class="fade-in" id="playSection" style="display: none;">
+            <div class="summary-card">
+                <!-- Header -->
+                <div class="summary-header">
+                    <span class="summary-big-icon" id="summaryIcon">🔪</span>
+                    <div class="summary-header-text">
+                        <div class="summary-format-name" id="summaryFormat">—</div>
+                        <div class="summary-preset-label" id="summaryPresetLabel">—</div>
+                    </div>
+                    <span class="summary-implement-badge" id="summaryImplementBadge">Knife</span>
+                </div>
+                <!-- Distances -->
+                <div class="summary-distances-row">
+                    <div class="summary-row-label">Distances</div>
+                    <div class="distance-chips" id="summaryDistanceChips"></div>
+                </div>
+                <!-- Stats grid -->
+                <div class="summary-stats-row">
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="summaryRounds">5</div>
+                        <div class="summary-stat-label">Rounds</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value">3</div>
+                        <div class="summary-stat-label">Throws / Distance</div>
+                    </div>
+                    <div class="summary-stat">
+                        <div class="summary-stat-value" id="summaryTotalThrows">—</div>
+                        <div class="summary-stat-label">Total Throws</div>
+                    </div>
+                    <div class="summary-stat highlight">
+                        <div class="summary-stat-value" id="summaryMaxScore">—</div>
+                        <div class="summary-stat-label">Max Points</div>
+                    </div>
+                </div>
+            </div>
+            <button class="play-btn" onclick="launchGame()">
+                🎯 Throw!
+            </button>
+        </div>
+    </div>
+    </div>
+</div>
+
+<!-- Dynamic Targets Modal -->
+<div class="dt-overlay" id="dynamicTargetOverlay" style="display:none;" onclick="if(event.target===this)closeDynamicTargetModal()">
+    <div class="dt-modal">
+        <div class="dt-modal-header">
+            <span class="dt-modal-title">🎯 Dynamic Targets</span>
+            <button class="dt-close-btn" onclick="closeDynamicTargetModal()">✕</button>
+        </div>
+        <p class="dt-subtitle">Open a projector target in a separate window.</p>
+        <div class="dt-options">
+            <button class="dt-option-btn" onclick="openDynamicTarget('projector-targets/blade_aces_target.html', 'Blade Aces')">
+                <span class="dt-option-icon">🎯</span> Blade Aces
+            </button>
+            <button class="dt-option-btn" onclick="openDynamicTarget('projector-targets/ikthof_target.html', 'IKTHOF')">
+                <span class="dt-option-icon">🎯</span> IKTHOF
+            </button>
+            <button class="dt-option-btn" onclick="openDynamicTarget('projector-targets/akta.html', 'AKTA')">
+                <span class="dt-option-icon">🎯</span> AKTA
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="shared-sidebar.js"></script>
+<script>
+    var selectedSpec     = null;
+    var selectedSpecName = null;
+    var selectedImplement = null;
+
+    var SPEC_META = {
+        'amateur':             { distances: ['2m','3m','4m','5m','6m'],  implement: 'knife', icon: '🔪', label: 'Am Preset',       rounds: 4, throwsPerDist: 3, maxPerThrow: 5 },
+        'professional':        { distances: ['3m','4m','5m','6m','7m'],  implement: 'knife', icon: '🔪', label: 'Pro Preset',      rounds: 4, throwsPerDist: 3, maxPerThrow: 5 },
+        'dangerfest_am_hawk':  { distances: ['3m','4m','5m','7m'],       implement: 'hawk',  icon: '🦅', label: 'Am Hawk Preset',  rounds: 5, throwsPerDist: 3, maxPerThrow: 5 },
+        'dangerfest_pro_hawk': { distances: ['3m','4m','5m','7m','9m'],  implement: 'hawk',  icon: '🦅', label: 'Pro Hawk Preset', rounds: 4, throwsPerDist: 3, maxPerThrow: 5 },
+        'akta':                { distances: ['7ft','10ft','13ft','16ft'], implement: 'knife', icon: '🎯', label: 'AKTA Preset',     rounds: 5, throwsPerDist: 3, maxPerThrow: 5 }
+    };
+
+    function selectSpec(btn) {
+        document.querySelectorAll('.spec-card').forEach(function(c) {
+            c.classList.remove('selected');
+        });
+        btn.classList.add('selected');
+
+        selectedSpec      = btn.dataset.spec;
+        selectedSpecName  = btn.dataset.name;
+        selectedImplement = btn.dataset.implHint;
+
+        var meta = SPEC_META[selectedSpec] || {};
+        var distances     = meta.distances || [];
+        var rounds        = meta.rounds || 5;
+        var throwsPerDist = meta.throwsPerDist || 3;
+        var totalThrows   = rounds * distances.length * throwsPerDist;
+        var maxScore      = totalThrows * (meta.maxPerThrow || 5);
+
+        document.getElementById('summaryFormat').textContent      = selectedSpecName;
+        document.getElementById('summaryPresetLabel').textContent = meta.label || '';
+        document.getElementById('summaryIcon').textContent        = meta.icon || '🎯';
+        document.getElementById('summaryImplementBadge').textContent =
+            meta.implement ? (meta.implement.charAt(0).toUpperCase() + meta.implement.slice(1)) : '';
+        document.getElementById('summaryRounds').textContent      = rounds;
+        document.getElementById('summaryTotalThrows').textContent = totalThrows;
+        document.getElementById('summaryMaxScore').textContent    = maxScore;
+
+        var chipsEl = document.getElementById('summaryDistanceChips');
+        chipsEl.innerHTML = distances.map(function(d) {
+            return '<span class="distance-chip">' + d + '</span>';
+        }).join('');
+
+        var playSection = document.getElementById('playSection');
+        playSection.style.display = 'block';
+        playSection.classList.remove('fade-in');
+        void playSection.offsetWidth;
+        playSection.classList.add('fade-in');
+    }
+
+    function launchGame() {
+        if (!selectedSpec) return;
+        var meta = SPEC_META[selectedSpec] || {};
+        localStorage.removeItem('walkbackGameState');
+        localStorage.setItem('walkbackSpec', JSON.stringify({
+            compFormat: selectedSpec,
+            specName:   selectedSpecName,
+            implement:  selectedImplement,
+            rounds:     meta.rounds || 4
+        }));
+        window.location.href = 'walkback.html';
+    }
+
+    function resumeGame() {
+        window.location.href = 'walkback.html';
+    }
+
+    function timeAgo(ts) {
+        var s = Math.floor((Date.now() - ts) / 1000);
+        if (s < 60)  return 'just now';
+        var m = Math.floor(s / 60);
+        if (m < 60)  return m + 'm ago';
+        var h = Math.floor(m / 60);
+        if (h < 24)  return h + 'h ago';
+        return Math.floor(h / 24) + 'd ago';
+    }
+
+    function checkForSavedGame() {
+        try {
+            var saved = JSON.parse(localStorage.getItem('walkbackGameState'));
+            if (!saved || !saved.gameState) return;
+            var gs = saved.gameState;
+            if (!gs.players || gs.players.length === 0) return;
+
+            var parts = [];
+            if (gs.gameName) parts.push(gs.gameName);
+            parts.push(gs.players.length + ' player' + (gs.players.length !== 1 ? 's' : ''));
+            if (saved.savedAt) parts.push(timeAgo(saved.savedAt));
+
+            document.getElementById('resumeDetails').textContent = parts.join(' · ');
+            var banner = document.getElementById('resumeBanner');
+            banner.style.display = 'flex';
+            banner.classList.remove('fade-in');
+            void banner.offsetWidth;
+            banner.classList.add('fade-in');
+        } catch (e) {}
+    }
+
+    function openDynamicTargetModal() {
+        document.getElementById('dynamicTargetOverlay').style.display = 'flex';
+    }
+
+    function closeDynamicTargetModal() {
+        document.getElementById('dynamicTargetOverlay').style.display = 'none';
+    }
+
+    function openDynamicTarget(path, name) {
+        window.open(path, 'DynamicTarget_' + (name || 'Target'), 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no');
+        closeDynamicTargetModal();
+    }
+
+    document.addEventListener('DOMContentLoaded', checkForSavedGame);
+</script>
+</body>
+</html>
