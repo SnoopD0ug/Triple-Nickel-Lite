@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AKTA - Projector Target</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a0f;
+    --zone-0: #1a1a2e;
+    --zone-3: #f0efe8;
+    --zone-4: #222222;
+    --zone-5: #c1121f;
+    --zone-0-hit: #5566aa;
+    --zone-3-hit: #ffaa00;
+    --zone-4-hit: #ff4488;
+    --zone-5-hit: #ffdd00;
+    --text-primary: #e0e0e0;
+    --text-accent: #ff3333;
+  }
+  html, body {
+    width: 100%; height: 100%;
+    background: var(--bg); overflow: hidden;
+    font-family: 'Rajdhani', sans-serif; color: var(--text-primary);
+    display: flex; align-items: center; justify-content: center;
+    user-select: none; -webkit-user-select: none;
+  }
+  body.bg-black { --bg: #0a0a0f; background: #0a0a0f; }
+  body.bg-white { --bg: #f7f7f7; background: #f7f7f7; }
+  body.bg-white .fs-hint,
+  body.bg-white .alignment-hint { color: rgba(0, 0, 0, 0.45); }
+  .targets-grid {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 2vmin; width: 100%; height: 100%; padding: 2vmin;
+    --badge-offset: 27vmin;
+  }
+  .targets-grid[data-count="2"] { --badge-offset: 20vmin; }
+  .targets-grid[data-count="3"] { --badge-offset: 13vmin; }
+  .targets-grid[data-count="4"] { --badge-offset: 20vmin; }
+  .targets-grid[data-count="5"] { --badge-offset: 8vmin; }
+  .targets-grid[data-count="1"] { gap: 0; }
+  .target-wrapper {
+    flex: 0 0 auto;
+    width: 92vmin; height: 92vmin;
+    display: flex; align-items: center; justify-content: center;
+    padding: 5vmin; position: relative;
+  }
+  .targets-grid.has-alignment .target-wrapper {
+    width: fit-content !important;
+    height: fit-content !important;
+    padding: 0 !important;
+  }
+  .targets-grid.has-alignment[data-count="2"] .target-wrapper { max-width: 44vmin; max-height: 90vmin; }
+  .targets-grid.has-alignment[data-count="3"] .target-wrapper { max-width: 28vmin; max-height: 90vmin; }
+  .targets-grid.has-alignment[data-count="4"] .target-wrapper { max-width: 43vmin; max-height: 43vmin; }
+  .targets-grid.has-alignment[data-count="5"] .target-wrapper { max-width: 16vmin; max-height: 90vmin; }
+  .targets-grid[data-count="2"] .target-wrapper { width: 46vmin; height: 92vmin; padding: 1vmin; }
+  .targets-grid[data-count="3"] .target-wrapper { width: 30vmin; height: 92vmin; padding: 1vmin; }
+  .targets-grid[data-count="4"] .target-wrapper { width: 45vmin; height: 45vmin; padding: 1vmin; }
+  .targets-grid[data-count="5"] .target-wrapper { width: 18vmin; height: 92vmin; padding: 1vmin; }
+  .throw-number-badge {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - var(--badge-offset)));
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 4vmin;
+    color: var(--text-accent); text-shadow: 0 0 8px rgba(255, 255, 255, 0.7);
+    pointer-events: none;
+  }
+  body.alignment-mode .throw-number-badge { display: block; }
+  .target-container { width: 60vmin; height: 60vmin; max-width: 100%; max-height: 100%; }
+  .score-zone { cursor: pointer; transition: filter 0.15s ease; }
+  .score-zone:hover { filter: brightness(1.2); }
+  .score-zone.hit { animation: hitFlash 0.6s ease-out; }
+  .score-zone.hit.zone-border { fill: var(--zone-0-hit); }
+  .score-zone.hit.zone-3 { fill: var(--zone-3-hit); }
+  .score-zone.hit.zone-4 { fill: var(--zone-4-hit); }
+  .score-zone.hit.zone-5 { fill: var(--zone-5-hit); }
+  .score-zone.killshot { animation: killshotPulse 1.2s ease-out; }
+  @keyframes hitFlash {
+    0% { filter: brightness(2.6) drop-shadow(0 0 20px rgba(255,255,255,0.9)); }
+    100% { filter: brightness(1); }
+  }
+  @keyframes killshotPulse {
+    0% { filter: brightness(5) drop-shadow(0 0 50px gold); }
+    100% { filter: brightness(1); }
+  }
+  .ring-line { fill: none; stroke: rgba(255, 0, 0, 0.45); stroke-width: 1.1; pointer-events: none; }
+  .crosshair { stroke: rgba(255, 0, 0, 0.2); stroke-width: 0.8; pointer-events: none; }
+  .hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding: 2vmin; z-index: 50; pointer-events: none;
+  }
+  .round-display.fade-out { transition: opacity 0.5s ease-out; opacity: 0; }
+  .hud-panel {
+    pointer-events: auto; background: rgba(10, 10, 20, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px;
+    padding: 1.2vmin 2.2vmin; backdrop-filter: blur(10px);
+  }
+  .hud-label {
+    font-family: 'Orbitron', sans-serif; font-size: 1.2vmin;
+    text-transform: uppercase; letter-spacing: 0.25em; color: rgba(255,255,255,0.45);
+  }
+  .hud-value {
+    font-family: 'Orbitron', sans-serif; font-size: 3.8vmin; font-weight: 900; color: var(--text-accent);
+  }
+  .throw-history { position: fixed; left: 2vmin; bottom: 2vmin; z-index: 50; }
+  .throw-list { display: flex; gap: 0.8vmin; flex-wrap: wrap; max-width: 30vmin; }
+  .throw-chip {
+    width: 4vmin; height: 4vmin; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', sans-serif; font-size: 1.7vmin;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+  }
+  .last-score-display {
+    position: fixed; top: 50%; right: 3vmin; transform: translateY(-50%);
+    z-index: 50; pointer-events: none;
+  }
+  .last-score-ring {
+    width: 12vmin; height: 12vmin; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.15); background: rgba(10,10,20,0.7);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', sans-serif; font-size: 6vmin; font-weight: 900;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .last-score-ring.visible { opacity: 1; }
+  .score-popup {
+    position: fixed; transform: translate(-50%, -50%);
+    pointer-events: none; z-index: 100;
+    font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 6vmin;
+    color: white; animation: scoreFloat 1.1s ease-out forwards;
+    text-shadow: 0 0 20px rgba(255,255,255,0.8);
+  }
+  .score-popup.bullseye { color: gold; font-size: 9vmin; }
+  @keyframes scoreFloat {
+    0% { opacity: 1; transform: translate(-50%, -50%) scale(0.6); }
+    100% { opacity: 0; transform: translate(-50%, -180%) scale(1); }
+  }
+  .impact-marker { pointer-events: none; animation: impactFade 4s ease-out forwards; }
+  @keyframes impactFade { 0% { opacity: 1; } 100% { opacity: 0; } }
+  .logo-branding {
+    position: fixed; bottom: 2vmin; left: 50%; transform: translateX(-50%);
+    height: 6vmin; width: auto; z-index: 60; cursor: pointer; opacity: 0.85;
+    animation: logoGlowPulse 3.5s ease-out forwards;
+  }
+  .logo-branding:hover { opacity: 1; }
+  .logo-hint {
+    position: fixed;
+    bottom: 10vmin;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 2vmin;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.95);
+    text-shadow: 0 0 6px rgba(255,255,255,0.9), 0 0 18px rgba(255,190,80,0.8), 0 0 35px rgba(255,140,30,0.5);
+    pointer-events: none;
+    z-index: 65;
+    white-space: nowrap;
+    animation: logoHintFade 3.5s ease-out forwards;
+  }
+  @keyframes logoGlowPulse {
+    0%   { filter: drop-shadow(0 0 5px rgba(255,190,80,1)) drop-shadow(0 0 14px rgba(255,140,30,0.8)); }
+    85%  { filter: drop-shadow(0 0 5px rgba(255,190,80,1)) drop-shadow(0 0 14px rgba(255,140,30,0.8)); }
+    100% { filter: none; }
+  }
+  @keyframes logoHintFade {
+    0%  { opacity: 1; }
+    85% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.6); z-index: 200;
+    align-items: center; justify-content: center; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: rgba(20,20,35,0.98);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 12px;
+    padding: 3vmin; min-width: 28vmin;
+  }
+  .modal h3 {
+    font-family: 'Orbitron', sans-serif; font-size: 2vmin;
+    text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 2vmin;
+  }
+  .modal-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5vmin; }
+  .target-count-btns { display: flex; gap: 0.5vmin; }
+  .modal .target-count-btns .btn { width: auto; min-width: 3.5vmin; padding: 0.8vmin 1.2vmin; }
+  .modal .target-count-note { font-size: 1.2vmin; color: rgba(255,255,255,0.4); margin-top: 0.5vmin; }
+  .modal .modal-close {
+    position: absolute;
+    top: 1.5vmin;
+    right: 1.5vmin;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.5);
+    font-size: 2vmin;
+    cursor: pointer;
+    padding: 0.5vmin;
+  }
+  .modal .modal-close:hover { color: white; }
+  .modal-wrap { position: relative; }
+  .btn {
+    font-family: 'Orbitron', sans-serif; font-size: 1.4vmin;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    background: rgba(255,50,50,0.15); border: 1px solid rgba(255,50,50,0.4);
+    color: #ff6666; padding: 0.8vmin 1.2vmin; border-radius: 6px; cursor: pointer;
+  }
+  .btn.active { background: rgba(255,50,50,0.38); border-color: rgba(255,50,50,0.8); }
+  .btn-row { display: flex; flex-direction: column; gap: 1vmin; margin-top: 1.2vmin; }
+  .alignment-hint {
+    display: none;
+    position: fixed;
+    top: 18vh;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.6vmin;
+    color: rgba(255,255,255,0.7);
+    z-index: 90;
+    pointer-events: none;
+  }
+  body.alignment-mode .alignment-hint { display: block; }
+  .alignment-lock-bar {
+    display: none;
+    position: fixed;
+    top: 25vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 90;
+    gap: 1.5vmin;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  body.alignment-mode .alignment-lock-bar { display: flex !important; }
+  .alignment-scale-row { display: flex; align-items: center; gap: 1vmin; }
+  .alignment-scale-row label { font-size: 2.2vmin; color: rgba(255,255,255,0.9); }
+  .alignment-scale-row input[type="range"] {
+    width: 18vmin;
+    min-width: 140px;
+    height: 3.2vmin;
+    min-height: 34px;
+    accent-color: var(--text-accent);
+    cursor: pointer;
+  }
+  .alignment-lock-bar .btn { font-size: 2vmin; padding: 0.8vmin 1.6vmin; }
+  .scale-lock-toggle .btn { font-size: 2vmin; padding: 0.8vmin 1.6vmin; }
+  .scale-lock-toggle .btn.active {
+    background: rgba(255,50,50,0.3);
+    border-color: rgba(255,50,50,0.7);
+  }
+  body.alignment-mode .targets-grid .target-wrapper {
+    cursor: grab;
+    pointer-events: auto;
+    transform-origin: center center;
+    width: fit-content !important;
+    height: fit-content !important;
+    padding: 0 !important;
+  }
+  body.alignment-mode .targets-grid[data-count="2"] .target-wrapper { max-width: 44vmin; max-height: 90vmin; }
+  body.alignment-mode .targets-grid[data-count="3"] .target-wrapper { max-width: 28vmin; max-height: 90vmin; }
+  body.alignment-mode .targets-grid[data-count="4"] .target-wrapper { max-width: 43vmin; max-height: 43vmin; }
+  body.alignment-mode .targets-grid[data-count="5"] .target-wrapper { max-width: 16vmin; max-height: 90vmin; }
+  body.alignment-mode .targets-grid .target-wrapper:active { cursor: grabbing; }
+  body.alignment-mode .targets-grid .target-wrapper * { pointer-events: none; }
+  .fs-hint {
+    position: fixed; bottom: 8vmin; left: 50%; transform: translateX(-50%);
+    color: rgba(255,255,255,0.2); font-size: 1.5vmin; z-index: 50;
+  }
+</style>
+</head>
+<body>
+<div class="hud">
+  <div class="hud-panel round-display" id="roundDisplay">
+    <div class="hud-label">Round</div>
+    <div class="hud-value" id="roundTotal">-</div>
+  </div>
+</div>
+<div class="last-score-display"><div class="last-score-ring" id="lastScore">-</div></div>
+<div class="throw-history round-display" id="throwDisplay"><div class="throw-list" id="throwList"></div></div>
+<div class="fs-hint">F = fullscreen · click zones to score · 0/3/4/5 quick score</div>
+<img class="logo-branding" id="logoBtn" src="../assets/m3-logo.png" alt="M3" title="Settings" />
+<div class="logo-hint">Click the M3 logo for options</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-wrap">
+      <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+      <h3>Settings</h3>
+      <div class="modal-row">
+        <label>Target faces</label>
+        <div class="target-count-btns" id="targetCountBtns">
+          <button class="btn active" data-count="1">1</button>
+          <button class="btn" data-count="2">2</button>
+          <button class="btn" data-count="3">3</button>
+          <button class="btn" data-count="4">4</button>
+          <button class="btn" data-count="5">5</button>
+        </div>
+      </div>
+      <div class="modal-row">
+        <label>Animated background</label>
+        <div class="target-count-btns" id="bgModeBtns">
+          <button class="btn active" data-bg-mode="black" type="button">Black</button>
+          <button class="btn" data-bg-mode="white" type="button">White</button>
+          <button class="btn" data-bg-mode="animated" type="button">Animated</button>
+        </div>
+      </div>
+      <div class="target-count-note">F = fullscreen for projector use</div>
+      <div class="btn-row">
+        <button class="btn" id="alignBtn">Alignment</button>
+        <button class="btn" id="resetAlignBtn">Reset alignment</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="alignment-hint" id="alignmentHint">Drag to move · Scroll or slider to scale</div>
+<div class="alignment-lock-bar" id="alignmentLockBar">
+  <div class="alignment-scale-row">
+    <label for="alignScaleSlider">Scale</label>
+    <input type="range" id="alignScaleSlider" min="0.5" max="6" step="0.05" value="1" title="Scale target" />
+  </div>
+  <div class="scale-lock-toggle">
+    <button class="btn" id="scaleLockBtn" data-locked="true" title="Lock: scale all targets together. Unlock: scale per target.">Scale all</button>
+  </div>
+  <button class="btn" id="lockAlignBtn">Lock position</button>
+  <button class="btn" id="cancelAlignBtn">Cancel</button>
+</div>
+
+<div class="targets-grid" id="targetsGrid" data-count="1">
+  <div class="target-wrapper" data-target-index="0">
+    <span class="throw-number-badge">1</span>
+    <div class="target-container">
+      <svg id="targetSVG" viewBox="-190 -190 380 380" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <defs>
+          <radialGradient id="bullseyeGrad" cx="0" cy="0" r="40" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#ff3200" />
+            <stop offset="100%" stop-color="#9a0000" />
+          </radialGradient>
+        </defs>
+        <circle class="score-zone zone-border" data-score="0" cx="0" cy="0" r="180" fill="var(--zone-0)" />
+        <circle class="score-zone zone-3" data-score="3" cx="0" cy="0" r="160" fill="var(--zone-3)" />
+        <circle class="score-zone zone-4" data-score="4" cx="0" cy="0" r="80" fill="var(--zone-4)" />
+        <circle class="score-zone zone-5" data-score="5" cx="0" cy="0" r="40" fill="url(#bullseyeGrad)" />
+        <circle class="ring-line" cx="0" cy="0" r="40" />
+        <circle class="ring-line" cx="0" cy="0" r="80" />
+        <circle class="ring-line" cx="0" cy="0" r="160" />
+        <circle class="ring-line" cx="0" cy="0" r="180" />
+        <line class="crosshair" x1="0" y1="-190" x2="0" y2="190" />
+        <line class="crosshair" x1="-190" y1="0" x2="190" y2="0" />
+        <g class="impact-layer"></g>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<script src="./shared/animated-background.js"></script>
+<script>
+(function() {
+  var SUPPORTED_SCORES = { 0: true, 3: true, 4: true, 5: true };
+  var ZONE_RADIUS_FRACTIONS = { 5: 0, 4: 0.55, 3: 0.75, 0: 0.95 };
+  var zoneColors = { 0: 'rgba(100,100,120,0.5)', 3: '#ffaa00', 4: '#ff4488', 5: 'gold' };
+  var ALIGN_STORAGE_KEY = 'akta_target_alignment';
+  var TARGET_COUNT_KEY = 'akta_target_count';
+  var SCALE_LOCK_KEY = 'akta_scale_locked';
+
+  var throws = [];
+  var currentRoundThrows = [];
+  var throwsPerRound = 3;
+  var newRoundTimeoutId = null;
+  var fadeCompleteTimeoutId = null;
+  var lastPostedToApp = null;
+  var isStaticMode = new URLSearchParams(window.location.search).get('mode') === 'static';
+  var targetsGridEl = document.getElementById('targetsGrid');
+  var roundTotalEl = document.getElementById('roundTotal');
+  var lastScoreEl = document.getElementById('lastScore');
+  var throwListEl = document.getElementById('throwList');
+  var roundDisplayEl = document.getElementById('roundDisplay');
+  var throwDisplayEl = document.getElementById('throwDisplay');
+  var modal = document.getElementById('modalOverlay');
+  var modalClose = document.getElementById('modalClose');
+  var alignBtn = document.getElementById('alignBtn');
+  var resetAlignBtn = document.getElementById('resetAlignBtn');
+  var lockAlignBtn = document.getElementById('lockAlignBtn');
+  var cancelAlignBtn = document.getElementById('cancelAlignBtn');
+  var alignScaleSlider = document.getElementById('alignScaleSlider');
+  var scaleLockBtn = document.getElementById('scaleLockBtn');
+  var bgModeBtns = document.querySelectorAll('#bgModeBtns .btn');
+  var alignActiveWrapper = null;
+  var alignDragState = { wrapper: null, dragging: false, startX: 0, startY: 0, startOx: 0, startOy: 0, scale: 1 };
+  var ALIGN_SCALE_MIN = 0.5;
+  var ALIGN_SCALE_MAX = 6;
+  var ALIGN_SCALE_STEP = 0.05;
+  var BACKGROUND_MODE_KEY = 'akta_background_mode';
+  var animatedBackgroundController = window.ProjectorAnimatedBackground
+    ? window.ProjectorAnimatedBackground.init({ storageKey: 'akta_animated_background_enabled', defaultEnabled: false })
+    : null;
+
+  function isSupportedScore(score) { return Object.prototype.hasOwnProperty.call(SUPPORTED_SCORES, score); }
+  function updateRoundTotal() {
+    if (!currentRoundThrows.length) roundTotalEl.textContent = '-';
+    else roundTotalEl.textContent = String(currentRoundThrows.reduce(function(a, b) { return a + b; }, 0));
+  }
+  function getZoneDisplayPoint(zoneEl, score) {
+    try {
+      var svg = zoneEl.ownerSVGElement;
+      var bbox = zoneEl.getBBox();
+      var cx = bbox.x + bbox.width / 2;
+      var cy = bbox.y + bbox.height / 2;
+      var radius = Math.min(bbox.width, bbox.height) / 2;
+      var frac = ZONE_RADIUS_FRACTIONS[score] != null ? ZONE_RADIUS_FRACTIONS[score] : 0.5;
+      var pt = svg.createSVGPoint();
+      pt.x = cx;
+      pt.y = cy - radius * frac;
+      var screenPt = pt.matrixTransform(svg.getScreenCTM());
+      return { clientX: screenPt.x, clientY: screenPt.y };
+    } catch (err) {
+      var rect = zoneEl.getBoundingClientRect();
+      return { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
+    }
+  }
+  function addThrowChip(score) {
+    var chip = document.createElement('div');
+    chip.className = 'throw-chip';
+    chip.textContent = String(score);
+    chip.style.borderColor = zoneColors[score] || 'rgba(255,255,255,0.2)';
+    throwListEl.appendChild(chip);
+  }
+  function showScorePopup(event, score) {
+    var popup = document.createElement('div');
+    popup.className = 'score-popup' + (score === 5 ? ' bullseye' : '');
+    popup.textContent = score === 5 ? 'BULLSEYE!' : '+' + score;
+    popup.style.left = event.clientX + 'px';
+    popup.style.top = event.clientY + 'px';
+    document.body.appendChild(popup);
+    setTimeout(function() { popup.remove(); }, 1100);
+  }
+  function showImpactMarker(event, zoneEl) {
+    var svg = zoneEl.ownerSVGElement;
+    var layer = svg.querySelector('.impact-layer');
+    if (!layer) return;
+    var pt = svg.createSVGPoint();
+    pt.x = event.clientX;
+    pt.y = event.clientY;
+    var svgPt = pt.matrixTransform(svg.getScreenCTM().inverse());
+    var ns = 'http://www.w3.org/2000/svg';
+    var dot = document.createElementNS(ns, 'circle');
+    dot.classList.add('impact-marker');
+    dot.setAttribute('cx', String(svgPt.x));
+    dot.setAttribute('cy', String(svgPt.y));
+    dot.setAttribute('r', '4');
+    dot.setAttribute('fill', 'rgba(255,100,100,0.7)');
+    dot.setAttribute('stroke', 'rgba(255,255,255,0.6)');
+    dot.setAttribute('stroke-width', '1');
+    layer.appendChild(dot);
+    setTimeout(function() { dot.remove(); }, 4000);
+  }
+  function recordScore(score, event, zoneEl, fromMainApp) {
+    if (isStaticMode) return;
+    if (!isSupportedScore(score)) return;
+    if (newRoundTimeoutId || fadeCompleteTimeoutId) {
+      cancelRoundDisplayTimer();
+      clearRoundDisplay();
+    }
+    if (!fromMainApp) {
+      try {
+        lastPostedToApp = { points: score, at: Date.now() };
+        setTimeout(function() { lastPostedToApp = null; }, 400);
+        var ch = new BroadcastChannel('triplenickel-projector-score-from-target');
+        var _wrapper = zoneEl ? zoneEl.closest('.target-wrapper') : null;
+        var _msg = { points: score };
+        if (_wrapper) { _msg.targetIndex = parseInt(_wrapper.getAttribute('data-target-index') || '0', 10) + 1; }
+        ch.postMessage(_msg);
+        ch.close();
+      } catch (err) {}
+    }
+    if (currentRoundThrows.length >= throwsPerRound) {
+      scheduleRoundDisplayFade();
+    }
+    throws.push(score);
+    currentRoundThrows.push(score);
+    updateRoundTotal();
+    addThrowChip(score);
+
+    lastScoreEl.textContent = String(score);
+    lastScoreEl.style.color = score === 5 ? 'gold' : 'var(--text-accent)';
+    lastScoreEl.classList.add('visible');
+
+    zoneEl.classList.remove('hit', 'killshot');
+    void zoneEl.offsetWidth;
+    zoneEl.classList.add(score === 5 ? 'killshot' : 'hit');
+    setTimeout(function() { zoneEl.classList.remove('hit', 'killshot'); }, score === 5 ? 1200 : 600);
+
+    if (event && event.clientX != null) {
+      showScorePopup(event, score);
+      showImpactMarker(event, zoneEl);
+    }
+  }
+  function clearRoundDisplay() {
+    if (roundDisplayEl) roundDisplayEl.classList.remove('fade-out');
+    if (throwDisplayEl) throwDisplayEl.classList.remove('fade-out');
+    currentRoundThrows = [];
+    throwListEl.innerHTML = '';
+    updateRoundTotal();
+  }
+  function scheduleRoundDisplayFade() {
+    cancelRoundDisplayTimer();
+    newRoundTimeoutId = setTimeout(function() {
+      newRoundTimeoutId = null;
+      if (roundDisplayEl) roundDisplayEl.classList.add('fade-out');
+      if (throwDisplayEl) throwDisplayEl.classList.add('fade-out');
+      fadeCompleteTimeoutId = setTimeout(function() {
+        fadeCompleteTimeoutId = null;
+        clearRoundDisplay();
+      }, 500);
+    }, 5000);
+  }
+  function cancelRoundDisplayTimer() {
+    if (newRoundTimeoutId) { clearTimeout(newRoundTimeoutId); newRoundTimeoutId = null; }
+    if (fadeCompleteTimeoutId) { clearTimeout(fadeCompleteTimeoutId); fadeCompleteTimeoutId = null; }
+  }
+  function undoLast() {
+    if (!throws.length) return;
+    var last = throws.pop();
+    if (currentRoundThrows.length > 0) {
+      currentRoundThrows.pop();
+      if (throwListEl.lastChild) throwListEl.removeChild(throwListEl.lastChild);
+    }
+    updateRoundTotal();
+    if (!throws.length) {
+      lastScoreEl.classList.remove('visible');
+    } else {
+      var prev = throws[throws.length - 1];
+      lastScoreEl.textContent = String(prev);
+      lastScoreEl.style.color = prev === 5 ? 'gold' : 'var(--text-accent)';
+      lastScoreEl.classList.add('visible');
+    }
+  }
+  function resetAll() {
+    cancelRoundDisplayTimer();
+    throws = [];
+    currentRoundThrows = [];
+    updateRoundTotal();
+    throwListEl.innerHTML = '';
+    lastScoreEl.classList.remove('visible');
+    document.querySelectorAll('.impact-layer').forEach(function(el) { el.innerHTML = ''; });
+  }
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+  }
+  function getScaleLocked() {
+    try {
+      var v = localStorage.getItem(SCALE_LOCK_KEY);
+      if (v === 'false') return false;
+      if (v === 'true') return true;
+    } catch (e) {}
+    return true;
+  }
+  function setScaleLocked(locked) {
+    try { localStorage.setItem(SCALE_LOCK_KEY, locked ? 'true' : 'false'); } catch (e) {}
+    updateScaleLockButton();
+  }
+  function updateScaleLockButton() {
+    if (!scaleLockBtn) return;
+    var locked = getScaleLocked();
+    scaleLockBtn.dataset.locked = locked ? 'true' : 'false';
+    scaleLockBtn.textContent = locked ? 'Scale all' : 'Scale per target';
+    scaleLockBtn.classList.toggle('active', locked);
+  }
+  function getStoredBackgroundMode() {
+    try {
+      var raw = localStorage.getItem(BACKGROUND_MODE_KEY);
+      if (raw === 'black' || raw === 'white' || raw === 'animated') return raw;
+    } catch (e) {}
+    if (animatedBackgroundController && animatedBackgroundController.isEnabled()) return 'animated';
+    return 'black';
+  }
+  function applyBackgroundMode(mode) {
+    if (mode !== 'black' && mode !== 'white' && mode !== 'animated') mode = 'black';
+    try { localStorage.setItem(BACKGROUND_MODE_KEY, mode); } catch (e) {}
+    document.body.classList.remove('bg-black', 'bg-white');
+    document.body.classList.add(mode === 'white' ? 'bg-white' : 'bg-black');
+    if (animatedBackgroundController) animatedBackgroundController.setEnabled(mode === 'animated');
+    bgModeBtns.forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.bgMode === mode);
+    });
+  }
+  function applyTransform(wrapper, x, y, s) {
+    x = typeof x === 'number' ? x : 0;
+    y = typeof y === 'number' ? y : 0;
+    s = typeof s === 'number' && s > 0 ? s : 1;
+    wrapper.style.transform = 'translate(' + x + 'px, ' + y + 'px) scale(' + s + ')';
+  }
+  function parseTransform(wrapper) {
+    var t = wrapper.style.transform || '';
+    var m = t.match(/translate\(([^,]+)px,\s*([^)]+)px\)/);
+    var x = m ? parseFloat(m[1]) : 0;
+    var y = m ? parseFloat(m[2]) : 0;
+    var sm = t.match(/scale\(([^)]+)\)/);
+    var s = sm ? parseFloat(sm[1]) : 1;
+    if (isNaN(s) || s <= 0) s = 1;
+    return { x: x, y: y, s: s };
+  }
+  function loadAlignment() {
+    var wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+    try {
+      var raw = localStorage.getItem(ALIGN_STORAGE_KEY);
+      if (raw) {
+        var o = JSON.parse(raw);
+        var positions = o.positions;
+        if (Array.isArray(positions)) {
+          targetsGridEl.classList.add('has-alignment');
+          for (var i = 0; i < wrappers.length && i < positions.length; i++) {
+            var p = positions[i];
+            var x = typeof p.x === 'number' ? p.x : 0;
+            var y = typeof p.y === 'number' ? p.y : 0;
+            var s = typeof p.s === 'number' && p.s > 0 ? p.s : 1;
+            applyTransform(wrappers[i], x, y, s);
+          }
+          for (var j = positions.length; j < wrappers.length; j++) applyTransform(wrappers[j], 0, 0, 1);
+          return;
+        }
+      }
+    } catch (e) {}
+    targetsGridEl.classList.remove('has-alignment');
+    for (var k = 0; k < wrappers.length; k++) applyTransform(wrappers[k], 0, 0, 1);
+  }
+  function saveAlignment() {
+    var wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+    var positions = [];
+    for (var i = 0; i < wrappers.length; i++) positions.push(parseTransform(wrappers[i]));
+    try { localStorage.setItem(ALIGN_STORAGE_KEY, JSON.stringify({ positions: positions })); } catch (e) {}
+  }
+  function syncScaleSliderToWrapper(wrapper) {
+    if (!alignScaleSlider) return;
+    var s = 1;
+    if (getScaleLocked()) {
+      var wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+      if (wrappers.length > 0) s = parseTransform(wrappers[0]).s;
+    } else if (wrapper) {
+      s = parseTransform(wrapper).s;
+    }
+    alignScaleSlider.value = String(Math.max(ALIGN_SCALE_MIN, Math.min(ALIGN_SCALE_MAX, s)));
+  }
+  function applyScaleToTargetOrAll(wrapper, s) {
+    var wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+    if (getScaleLocked() && wrappers.length > 0) {
+      for (var i = 0; i < wrappers.length; i++) {
+        var p = parseTransform(wrappers[i]);
+        applyTransform(wrappers[i], p.x, p.y, s);
+      }
+    } else if (wrapper) {
+      var p2 = parseTransform(wrapper);
+      applyTransform(wrapper, p2.x, p2.y, s);
+    }
+  }
+  function onAlignWheel(e) {
+    if (!document.body.classList.contains('alignment-mode')) return;
+    var wrapper = document.elementFromPoint(e.clientX, e.clientY);
+    if (!wrapper) return;
+    wrapper = wrapper.closest('.target-wrapper');
+    if (!wrapper) return;
+    e.preventDefault();
+    alignActiveWrapper = wrapper;
+    var p = parseTransform(wrapper);
+    var delta = e.deltaY > 0 ? -ALIGN_SCALE_STEP : ALIGN_SCALE_STEP;
+    var s = Math.max(ALIGN_SCALE_MIN, Math.min(ALIGN_SCALE_MAX, p.s + delta));
+    applyScaleToTargetOrAll(wrapper, s);
+    syncScaleSliderToWrapper(wrapper);
+  }
+  function onAlignMouseDown(e) {
+    if (!document.body.classList.contains('alignment-mode')) return;
+    var wrapper = e.target.closest('.target-wrapper');
+    if (!wrapper) return;
+    alignActiveWrapper = wrapper;
+    syncScaleSliderToWrapper(wrapper);
+    var p = parseTransform(wrapper);
+    alignDragState.wrapper = wrapper;
+    alignDragState.dragging = true;
+    alignDragState.startX = e.clientX;
+    alignDragState.startY = e.clientY;
+    alignDragState.startOx = p.x;
+    alignDragState.startOy = p.y;
+    alignDragState.scale = p.s;
+    document.addEventListener('mousemove', onAlignMouseMove);
+    document.addEventListener('mouseup', onAlignMouseUp);
+    e.preventDefault();
+  }
+  function onAlignMouseMove(e) {
+    if (!alignDragState.dragging || !alignDragState.wrapper) return;
+    var ox = alignDragState.startOx + (e.clientX - alignDragState.startX);
+    var oy = alignDragState.startOy + (e.clientY - alignDragState.startY);
+    applyTransform(alignDragState.wrapper, Math.round(ox), Math.round(oy), alignDragState.scale);
+  }
+  function onAlignMouseUp() {
+    alignDragState.dragging = false;
+    alignDragState.wrapper = null;
+    document.removeEventListener('mousemove', onAlignMouseMove);
+    document.removeEventListener('mouseup', onAlignMouseUp);
+  }
+  function onAlignScaleSliderInput() {
+    if (!alignScaleSlider) return;
+    var s = parseFloat(alignScaleSlider.value);
+    if (isNaN(s) || s <= 0) return;
+    s = Math.max(ALIGN_SCALE_MIN, Math.min(ALIGN_SCALE_MAX, s));
+    applyScaleToTargetOrAll(alignActiveWrapper, s);
+  }
+  function startAlignmentMode() {
+    modal.classList.remove('open');
+    document.body.classList.add('alignment-mode');
+    updateScaleLockButton();
+    var wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+    alignActiveWrapper = wrappers.length > 0 ? wrappers[0] : null;
+    syncScaleSliderToWrapper(alignActiveWrapper);
+    targetsGridEl.addEventListener('mousedown', onAlignMouseDown);
+    targetsGridEl.addEventListener('wheel', onAlignWheel, { passive: false });
+    if (alignScaleSlider) alignScaleSlider.addEventListener('input', onAlignScaleSliderInput);
+  }
+  function exitAlignmentMode() {
+    document.body.classList.remove('alignment-mode');
+    targetsGridEl.removeEventListener('mousedown', onAlignMouseDown);
+    targetsGridEl.removeEventListener('wheel', onAlignWheel);
+    if (alignScaleSlider) alignScaleSlider.removeEventListener('input', onAlignScaleSliderInput);
+    document.removeEventListener('mousemove', onAlignMouseMove);
+    document.removeEventListener('mouseup', onAlignMouseUp);
+  }
+  function lockAlignment() {
+    saveAlignment();
+    exitAlignmentMode();
+    loadAlignment();
+  }
+  function cancelAlignment() {
+    exitAlignmentMode();
+    loadAlignment();
+  }
+  function resetAlignment() {
+    try { localStorage.removeItem(ALIGN_STORAGE_KEY); } catch (e) {}
+    loadAlignment();
+    modal.classList.remove('open');
+  }
+  function getTargetCount() {
+    var n = parseInt(localStorage.getItem(TARGET_COUNT_KEY), 10);
+    return n >= 1 && n <= 5 ? n : 1;
+  }
+  function buildTargets(count) {
+    var wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+    var template = wrappers[0];
+    while (wrappers.length > count) {
+      wrappers[wrappers.length - 1].remove();
+      wrappers = targetsGridEl.querySelectorAll('.target-wrapper');
+    }
+    for (var i = wrappers.length; i < count; i++) {
+      var clone = template.cloneNode(true);
+      clone.setAttribute('data-target-index', String(i));
+      var badge = clone.querySelector('.throw-number-badge');
+      if (badge) badge.textContent = String(i + 1);
+      clone.removeAttribute('style');
+      var svg = clone.querySelector('svg');
+      var grad = svg.querySelector('radialGradient');
+      var gid = 'bullseyeGrad' + i;
+      if (grad) grad.id = gid;
+      clone.querySelectorAll('[fill*="bullseyeGrad"]').forEach(function(el) {
+        el.setAttribute('fill', 'url(#' + gid + ')');
+      });
+      targetsGridEl.appendChild(clone);
+    }
+    targetsGridEl.querySelectorAll('.target-wrapper').forEach(function(wrapper, index) {
+      wrapper.setAttribute('data-target-index', String(index));
+      var badge = wrapper.querySelector('.throw-number-badge');
+      if (badge) badge.textContent = String(index + 1);
+    });
+    loadAlignment();
+  }
+  function setTargetCount(n) {
+    n = Math.max(1, Math.min(5, parseInt(n, 10) || 1));
+    localStorage.setItem(TARGET_COUNT_KEY, String(n));
+    buildTargets(n);
+    targetsGridEl.setAttribute('data-count', String(n));
+    document.querySelectorAll('#targetCountBtns .btn').forEach(function(btn) {
+      btn.classList.toggle('active', parseInt(btn.dataset.count, 10) === n);
+    });
+    if (!isStaticMode) doDynamicTargetRegister();
+  }
+
+  targetsGridEl.addEventListener('click', function(e) {
+    if (isStaticMode) return;
+    var zone = e.target.closest('.score-zone');
+    if (!zone) return;
+    var score = parseInt(zone.dataset.score, 10);
+    var targetCount = parseInt(targetsGridEl.getAttribute('data-count') || '1', 10);
+    if (targetCount > 1) {
+      var clickedWrapper = zone.closest('.target-wrapper');
+      var clickedIndex = clickedWrapper ? parseInt(clickedWrapper.getAttribute('data-target-index') || '0', 10) : 0;
+      if (clickedIndex !== currentRoundThrows.length % targetCount) return;
+    }
+    recordScore(score, e, zone);
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      if (document.body.classList.contains('alignment-mode')) cancelAlignment();
+      else modal.classList.remove('open');
+      return;
+    }
+    if (e.key === 'f' || e.key === 'F') toggleFullscreen();
+    if (isStaticMode) return;
+    if (e.key === 'u' || e.key === 'U') undoLast();
+    if (e.key === 'r' || e.key === 'R') {
+      if (e.ctrlKey || e.metaKey) return;
+      resetAll();
+    }
+    if (e.key === '0' || e.key === '3' || e.key === '4' || e.key === '5') {
+      var score = parseInt(e.key, 10);
+      var zoneClass = score === 0 ? '.zone-border' : '.zone-' + score;
+      var zoneEl = document.querySelector(zoneClass);
+      if (!zoneEl) return;
+      recordScore(score, getZoneDisplayPoint(zoneEl, score), zoneEl);
+    }
+  });
+
+  document.querySelectorAll('#targetCountBtns .btn').forEach(function(btn) {
+    btn.addEventListener('click', function() { setTargetCount(this.dataset.count); });
+  });
+  document.getElementById('logoBtn').addEventListener('click', function() { modal.classList.add('open'); });
+  if (modalClose) modalClose.addEventListener('click', function() { modal.classList.remove('open'); });
+  modal.addEventListener('click', function(e) { if (e.target === modal) modal.classList.remove('open'); });
+  if (alignBtn) alignBtn.addEventListener('click', startAlignmentMode);
+  if (lockAlignBtn) lockAlignBtn.addEventListener('click', lockAlignment);
+  if (cancelAlignBtn) cancelAlignBtn.addEventListener('click', cancelAlignment);
+  if (resetAlignBtn) resetAlignBtn.addEventListener('click', resetAlignment);
+  if (scaleLockBtn) scaleLockBtn.addEventListener('click', function() {
+    setScaleLocked(!getScaleLocked());
+    syncScaleSliderToWrapper(alignActiveWrapper);
+  });
+  bgModeBtns.forEach(function(btn) {
+    btn.addEventListener('click', function() { applyBackgroundMode(btn.dataset.bgMode); });
+  });
+  applyBackgroundMode(getStoredBackgroundMode());
+
+  var dynamicSyncDisabled = false;
+  try {
+    var scoreChannel = new BroadcastChannel('triplenickel-projector-score');
+    scoreChannel.onmessage = function(e) {
+      if (isStaticMode) return;
+      var d = e.data;
+      if (!d) return;
+      if (typeof d.points === 'number' && isSupportedScore(d.points)) {
+        if (dynamicSyncDisabled) return;
+        if (typeof d.throwsPerRound === 'number' && d.throwsPerRound >= 1) throwsPerRound = d.throwsPerRound;
+        if (lastPostedToApp && d.points === lastPostedToApp.points && (Date.now() - lastPostedToApp.at) < 400) return;
+        var zoneClass = d.points === 0 ? '.zone-border' : '.zone-' + d.points;
+        var targetCount = parseInt(targetsGridEl.getAttribute('data-count') || '1', 10);
+        var targetIndex = 0;
+        if (targetCount > 1 && typeof d.throwIndex === 'number' && d.throwIndex >= 1) targetIndex = (d.throwIndex - 1) % targetCount;
+        var wrapper = targetsGridEl.querySelector('.target-wrapper[data-target-index="' + targetIndex + '"]') || targetsGridEl.querySelector('.target-wrapper');
+        var zoneEl = wrapper ? wrapper.querySelector(zoneClass) : null;
+        if (!zoneEl) return;
+        recordScore(d.points, getZoneDisplayPoint(zoneEl, d.points), zoneEl, true);
+      }
+      if (d.action === 'reset') resetAll();
+      if (d.action === 'undo') undoLast();
+      if (d.action === 'newRound') scheduleRoundDisplayFade();
+    };
+  } catch (err) {}
+
+  function ensureCompatibilityWarningUI() {
+    var overlay = document.getElementById('compatibilityWarningOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'compatibilityWarningOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:none;align-items:center;justify-content:center;padding:40px;box-sizing:border-box;opacity:0;transition:opacity 0.4s ease;';
+      var box = document.createElement('div');
+      box.style.cssText = 'background:linear-gradient(135deg,#1e293b,#334155);border:3px solid #f59e0b;border-radius:16px;padding:32px 40px;max-width:90%;box-shadow:0 25px 50px rgba(0,0,0,0.6);text-align:center;';
+      var icon = document.createElement('div');
+      icon.style.cssText = 'font-size:4rem;margin-bottom:16px;';
+      icon.textContent = '\u26A0\uFE0F';
+      var text = document.createElement('div');
+      text.style.cssText = 'font-family:\'Orbitron\',sans-serif;font-size:1.5rem;font-weight:700;color:#fef3c7;line-height:1.5;';
+      box.appendChild(icon);
+      box.appendChild(text);
+      box.addEventListener('click', function() { hideCompatibilityOverlay(); });
+      overlay.appendChild(box);
+      overlay._textEl = text;
+      overlay.addEventListener('click', function() { hideCompatibilityOverlay(); });
+      document.body.appendChild(overlay);
+    }
+    var badge = document.getElementById('compatibilityWarningBadge');
+    if (!badge) {
+      badge = document.createElement('button');
+      badge.id = 'compatibilityWarningBadge';
+      badge.type = 'button';
+      badge.textContent = '!';
+      badge.style.cssText = 'position:fixed;top:16px;right:16px;width:38px;height:38px;border-radius:999px;border:2px solid #f59e0b;background:#7c2d12;color:#fef3c7;font:900 24px/1 Orbitron,sans-serif;z-index:100000;display:none;cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,0.45);';
+      badge.title = 'Show dynamic sync warning';
+      badge.onclick = function() {
+        var ui = ensureCompatibilityWarningUI();
+        if (ui.overlay.style.display === 'flex' && ui.overlay.style.opacity !== '0') {
+          hideCompatibilityOverlay();
+          return;
+        }
+        showCompatibilityOverlay();
+        scheduleCompatibilityAutoHide(5000);
+      };
+      document.body.appendChild(badge);
+    }
+    return { overlay: overlay, badge: badge };
+  }
+  function scheduleCompatibilityAutoHide(delayMs) {
+    var ui = ensureCompatibilityWarningUI();
+    clearTimeout(ui.overlay._fadeTimer);
+    ui.overlay._fadeTimer = setTimeout(function() {
+      hideCompatibilityOverlay();
+    }, delayMs || 5000);
+  }
+  function showCompatibilityOverlay() {
+    var ui = ensureCompatibilityWarningUI();
+    clearTimeout(ui.overlay._fadeTimer);
+    ui.overlay.style.display = 'flex';
+    requestAnimationFrame(function() { ui.overlay.style.opacity = '1'; });
+    ui.badge.style.display = 'block';
+  }
+  function hideCompatibilityOverlay() {
+    var overlay = document.getElementById('compatibilityWarningOverlay');
+    if (!overlay) return;
+    clearTimeout(overlay._fadeTimer);
+    overlay.style.opacity = '0';
+    setTimeout(function() {
+      if (overlay.style.opacity === '0') overlay.style.display = 'none';
+    }, 400);
+  }
+  try {
+    var warningChannel = new BroadcastChannel('triplenickel-target-warning');
+    warningChannel.onmessage = function(e) {
+      if (isStaticMode) return;
+      var d = e.data;
+      if (!d) return;
+      if (d.action === 'hideWarning') {
+        dynamicSyncDisabled = false;
+        hideCompatibilityOverlay();
+        var existingBadge = document.getElementById('compatibilityWarningBadge');
+        if (existingBadge) existingBadge.style.display = 'none';
+        return;
+      }
+      if (d.action !== 'showWarning' || !d.message) return;
+      dynamicSyncDisabled = true;
+      var ui = ensureCompatibilityWarningUI();
+      ui.overlay._textEl.textContent = d.message;
+      showCompatibilityOverlay();
+      scheduleCompatibilityAutoHide(5000);
+    };
+  } catch (err) {}
+
+  var REGISTRY_CHANNEL = 'triplenickel-target-registry';
+  function doDynamicTargetRegister() {
+    if (isStaticMode) return;
+    try {
+      var ch = new BroadcastChannel(REGISTRY_CHANNEL);
+      ch.postMessage({ action: 'register', type: 'AKTA', targetCount: getTargetCount() });
+      ch.close();
+    } catch (e) {}
+  }
+  function doDynamicTargetUnregister() {
+    try {
+      var ch = new BroadcastChannel(REGISTRY_CHANNEL);
+      ch.postMessage({ action: 'unregister', type: 'AKTA' });
+      ch.close();
+    } catch (e) {}
+  }
+
+  window.AKTATarget = {
+    score: function(points) {
+      if (!isSupportedScore(points)) return;
+      var zoneClass = points === 0 ? '.zone-border' : '.zone-' + points;
+      var zoneEl = document.querySelector(zoneClass);
+      if (!zoneEl) return;
+      recordScore(points, getZoneDisplayPoint(zoneEl, points), zoneEl);
+    },
+    reset: resetAll,
+    undo: undoLast,
+    getState: function() {
+      return { throwCount: throws.length, throws: throws.slice() };
+    }
+  };
+
+  setTargetCount(getTargetCount());
+  loadAlignment();
+  if (!isStaticMode) {
+    doDynamicTargetRegister();
+    setInterval(doDynamicTargetRegister, 2000);
+    window.addEventListener('beforeunload', doDynamicTargetUnregister);
+  }
+})();
+</script>
+</body>
+</html>
