@@ -462,6 +462,14 @@
         .player-card:hover .remove-button {
             opacity: 0.8;
         }
+
+        .player-card.target-scoring-active {
+            outline: 2px solid #fbbf24 !important;
+            box-shadow: 0 0 18px rgba(251, 191, 36, 0.55), 0 4px 16px rgba(0,0,0,0.3) !important;
+        }
+        .player-card:not(.target-scoring-active):hover {
+            outline: 1px solid rgba(251, 191, 36, 0.25);
+        }
         
         /* Responsive breakpoints */
         @media (min-width: 800px) {
@@ -960,6 +968,7 @@
         var settingsVisible = false;
         var gameFinalizedOnce = false;
         var trackProgressWindow = null; // Reference to the track progress window
+        var targetScoringPlayerId = null; // Which player receives scores from the dynamic target (null = first eligible)
 
         // Dynamic target registry (Blade Aces, IKTHOF) - for compatibility warnings
         var dynamicTargetRegistry = {};
@@ -2573,6 +2582,7 @@
                         gameState.numDistances   = gameState.distances.length;
                         gameState.implement      = spec.implement || 'knife';
                         if (spec.rounds) gameState.rounds = spec.rounds;
+                        if (spec.throwsPerDist) gameState.throwsPerRound = spec.throwsPerDist;
                         if (spec.specName) {
                             gameState.gameName = spec.specName + (spec.implement ? ' – ' + spec.implement.charAt(0).toUpperCase() + spec.implement.slice(1) : '');
                         }
@@ -2695,6 +2705,10 @@
                 if (gameState.editingThrow && gameState.editingThrow.playerId === playerId) {
                     gameState.editingThrow = null;
                 }
+                // Re-evaluate target scoring selection (renderPlayers will pick a valid player)
+                if (targetScoringPlayerId === playerId) {
+                    targetScoringPlayerId = null;
+                }
                 
                 renderPlayers();
                 updateGameDisplay();
@@ -2752,7 +2766,13 @@
         function renderPlayers() {
             var grid = document.getElementById('playersGrid');
             if (!grid) return;
-            
+
+            // Always keep one player selected for target scoring
+            if (gameState.players && gameState.players.length > 0) {
+                var selectionValid = gameState.players.some(function(p) { return p.id === targetScoringPlayerId; });
+                if (!selectionValid) targetScoringPlayerId = gameState.players[0].id;
+            }
+
             grid.innerHTML = '';
             
             // Debug logging
@@ -3124,7 +3144,18 @@
             if (!gameState.gameFinalized && !gameState.inTiebreaker) {
                 removeButtonHtml = '<button class="remove-button" onclick="removePlayer(' + player.id + ')" title="Remove ' + player.name + '">✕</button>';
             }
-            
+
+            // Target scoring card selection
+            var isTargetSelected = targetScoringPlayerId === player.id;
+            if (isTargetSelected) playerCard.classList.add('target-scoring-active');
+            if (!gameState.gameFinalized && !gameState.inTiebreaker) {
+                playerCard.style.cursor = 'pointer';
+                playerCard.addEventListener('click', function(e) {
+                    if (e.target.closest('button, input, select, textarea, a')) return;
+                    toggleTargetScoringPlayer(player.id);
+                });
+            }
+
             // Get team information for this player
             var playerTeam = getPlayerTeam(player.name);
             var teamInfoHtml = '';
@@ -3615,6 +3646,8 @@
                 for (var i = 0; i < gameState.players.length; i++) {
                     var player = gameState.players[i];
                     if (player.gameComplete) continue;
+                    // If a specific player is pinned for target scoring, skip all others
+                    if (targetScoringPlayerId !== null && player.id !== targetScoringPlayerId) continue;
                     if (!canEnterScore(player, player.currentRound, player.currentDistance, player.currentThrow)) continue;
                     if (hasTargetCorrelation && player.currentThrow !== d.targetIndex) continue;
                     var ri = player.currentRound - 1, di = player.currentDistance - 1, ti = player.currentThrow - 1;
@@ -3625,6 +3658,11 @@
                 }
             };
         } catch (err) {}
+
+        function toggleTargetScoringPlayer(playerId) {
+            targetScoringPlayerId = playerId;
+            renderPlayers();
+        }
 
         function navigateToThrow(playerId, roundNumber, distanceNumber, throwNumber) {
             var player = gameState.players.find(function(p) { return p.id === playerId; });
@@ -8618,8 +8656,8 @@
             if (customGroup) customGroup.style.display = 'none';
             var presetEl = document.getElementById('distancePresetSelect');
             var throwsEl = document.getElementById('throwsPerRoundSelect');
-            if (presetEl && throwsEl && presetEl.value === 'akta') {
-                throwsEl.value = '5';
+            if (presetEl && throwsEl) {
+                throwsEl.value = (presetEl.value === 'akta') ? '5' : '3';
             }
         }
         
@@ -8629,16 +8667,18 @@
 
         function getPresetDisplayName(preset) {
             var displayNames = {
-                'custom': 'Custom (Set your own)',
-                'dangerfest_am_knife': 'Dangerfest Am Knife',
+                'amateur':              'Am Knife',
+                'professional':         'Pro Knife',
+                'custom':               'Custom',
+                'dangerfest_am_knife':  'Dangerfest Am Knife',
                 'dangerfest_pro_knife': 'Dangerfest Pro Knife',
-                'dangerfest_am_hawk': 'Dangerfest Am Hawk',
-                'dangerfest_pro_hawk': 'Dangerfest Pro Hawk',
-                'akta': 'AKTA',
-                'blade_aces_am_knife': 'Blade Aces Am Knife',
+                'dangerfest_am_hawk':   'Dangerfest Am Hawk',
+                'dangerfest_pro_hawk':  'Dangerfest Pro Hawk',
+                'akta':                 'AKTA',
+                'blade_aces_am_knife':  'Blade Aces Am Knife',
                 'blade_aces_pro_knife': 'Blade Aces Pro Knife',
-                'blade_aces_am_hawk': 'Blade Aces Am Hawk',
-                'blade_aces_pro_hawk': 'Blade Aces Pro Hawk'
+                'blade_aces_am_hawk':   'Blade Aces Am Hawk',
+                'blade_aces_pro_hawk':  'Blade Aces Pro Hawk'
             };
             
             return displayNames[preset] || preset;
@@ -8835,8 +8875,31 @@
                 return;
             }
 
-            // Derive distances from preset (akta uses 5 throws)
-            var newThrowsPerRound = (newDistancePreset === 'akta') ? 5 : gameState.throwsPerRound;
+            // When the preset changes, auto-update the game name to match the new preset
+            if (newDistancePreset !== gameState.distancePreset) {
+                newGameName = getPresetDisplayName(newDistancePreset);
+                var nameInput = document.getElementById('gameNameInput');
+                if (nameInput) nameInput.value = newGameName;
+            }
+
+            // Per-preset canonical throws, rounds, and default distance count
+            var PRESET_DEFAULTS = {
+                'amateur':              { throwsPerRound: 3, numDistances: 5 },
+                'professional':         { throwsPerRound: 3, numDistances: 5 },
+                'dangerfest_am_knife':  { throwsPerRound: 3 },
+                'dangerfest_pro_knife': { throwsPerRound: 3 },
+                'dangerfest_am_hawk':   { throwsPerRound: 3 },
+                'dangerfest_pro_hawk':  { throwsPerRound: 3 },
+                'akta':                 { throwsPerRound: 5, rounds: 3 },
+                'blade_aces_am_knife':  { throwsPerRound: 3 },
+                'blade_aces_pro_knife': { throwsPerRound: 3 },
+                'blade_aces_am_hawk':   { throwsPerRound: 3 },
+                'blade_aces_pro_hawk':  { throwsPerRound: 3 }
+            };
+            var pd = PRESET_DEFAULTS[newDistancePreset] || {};
+            var newThrowsPerRound = pd.throwsPerRound || gameState.throwsPerRound;
+            if (pd.rounds)        gameState.rounds       = pd.rounds;
+            if (pd.numDistances)  gameState.numDistances = pd.numDistances;
 
             // Broadcast compatibility state so targets can disable/enable sync immediately
             broadcastDynamicTargetCompatibilityState(newThrowsPerRound, gameState.maxScore);
@@ -8850,7 +8913,7 @@
             // Update target rings
             gameState.targetRings = generateTargetRings();
 
-            // Update distances based on preset
+            // Update distances based on preset (pass corrected numDistances)
             gameState.distances = getDefaultDistances(newDistancePreset, gameState.numDistances);
             var numDistancesToUse = gameState.distances.length;
             gameState.numDistances = numDistancesToUse;
