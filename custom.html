@@ -139,10 +139,51 @@
             white-space: nowrap !important;
             min-width: fit-content !important;
         }
+
+        /* Settings gear icon button */
+        .settings-gear-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; padding: 0;
+            background: linear-gradient(135deg, #475569, #334155);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: #e2e8f0;
+        }
+        .settings-gear-btn:hover {
+            background: linear-gradient(135deg, #64748b, #475569);
+            transform: rotate(90deg) scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+        }
+        .settings-gear-btn svg {
+            width: 22px; height: 22px;
+        }
         
-        /* Responsive settings panel grid */
+        /* Settings modal and panel layout */
+        #settingsModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
         #settingsPanel {
-            margin-bottom: 20px !important;
+            max-width: 980px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 0 !important;
+            box-sizing: border-box;
         }
         
         #settingsPanel .config-grid {
@@ -161,6 +202,80 @@
         #settingsPanel select.config-input {
             max-width: 100%;
             appearance: auto;
+        }
+
+        /* Settings modal action buttons (match Walkback style) */
+        #settingsModal .settings-action-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        #settingsModal .settings-action-btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.25s ease;
+            color: #e2e8f0;
+            background: rgba(51, 65, 85, 0.6);
+        }
+        #settingsModal .settings-action-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Game Dynamics modal */
+        #gameDynamicsModal .gd-modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid #475569;
+            border-radius: 16px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        #gameDynamicsModal .gd-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        #gameDynamicsModal .gd-subtitle {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        #gameDynamicsModal .gd-btn {
+            padding: 14px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.25s ease;
+            color: #e2e8f0;
+            background: rgba(51, 65, 85, 0.6);
+        }
+        #gameDynamicsModal .gd-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
         #customDistanceInputs {
@@ -430,7 +545,7 @@
                 overflow-x: hidden !important;
                 -webkit-overflow-scrolling: touch;
                 padding: 16px !important;
-                margin-bottom: 20px !important;
+                margin: 0 !important;
             }
             
             .pagination-controls {
@@ -495,10 +610,7 @@
         <div id="gameInterface" class="game-interface">
             <div class="game-header">
                 <div class="action-buttons">
-                    <button class="action-button leaderboard-btn" onclick="openLeaderboardWindow()">🏆 Leaderboard</button>
-                    <button class="action-button stats-btn" onclick="showStats()">📊 Stats</button>
-                    <button class="action-button settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
-                    <button class="action-button settings-btn" onclick="exportData()">💾 Export</button>
+                    <button class="action-button settings-btn settings-gear-btn" onclick="toggleSettings()" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
                     <button class="action-button" id="finalizeBtn" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); display: none;" onclick="finalizeGame()">🏁 Finalize Game</button>
                 </div>
             </div>
@@ -510,14 +622,17 @@
                 <div id="finalizedBanner" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; display: none;">🔒 GAME FINALIZED - RESULTS LOCKED 🔒</div>
             </div>
 
-            <!-- Settings Panel -->
-            <div id="settingsPanel" style="background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; border-radius: 15px; padding: 25px; margin-bottom: 30px; display: none;">
+            <!-- Settings Modal -->
+            <div id="settingsModal" onclick="if(event.target===this)toggleSettings()">
+            <div id="settingsPanel" onclick="event.stopPropagation()" style="background: rgba(30, 41, 59, 0.98); border: 1px solid #475569; border-radius: 15px; padding: 25px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
                 <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span>⚙️</span>
                         <span>Custom Game Settings</span>
                     </div>
-                    <button onclick="resetSettingsToDefaultsInPanel()" style="background: #64748b; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease;">Reset</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button onclick="toggleSettings()" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;" title="Close">✕</button>
+                    </div>
                 </div>
                 
                 <div id="gameStartedWarning" style="background: rgba(245, 101, 101, 0.1); border: 1px solid #ef4444; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;">
@@ -534,19 +649,19 @@
                     <div class="config-grid">
                         <div class="config-item">
                             <label class="config-label">Game Name</label>
-                            <input type="text" id="gameNameInput" placeholder="Enter custom game name..." maxlength="50" class="config-input">
+                            <input type="text" id="gameNameInput" placeholder="Enter custom game name..." maxlength="50" class="config-input" onchange="autoApplySettings()">
                         </div>
                         <div class="config-item">
                             <label class="config-label">Number of Rounds</label>
-                            <input type="number" id="roundsInput" min="1" max="20" value="4" class="config-input">
+                            <input type="number" id="roundsInput" min="1" max="20" value="4" class="config-input" onchange="autoApplySettings()">
                         </div>
                         <div class="config-item">
                             <label class="config-label">Throws per Round</label>
-                            <input type="number" id="throwsInput" min="1" max="10" value="3" class="config-input">
+                            <input type="number" id="throwsInput" min="1" max="10" value="3" class="config-input" onchange="autoApplySettings()">
                         </div>
                         <div class="config-item">
                             <label class="config-label">Max Score per Throw</label>
-                            <input type="number" id="maxScoreInput" min="1" max="20" value="5" class="config-input">
+                            <input type="number" id="maxScoreInput" min="1" max="20" value="5" class="config-input" onchange="autoApplySettings()">
                             <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
                                 <input type="checkbox" id="hideScoreTilesCheckbox" onchange="toggleHideScoreTiles()" style="cursor: pointer;">
                                 <label for="hideScoreTilesCheckbox" style="color: #94a3b8; font-size: 0.9rem; cursor: pointer; user-select: none;">Hide Score Tiles</label>
@@ -554,7 +669,7 @@
                         </div>
                         <div class="config-item">
                             <label class="config-label">Tiebreaker Mode</label>
-                            <select id="tiebreakerSelect" class="config-input">
+                            <select id="tiebreakerSelect" class="config-input" onchange="autoApplySettings()">
                                 <option value="sudden-death">Sudden Death (1 throw each)</option>
                                 <option value="sudden-death-round">Sudden Death Round (3 throws each)</option>
                                 <option value="no-tiebreaker">No Tiebreaker (Allow ties)</option>
@@ -562,14 +677,14 @@
                         </div>
                         <div class="config-item">
                             <label class="config-label">Finalization Mode</label>
-                            <select id="finalizationModeSelect" class="config-input">
+                            <select id="finalizationModeSelect" class="config-input" onchange="autoApplySettings()">
                                 <option value="auto" selected>Auto (finalize when all players complete)</option>
                                 <option value="manual">Manual (finalize with button only)</option>
                             </select>
                         </div>
                         <div class="config-item">
                             <label class="config-label">Number of Variables</label>
-                            <input type="number" id="numDistancesSelect" class="config-input" min="1" max="20" value="5" onchange="onNumDistancesChange()">
+                            <input type="number" id="numDistancesSelect" class="config-input" min="1" max="20" value="5" onchange="onNumDistancesChange(); autoApplySettings()">
                         </div>
                         <div class="config-item">
                             <label class="config-label" style="display: flex; align-items: center; gap: 8px;">
@@ -590,16 +705,7 @@
                                 <option value="" selected disabled>Select a game mode...</option>
                                 <option value="silhouette">Silhouette</option>
                                 <option value="texas-t">Texas T</option>
-                                <option value="custom">Custom (Set your own)</option>
-                                <option value="" disabled>────────── Custom Presets ──────────</option>
                             </select>
-                        </div>
-                        <div class="config-item">
-                            <label class="config-label">Save Current Settings</label>
-                            <div style="display: flex; flex-direction: row; gap: 8px; align-items: center; flex-wrap: nowrap;">
-                                <button id="savePresetBtn" onclick="saveGamePreset()" style="background: #059669; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; min-width: 120px;">💾 Save as Preset</button>
-                                <button onclick="removeSelectedPreset()" style="background: #ef4444; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; min-width: 120px;">🗑️ Remove Preset</button>
-                            </div>
                         </div>
                         <!-- Variable Labels Collapsible Section -->
                         <div class="collapsible-section collapsed" id="distanceLabelsSection" style="grid-column: 1 / -1; width: 100%;">
@@ -619,30 +725,51 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="config-item" style="grid-column: 1 / -1; width: 100%;">
-                            <label class="config-label">📝 Game Mode Notes</label>
-                            
-                            <!-- Read-only notes display (shown when notes exist) -->
-                            <div id="gameNotesDisplay" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 10px; color: #cbd5e1; font-size: 0.9rem; line-height: 1.5; display: none; white-space: pre-wrap; word-wrap: break-word; position: relative; width: 100%; box-sizing: border-box;">
-                                <div style="color: #94a3b8; font-size: 0.8rem; margin-bottom: 8px; font-weight: 500;">📝 Notes for this game mode:</div>
-                                <div id="gameNotesContent" style="padding-right: 80px;"></div>
-                                <button id="editNotesBtn" onclick="editNotes()" style="position: absolute; top: 12px; right: 12px; background: #3b82f6; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.3s ease;">✏️ Edit</button>
-                            </div>
-                            
-                            <!-- Editable textarea (shown when no notes exist) -->
-                            <div id="gameNotesEditContainer" style="display: none; width: 100%; box-sizing: border-box;">
-                                <textarea id="gameNotesInput" placeholder="Enter notes about this game mode (e.g., rules, strategies, special instructions)..." class="config-input" rows="4" style="width: 100%; resize: vertical; min-height: 120px; max-height: 400px; font-family: inherit; margin-bottom: 10px; box-sizing: border-box; padding: 12px;"></textarea>
-                                <button id="saveNotesBtn" onclick="saveNotes()" style="background: #059669; border: none; color: white; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">💾 Save Notes</button>
-                            </div>
-                        </div>
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                    <button id="applySettingsBtn" onclick="applySettings()" style="background: #10b981; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Apply Changes</button>
-                    <button onclick="clearScores()" style="background: #f59e0b; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Clear Scores</button>
-                    <button onclick="clearPlayers()" style="background: #ef4444; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Clear Players</button>
-                    <button onclick="exportData()" style="background: #8b5cf6; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Export Data</button>
+                <div class="settings-action-row">
+                    <button class="settings-action-btn" onclick="clearScores()">🧹 Clear Scores</button>
+                    <button class="settings-action-btn" onclick="clearPlayers()">👥 Clear Players</button>
+                    <button class="settings-action-btn" onclick="resetSettingsToDefaultsInPanel()">⚙️ Defaults</button>
+                    <button class="settings-action-btn" onclick="showGameDynamicsModal()">🎮 Game Dynamics</button>
+                </div>
+
+            </div>
+            </div>
+
+            <!-- Game Dynamics Modal -->
+            <div id="gameDynamicsModal" onclick="if(event.target===this)closeGameDynamicsModal()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10001; display: none; justify-content: center; align-items: center; padding: 24px; box-sizing: border-box;">
+                <div class="gd-modal-content" onclick="event.stopPropagation()">
+                    <div class="gd-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="font-size: 1.35rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 10px;">🎮 Game Dynamics</div>
+                            <div class="gd-subtitle">Leaderboard, targets, stats & reports</div>
+                        </div>
+                        <button onclick="closeGameDynamicsModal()" style="background: rgba(100, 116, 139, 0.2); border: 1px solid rgba(148, 163, 184, 0.3); color: #94a3b8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;">✕</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); openLeaderboardWindow();">🏆 Leaderboard</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); showStaticTargetModal();">🎯 Target Faces</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); showStats();">📊 Current Stats</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); exportData();">💾 Save Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Static Target Faces Modal -->
+            <div id="staticTargetModal" onclick="if(event.target===this)closeStaticTargetModal()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10002; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+                <div onclick="event.stopPropagation()" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 2px solid #22c55e; border-radius: 20px; padding: 30px; max-width: 460px; width: 100%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <span style="display: flex; align-items: center; gap: 10px;"><span>🎯</span> Target Faces</span>
+                        <button onclick="closeStaticTargetModal()" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">✕</button>
+                    </div>
+                    <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Opens target faces in static mode for projector display. No score sync, no reactions, no hit animations.</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button onclick="openStaticTarget('projector-targets/blade_aces_target.html', 'Blade Aces'); closeStaticTargetModal();" style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px;">🎯 Blade Aces</button>
+                        <button onclick="openStaticTarget('projector-targets/ikthof_target.html', 'IKTHOF'); closeStaticTargetModal();" style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px;">🎯 IKTHOF</button>
+                        <button onclick="openStaticTarget('projector-targets/akta.html', 'AKTA'); closeStaticTargetModal();" style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px;">🎯 AKTA</button>
+                    </div>
                 </div>
             </div>
 
@@ -932,9 +1059,8 @@
                 
                 if (leaderboardVisible) {
                     updateLeaderboard();
-            updateLeaderboardWindow();
                 }
-                updateLeaderboardWindow();
+                broadcastLeaderboardUpdate();
                 
                 saveGameState(); // Auto-save after name change
             }
@@ -1371,15 +1497,6 @@
             
             updateGameDisplay();
             updateDistancePreset(); // Initialize distance display
-            loadCustomPresets(); // Load saved custom presets
-            
-            // Add event listener for notes input to save to gameState
-            var notesInput = document.getElementById('gameNotesInput');
-            if (notesInput) {
-                notesInput.addEventListener('input', function() {
-                    gameState.notes = this.value;
-                });
-            }
             
             // Initialize pagination controls after a short delay to ensure DOM is ready
             setTimeout(function() {
@@ -1392,16 +1509,6 @@
                 refreshLeaderboardIfOpen();
             }, 500);
             
-            // Glow Apply Changes when any setting is changed in the settings panel
-            var settingsPanel = document.getElementById('settingsPanel');
-            if (settingsPanel) {
-                settingsPanel.addEventListener('change', function(e) {
-                    if (e.target.matches('input, select, textarea')) markSettingsChanged();
-                });
-                settingsPanel.addEventListener('input', function(e) {
-                    if (e.target.matches('input, select, textarea')) markSettingsChanged();
-                });
-            }
         };
 
         function addPlayer() {
@@ -1457,8 +1564,8 @@
             
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             saveGameState(); // Auto-save after adding player
             showTimedNotification('👥 ' + player.name + ' added to the game!', 2000);
@@ -1505,9 +1612,8 @@
                 
                 if (leaderboardVisible) {
                     updateLeaderboard();
-            updateLeaderboardWindow();
                 }
-                updateLeaderboardWindow();
+                broadcastLeaderboardUpdate();
                 
                 showTimedNotification('👤 ' + player.name + ' removed from the game', 2000);
                 
@@ -2073,8 +2179,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             saveGameState(); // Auto-save after every score entry
         }
@@ -2163,9 +2269,10 @@
 
         function toggleSettings() {
             settingsVisible = !settingsVisible;
+            var modal = document.getElementById('settingsModal');
             var panel = document.getElementById('settingsPanel');
             if (settingsVisible) {
-                panel.style.display = 'block';
+                if (modal) modal.style.display = 'flex';
                 updateSettingsPanel();
                 
                 // On mobile, scroll panel into view so dropdowns don't go off-screen
@@ -2183,7 +2290,7 @@
                     }
                 }
             } else {
-                panel.style.display = 'none';
+                if (modal) modal.style.display = 'none';
                 
                 // Always hide custom distance panel when closing settings
                 var customPanel = document.getElementById('customDistancePanel');
@@ -2204,6 +2311,31 @@
                     generateDistanceLabelInputs();
                 }
             }
+        }
+
+        function showGameDynamicsModal() {
+            var modal = document.getElementById('gameDynamicsModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeGameDynamicsModal() {
+            var modal = document.getElementById('gameDynamicsModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function showStaticTargetModal() {
+            var modal = document.getElementById('staticTargetModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeStaticTargetModal() {
+            var modal = document.getElementById('staticTargetModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function openStaticTarget(path, name) {
+            var staticPath = path + (path.indexOf('?') >= 0 ? '&' : '?') + 'mode=static';
+            window.open(staticPath, 'StaticTarget_' + (name || 'Target'), 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no');
         }
 
         function toggleHideScoreTiles() {
@@ -2237,9 +2369,6 @@
                 hideScoreTilesCheckbox.checked = gameState.hideScoreTiles || false;
             }
             
-            // Update notes display - this will show read-only or edit mode based on whether notes exist
-            updateNotesDisplay();
-            
             // Show/hide warning and disable inputs if game has started
             var warning = document.getElementById('gameStartedWarning');
             if (warning) {
@@ -2247,7 +2376,7 @@
             }
             
             // Disable/enable inputs based on game state
-            var inputs = ['gameNameInput', 'roundsInput', 'throwsInput', 'maxScoreInput', 'tiebreakerSelect', 'finalizationModeSelect', 'numDistancesSelect', 'playModeSelect', 'distancePresetSelect', 'gameNotesInput'];
+            var inputs = ['gameNameInput', 'roundsInput', 'throwsInput', 'maxScoreInput', 'tiebreakerSelect', 'finalizationModeSelect', 'numDistancesSelect', 'playModeSelect', 'distancePresetSelect'];
             inputs.forEach(function(inputId) {
                 var input = document.getElementById(inputId);
                 if (input) {
@@ -2288,9 +2417,6 @@
                 }
             }
             
-            // Update notes display
-            updateNotesDisplay();
-            
             // Always refresh variable label inputs so they show the current preset's labels
             // (e.g. when user had Variable Labels expanded and switched from Silhouette to Texas T)
             generateDistanceLabelInputs();
@@ -2304,7 +2430,6 @@
             var notesInput = document.getElementById('gameNotesInput');
             
             if (!notesDisplay || !notesContent || !notesEditContainer) {
-                console.warn('Notes display elements not found');
                 return;
             }
             
@@ -2469,7 +2594,6 @@
             }
             // Refresh Variable Labels grid so new variable input(s) appear immediately
             generateDistanceLabelInputs();
-            markSettingsChanged();
         }
 
         function updateNumDistances() {
@@ -2515,8 +2639,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-                updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             showTimedNotification('📏 Number of distances updated to ' + newNumDistances + '!', 2000);
         }
 
@@ -2559,8 +2683,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             var modeDisplay = newPlayMode === 'consecutive' ? 'Consecutive Rounds' : 'Sequential Distance';
             showTimedNotification('🎯 Play mode updated to ' + modeDisplay + '!', 2000);
@@ -2665,7 +2789,7 @@
         function loadSilhouettePreset() {
             if (hasGameStarted()) {
                 alert('Cannot load preset after game has started! Reset the game to change settings.');
-                document.getElementById('distancePresetSelect').value = 'custom';
+                document.getElementById('distancePresetSelect').value = '';
                 return;
             }
             
@@ -2772,8 +2896,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-                updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             var applyBtn = document.getElementById('applySettingsBtn');
             if (applyBtn) applyBtn.classList.remove('apply-glow');
             
@@ -2783,7 +2907,7 @@
         function loadTexasTPreset() {
             if (hasGameStarted()) {
                 alert('Cannot load preset after game has started! Reset the game to change settings.');
-                document.getElementById('distancePresetSelect').value = 'custom';
+                document.getElementById('distancePresetSelect').value = '';
                 return;
             }
             
@@ -2895,8 +3019,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-                updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             var applyBtn = document.getElementById('applySettingsBtn');
             if (applyBtn) applyBtn.classList.remove('apply-glow');
             
@@ -2912,7 +3036,7 @@
             }
             
             // Use the Number of Variables input value so when user adds a variable the new
-            // input appears immediately in the Variable Labels section (applied to game on Apply)
+            // input appears immediately in the Variable Labels section (applied immediately on change)
             var inputEl = document.getElementById('numDistancesSelect');
             var fromInput = inputEl ? parseInt(inputEl.value, 10) : NaN;
             var numDistances = (fromInput >= 1 && fromInput <= 20) ? fromInput : (gameState.numDistances || 5);
@@ -3004,20 +3128,22 @@
             }
         }
 
-        function markSettingsChanged() {
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn && !applyBtn.disabled) {
-                applyBtn.classList.add('apply-glow');
+        var autoApplySettingsTimer = null;
+        function autoApplySettings() {
+            if (autoApplySettingsTimer) {
+                clearTimeout(autoApplySettingsTimer);
             }
+            autoApplySettingsTimer = setTimeout(function() {
+                autoApplySettingsTimer = null;
+                applySettings({ silent: true, keepOpen: true });
+            }, 100);
         }
-        
+
         function resetSettingsToDefaultsInPanel() {
             if (hasGameStarted()) {
                 alert('Cannot reset settings after game has started! Reset the game to change settings.');
                 return;
             }
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn) applyBtn.classList.remove('apply-glow');
             var newRounds = 4;
             var newThrows = 3;
             var newMaxScore = 5;
@@ -3092,14 +3218,15 @@
             }
             if (leaderboardVisible) {
                 updateLeaderboard();
-                updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             showTimedNotification('Settings reset to defaults.', 2000);
         }
         
-        function applySettings() {
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn) applyBtn.classList.remove('apply-glow');
+        function applySettings(options) {
+            options = options || {};
+            var silent = !!options.silent;
+            var keepOpen = options.keepOpen !== undefined ? !!options.keepOpen : false;
             if (hasGameStarted()) {
                 alert('Cannot change game settings after scoring has begun! Reset the game to change settings.');
                 return;
@@ -3180,8 +3307,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             // Show/hide custom distance panel based on preset
             var customPanel = document.getElementById('customDistancePanel');
@@ -3200,12 +3327,16 @@
             }
             
             saveGameState(); // Auto-save after settings change
-            showTimedNotification('⚙️ Settings applied successfully!', 2000);
+            if (!silent) {
+                showTimedNotification('⚙️ Settings applied successfully!', 2000);
+            }
             
-            // Close settings panel after applying
-            var settingsPanel = document.getElementById('settingsPanel');
-            if (settingsPanel) settingsPanel.style.display = 'none';
-            settingsVisible = false;
+            if (!keepOpen) {
+                // Close settings panel after applying
+                var settingsModal = document.getElementById('settingsModal');
+                if (settingsModal) settingsModal.style.display = 'none';
+                settingsVisible = false;
+            }
         }
 
         function resetGame() {
@@ -3262,9 +3393,8 @@
                 renderPlayers();
                 if (leaderboardVisible) {
                     updateLeaderboard();
-            updateLeaderboardWindow();
                 }
-                updateLeaderboardWindow();
+                broadcastLeaderboardUpdate();
                 
                 saveGameState(); // Auto-save after reset
                 showTimedNotification('🔄 Game and settings reset to defaults!', 2000);
@@ -3693,8 +3823,8 @@
             
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             saveGameState(); // Auto-save after starting tiebreaker
         }
@@ -3751,8 +3881,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             saveGameState(); // Auto-save after tiebreaker score entry
         }
@@ -3805,8 +3935,8 @@
             
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             saveGameState(); // Auto-save after continuing to next tiebreaker round
         }
@@ -4997,6 +5127,24 @@
                     
                     // Poll localStorage every 1 second for updates
                     setInterval(updateFromLocalStorage, 1000);
+
+                    // Also listen for immediate BroadcastChannel pushes from the main page.
+                    // This gives real-time updates and works after the main page navigates away and back.
+                    try {
+                        var bc = new BroadcastChannel('custom-leaderboard');
+                        bc.onmessage = function(e) {
+                            if (!e.data || e.data.type !== 'update') return;
+                            var d = e.data, el;
+                            el = document.getElementById('leaderboardSubtitle');
+                            if (el) el.textContent = d.subtitle || '';
+                            el = document.getElementById('leaderboardContent');
+                            if (el) {
+                                el.className = d.contentClass || 'leaderboard-content';
+                                el.innerHTML = d.contentHtml || '';
+                            }
+                            if (d.docTitle) document.title = d.docTitle;
+                        };
+                    } catch(e) {}
                 })();
             `;
             leaderboardWindow.document.head.appendChild(updateScript);
@@ -5022,59 +5170,90 @@
             });
         }
 
-        // Try to reconnect to leaderboard window if reference was lost
+        // Try to reconnect to leaderboard window if reference was lost.
+        // NOTE: We intentionally do NOT call window.open() here. Calling
+        // window.open('', 'leaderboard') can navigate an already-open leaderboard
+        // popup to the current page (custom.html), destroying its content.
+        // Post-navigation updates are handled via BroadcastChannel in
+        // refreshLeaderboardIfOpen(). This function only confirms whether
+        // we already hold a live direct reference.
         function tryReconnectLeaderboard() {
-            // If we already have a valid reference, we're good
-            if (leaderboardWindow && !leaderboardWindow.closed) {
-                return true;
-            }
-            
-            // Only try to reconnect if localStorage says a window should exist
-            if (localStorage.getItem('customLeaderboardOpen') !== 'true') {
-                return false;
-            }
-            
-            try {
-                // Try to get reference to existing window using minimal features
-                // If a new window is created, it will be tiny and off-screen
-                var existingWindow = window.open('', 'leaderboard', 'width=1,height=1,left=-2000,top=-2000');
-                
-                if (existingWindow && !existingWindow.closed) {
-                    // Check if it's actually our leaderboard window
-                    var hasContent = existingWindow.document.body && 
-                                   existingWindow.document.body.children.length > 0 &&
-                                   existingWindow.document.getElementById('leaderboardContent');
-                    
-                    if (hasContent) {
-                        console.log('🔗 Reconnected to existing leaderboard window!');
-                        leaderboardWindow = existingWindow;
-                        // Restore window to normal size if it was our existing window
-                        if (existingWindow.outerWidth === 1) {
-                            existingWindow.resizeTo(1200, 800);
-                        }
-                        return true;
-                    } else {
-                        // Not our window or blank - close it immediately and clear flag
-                        existingWindow.close();
-                        localStorage.removeItem('customLeaderboardOpen');
-                    }
-                } else {
-                    // Window doesn't exist - clear flag
-                    localStorage.removeItem('customLeaderboardOpen');
-                }
-            } catch (error) {
-                // Silently fail
-                localStorage.removeItem('customLeaderboardOpen');
-            }
-            return false;
+            return !!(leaderboardWindow && !leaderboardWindow.closed);
         }
 
         // Function to manually refresh leaderboard (called when page loads or state changes)
         function refreshLeaderboardIfOpen() {
-            // Try to reconnect if needed, then update
             if (tryReconnectLeaderboard()) {
+                // Direct DOM update when we hold a live window reference
                 updateLeaderboardWindow();
+            } else {
+                // Direct window reference unavailable (e.g. after page navigation).
+                // BroadcastChannel reaches the popup without needing a window reference.
+                broadcastLeaderboardUpdate();
             }
+        }
+
+        // Build a serializable leaderboard payload for BroadcastChannel.
+        function buildLeaderboardPayload() {
+            var gameName = gameState.gameName || 'Custom Game';
+            var docTitle = '🏆 ' + gameName + ' - Live Leaderboard';
+            var subtitle;
+            if (gameState.inTiebreaker) {
+                subtitle = 'Tiebreaker Round ' + gameState.tiebreakerRound + ' - ' + (gameState.tiedPlayers ? gameState.tiedPlayers.length : 0) + ' players tied';
+            } else {
+                var completedPlayers = gameState.players.filter(function(p) { return p.gameComplete; }).length;
+                subtitle = completedPlayers + '/' + gameState.players.length + ' players completed';
+            }
+            var contentClass = 'leaderboard-content';
+            var contentHtml = '';
+            if (gameState.players.length === 0) {
+                contentHtml = '<div class="no-players">👥 No players added yet<br><span style="font-size: 0.9rem; opacity: 0.7; margin-top: 10px; display: block;">Add players to see live rankings</span></div>';
+            } else {
+                var sortedPlayers = gameState.players.slice().sort(function(a, b) {
+                    var aTotal = a.total + (a.tiebreakerTotal || 0);
+                    var bTotal = b.total + (b.tiebreakerTotal || 0);
+                    return bTotal - aTotal;
+                });
+                var playersToShow = sortedPlayers.slice(0, 20);
+                var playerCount = playersToShow.length;
+                if (playerCount <= 10) {
+                    var sizeClass = playerCount <= 2 ? ' few-players-1-2' :
+                                    playerCount <= 4 ? ' few-players-3-4' :
+                                    playerCount <= 6 ? ' few-players-5-6' :
+                                    playerCount <= 8 ? ' few-players-7-8' : ' few-players-9-10';
+                    contentClass += ' single-column' + sizeClass;
+                } else {
+                    contentClass += ' two-column';
+                }
+                playersToShow.forEach(function(player, index) {
+                    var rank = index + 1;
+                    var rankDisplay = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank;
+                    var rankClass = rank === 1 ? ' rank-1' : rank === 2 ? ' rank-2' : rank === 3 ? ' rank-3' : '';
+                    var percentageValue = typeof player.percentage === 'number' ? player.percentage : parseFloat(player.percentage) || 0;
+                    var totalScore = player.total + (player.tiebreakerTotal || 0);
+                    contentHtml +=
+                        '<div class="leaderboard-item' + rankClass + '">' +
+                            '<div class="rank-number">' + rankDisplay + '</div>' +
+                            '<div class="player-info">' +
+                                '<div class="player-name">' + (player.name || 'Player') + '</div>' +
+                                '<div class="player-stats">' + percentageValue.toFixed(1) + '%</div>' +
+                            '</div>' +
+                            '<div class="player-score">' + totalScore + '</div>' +
+                        '</div>';
+                });
+            }
+            return { type: 'update', docTitle: docTitle, subtitle: subtitle, contentClass: contentClass, contentHtml: contentHtml };
+        }
+
+        // Broadcast current leaderboard state to any open leaderboard window via BroadcastChannel.
+        // This works across page navigations — no window reference needed.
+        function broadcastLeaderboardUpdate() {
+            if (localStorage.getItem('customLeaderboardOpen') !== 'true') return;
+            try {
+                var ch = new BroadcastChannel('custom-leaderboard');
+                ch.postMessage(buildLeaderboardPayload());
+                ch.close();
+            } catch(e) {}
         }
 
         // Function to update the leaderboard window content
@@ -5540,8 +5719,8 @@
             renderPlayers();
             if (leaderboardVisible) {
                 updateLeaderboard();
-            updateLeaderboardWindow();
             }
+            broadcastLeaderboardUpdate();
             
             showTimedNotification('🎯 Loaded custom preset: ' + presetName, 2000);
         }
@@ -5685,9 +5864,8 @@
                 updateGameDisplay();
                 if (leaderboardVisible) {
                     updateLeaderboard();
-            updateLeaderboardWindow();
                 }
-                updateLeaderboardWindow();
+                broadcastLeaderboardUpdate();
                 
                 if (leaderboardWindow && !leaderboardWindow.closed) {
                     leaderboardWindow.close();
@@ -5737,9 +5915,8 @@
                 updateGameDisplay();
                 if (leaderboardVisible) {
                     updateLeaderboard();
-            updateLeaderboardWindow();
                 }
-                updateLeaderboardWindow();
+                broadcastLeaderboardUpdate();
                 
                 if (leaderboardWindow && !leaderboardWindow.closed) {
                     leaderboardWindow.close();
@@ -6726,10 +6903,9 @@
                 updateGameDisplay();
                 
                 if (leaderboardVisible) {
-                    console.log('Updating leaderboard...');
                     updateLeaderboard();
-            updateLeaderboardWindow();
                 }
+                broadcastLeaderboardUpdate();
                 
                 console.log('Import complete!');
                 showTimedNotification('✅ Successfully imported ' + players.length + ' player' + (players.length !== 1 ? 's' : '') + '!', 3000);
