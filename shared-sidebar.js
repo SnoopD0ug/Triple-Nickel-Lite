@@ -14,18 +14,61 @@ const NAVIGATION_CONFIG = {
     ]
 };
 
+// Returns true if the saved walkback game state is just the default auto-initialized state
+// (only the auto-added "Player 1" with no scores and no name change)
+function isWalkbackDefaultState(saved) {
+    if (!saved || !saved.gameState) return true;
+    const gs = saved.gameState;
+    if (!gs.players || gs.players.length === 0) return true;
+    if (gs.players.length === 1 && gs.players[0].name === 'Player 1') {
+        const hasScores = gs.players[0].scores && gs.players[0].scores.some(function(round) {
+            return round && round.some(function(dist) {
+                return dist && dist.some(function(score) { return score !== null; });
+            });
+        });
+        return !hasScores;
+    }
+    return false;
+}
+
+// Handles the Walkback nav click from within walkback.html.
+// Checks game state at click-time so the decision is always current.
+function handleWalkbackNavClick(e) {
+    try {
+        const saved = JSON.parse(localStorage.getItem('walkbackGameState') || 'null');
+        if (isWalkbackDefaultState(saved)) {
+            // No real game in progress — clear state and go to spec page clean
+            localStorage.removeItem('walkbackGameState');
+            window.location.href = 'walkbackspec.html';
+        }
+        // Otherwise do nothing: stay on walkback.html (active game in progress)
+    } catch (err) {
+        window.location.href = 'walkbackspec.html';
+    }
+    e.preventDefault();
+}
+
 // Generate sidebar HTML
 function generateSidebarHTML() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
-    
-    // Detect active Walkback game so the nav link skips the spec page
+
+    // For pages other than walkback.html, detect an active game so the link
+    // skips the spec page and goes straight to the game.
     let walkbackHref = 'walkbackspec.html';
-    try {
-        const saved = JSON.parse(localStorage.getItem('walkbackGameState') || 'null');
-        if (saved && saved.gameState && saved.gameState.players && saved.gameState.players.length > 0) {
-            walkbackHref = 'walkback.html';
-        }
-    } catch (e) {}
+    if (currentPage !== 'walkback.html') {
+        try {
+            const saved = JSON.parse(localStorage.getItem('walkbackGameState') || 'null');
+            if (!isWalkbackDefaultState(saved)) {
+                walkbackHref = 'walkback.html';
+            }
+        } catch (e) {}
+    }
+
+    // On walkback.html the routing decision is deferred to click-time so it
+    // always reflects the current game state (see handleWalkbackNavClick).
+    const walkbackOnClick = (currentPage === 'walkback.html')
+        ? ' onclick="handleWalkbackNavClick(event)"'
+        : '';
 
     let navItemsHTML = '';
     NAVIGATION_CONFIG.items.forEach(item => {
@@ -33,9 +76,10 @@ function generateSidebarHTML() {
         const isActive = activePages.includes(currentPage) ? ' active' : '';
         const targetAttr = item.newWindow ? ' target="_blank" rel="noopener"' : '';
         const href = (item.text === 'Walkback') ? walkbackHref : item.href;
+        const extraAttrs = (item.text === 'Walkback') ? walkbackOnClick : '';
 
         navItemsHTML += `
-            <a href="${href}" class="nav-button${isActive}"${targetAttr}>
+            <a href="${href}" class="nav-button${isActive}"${targetAttr}${extraAttrs}>
                 <div class="nav-icon">${item.icon}</div>
                 <div class="nav-text">${item.text}</div>
             </a>
@@ -132,4 +176,5 @@ if (document.readyState !== 'loading') {
 // Export functions for global use
 window.toggleSidebar = toggleSidebar;
 window.setActiveNavigation = setActiveNavigation;
-window.initializeSidebar = initializeSidebar; 
+window.initializeSidebar = initializeSidebar;
+window.handleWalkbackNavClick = handleWalkbackNavClick; 
