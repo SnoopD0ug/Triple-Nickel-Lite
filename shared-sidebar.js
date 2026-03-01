@@ -7,8 +7,9 @@ const NAVIGATION_CONFIG = {
     subtitle: 'Lite',
     items: [
         { href: 'index.html', icon: '🏠', text: 'Home' },
-        { href: 'walkback.html', icon: '📏', text: 'Walkback' },
+        { href: 'walkbackspec.html', icon: '📏', text: 'Walkback', matchPages: ['walkbackspec.html', 'walkback.html'] },
         { href: 'side-games.html', icon: '🎲', text: 'Side Games' },
+        { href: 'training.html', icon: '🎯', text: 'Training' },
         { href: 'resources.html', icon: '📚', text: 'Resources' }
     ]
 };
@@ -17,12 +18,24 @@ const NAVIGATION_CONFIG = {
 function generateSidebarHTML() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     
+    // Detect active Walkback game so the nav link skips the spec page
+    let walkbackHref = 'walkbackspec.html';
+    try {
+        const saved = JSON.parse(localStorage.getItem('walkbackGameState') || 'null');
+        if (saved && saved.gameState && saved.gameState.players && saved.gameState.players.length > 0) {
+            walkbackHref = 'walkback.html';
+        }
+    } catch (e) {}
+
     let navItemsHTML = '';
     NAVIGATION_CONFIG.items.forEach(item => {
-        const isActive = item.href === currentPage ? ' active' : '';
-        
+        const activePages = item.matchPages || [item.href];
+        const isActive = activePages.includes(currentPage) ? ' active' : '';
+        const targetAttr = item.newWindow ? ' target="_blank" rel="noopener"' : '';
+        const href = (item.text === 'Walkback') ? walkbackHref : item.href;
+
         navItemsHTML += `
-            <a href="${item.href}" class="nav-button${isActive}">
+            <a href="${href}" class="nav-button${isActive}"${targetAttr}>
                 <div class="nav-icon">${item.icon}</div>
                 <div class="nav-text">${item.text}</div>
             </a>
@@ -95,7 +108,10 @@ function setActiveNavigation() {
     navButtons.forEach(button => {
         button.classList.remove('active');
         const href = button.getAttribute('href');
-        if (href === currentPage) {
+        // Find matching config item to check matchPages
+        const configItem = NAVIGATION_CONFIG.items.find(i => i.href === href);
+        const activePages = (configItem && configItem.matchPages) ? configItem.matchPages : [href];
+        if (activePages.includes(currentPage)) {
             button.classList.add('active');
         }
     });
