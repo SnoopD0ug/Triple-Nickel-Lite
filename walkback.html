@@ -43,7 +43,6 @@
             max-width: none !important;
             width: 100% !important;
             margin: 0 !important;
-            margin-left: clamp(250px, 20vw, 300px);
             padding: 0 !important;
             min-height: 100vh;
             min-width: 320px;
@@ -64,7 +63,7 @@
             min-width: 0;
             transition: margin-left 0.3s ease;
         }
-
+        
         .game-interface.expanded {
             margin-left: 0;
         }
@@ -129,11 +128,13 @@
         
         .player-card .score-buttons {
             min-width: 0;
-            overflow: hidden;
+            overflow: visible;
         }
         
         .player-card .score-button {
-            min-width: 0;
+            min-width: 0 !important;
+            min-height: 0 !important;
+            width: 100%;
             overflow: hidden;
             white-space: nowrap;
         }
@@ -201,9 +202,85 @@
             min-width: fit-content !important;
         }
         
-        /* Responsive settings panel grid */
+        /* Settings gear icon button — fixed FAB at bottom-right */
+        .settings-gear-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 16px;
+            z-index: 500;
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; padding: 0;
+            background: linear-gradient(135deg, #475569, #334155);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+            opacity: 0.55;
+        }
+        .settings-gear-btn:hover {
+            background: linear-gradient(135deg, #64748b, #475569);
+            transform: rotate(90deg) scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+            opacity: 1;
+        }
+        .settings-gear-btn svg {
+            width: 22px; height: 22px;
+        }
+
+        /* Keep last player card from hiding under the FAB */
+        .game-interface {
+            padding-bottom: 76px !important;
+        }
+        
+        /* Game Dynamics modal */
+        #gameDynamicsModal .gd-modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid #475569;
+            border-radius: 16px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        #gameDynamicsModal .gd-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        #gameDynamicsModal .gd-subtitle {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        #gameDynamicsModal .gd-btn {
+            padding: 14px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.25s ease;
+            color: #e2e8f0;
+            background: rgba(51, 65, 85, 0.6);
+        }
+        #gameDynamicsModal .gd-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Settings modal panel */
         #settingsPanel {
-            margin-bottom: 20px !important;
+            margin: 0;
         }
         
         #settingsPanel .config-grid {
@@ -218,14 +295,34 @@
             gap: 15px !important;
         }
         
-        /* Apply Changes button glow when settings have been modified */
-        #applySettingsBtn.apply-glow {
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 40px rgba(16, 185, 129, 0.4);
-            animation: apply-glow-pulse 1.5s ease-in-out infinite;
+        /* Settings modal action buttons (match Game Dynamics style) */
+        #settingsModal .settings-action-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
         }
-        @keyframes apply-glow-pulse {
-            0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.8), 0 0 40px rgba(16, 185, 129, 0.4); }
-            50% { box-shadow: 0 0 28px rgba(16, 185, 129, 1), 0 0 50px rgba(16, 185, 129, 0.6); }
+        #settingsModal .settings-action-btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.25s ease;
+            color: #e2e8f0;
+            background: rgba(51, 65, 85, 0.6);
+        }
+        #settingsModal .settings-action-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
         
         /* Responsive game info */
@@ -518,20 +615,64 @@
 
         /* Medium screens and smaller */
         @media (max-width: 1024px) {
-            .container {
-                margin-left: clamp(200px, 25vw, 250px);
+            .sidebar {
+                width: clamp(200px, 25vw, 250px);
+            }
+            
+            .sidebar-toggle {
+                left: clamp(200px, 25vw, 250px);
             }
             
             .game-interface {
-                margin-left: 0;
+                margin-left: clamp(200px, 25vw, 250px);
             }
         }
 
-        /* Small screens - container and game-interface only; sidebar styles from shared-sidebar.css */
+        /* Small screens */
         @media (max-width: 768px) {
             .container {
                 flex-direction: column;
-                margin-left: 0;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 2px solid #475569;
+                flex-direction: row;
+                flex-wrap: nowrap;
+                justify-content: center;
+                align-items: flex-start;
+                gap: 6px;
+                padding: 8px;
+                transform: none !important;
+            }
+            
+            .sidebar.collapsed {
+                transform: none !important;
+            }
+            
+            .sidebar-toggle {
+                display: none;
+            }
+            
+            .sidebar-header {
+                width: auto;
+                flex-shrink: 0;
+                margin-bottom: 0;
+                padding-bottom: 0;
+                border-bottom: none;
+                padding-right: 8px;
+                border-right: 1px solid rgba(71, 85, 105, 0.3);
+            }
+            
+            .nav-button {
+                flex: 1 1 0;
+                min-width: 0;
+                max-width: none;
+                padding: 6px 4px;
+                font-size: 0.65rem;
             }
             
             .game-interface {
@@ -546,21 +687,16 @@
     </style>
 </head>
 <body>
-    <!-- Shared Navigation (same structure as Home/Resources for consistent mobile nav) -->
-    <div id="shared-navigation"></div>
-    
     <div class="container">
+        <div id="shared-navigation"></div>
         <!-- Game Interface -->
         <div id="gameInterface" class="game-interface main-content">
+            <!-- Settings gear — fixed to top-right corner -->
+            <button class="settings-gear-btn" onclick="toggleSettings()" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
             <div class="game-header">
                 <div class="action-buttons">
-                    <button class="action-button leaderboard-btn" onclick="openLeaderboardWindow()">🏆 Leaderboard</button>
-                    <button class="action-button stats-btn" onclick="showStats()">📊 Stats</button>
-                    <button class="action-button settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
-                    <button class="action-button settings-btn" onclick="exportData()">💾 Export</button>
                     <button class="action-button" id="finalizeBtn" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); display: none;" onclick="gameState.waitingForUserFinalizationChoice = false; finalizeGame();">🏁 Finalize Game</button>
                     <button class="action-button" id="resetGameBtn" style="background: linear-gradient(45deg, #ef4444, #dc2626); display: none;" onclick="showResetGameWarning()">🔄 Reset Game</button>
-                    <button class="action-button" id="trackProgressBtn" style="background: linear-gradient(45deg, #8b5cf6, #a855f7);" onclick="showTrackProgressModal()">📈 Track Progress</button>
                 </div>
             </div>
 
@@ -571,14 +707,17 @@
                 <div id="finalizedBanner" style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #1e293b; padding: 15px; border-radius: 10px; margin-top: 15px; text-align: center; font-weight: bold; font-size: 1.1rem; display: none;">🔒 GAME FINALIZED - RESULTS LOCKED 🔒</div>
             </div>
 
-            <!-- Settings Panel -->
-            <div id="settingsPanel" style="background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; border-radius: 15px; padding: 25px; margin-bottom: 30px; display: none;">
+            <!-- Settings Modal -->
+            <div id="settingsModal" onclick="if(event.target===this)toggleSettings()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+                <div id="settingsPanel" onclick="event.stopPropagation()" style="background: rgba(30, 41, 59, 0.98); border: 1px solid #475569; border-radius: 15px; padding: 25px; max-width: 800px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
                 <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span>⚙️</span>
                         <span>Walkback Settings</span>
                     </div>
-                    <button onclick="resetSettingsToDefaultsInPanel()" style="background: #64748b; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease;">Reset</button>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <button onclick="toggleSettings()" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;" title="Close">✕</button>
+                    </div>
                 </div>
                 
                 <!-- Game Started Warning -->
@@ -587,131 +726,16 @@
                     <div style="color: #fca5a5; font-size: 0.9rem;">Most settings are locked once scoring begins. Use "Reset Game" to change game configuration.</div>
                 </div>
                 
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 20px;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 20px;">
                     <div style="display: flex; flex-direction: column;">
                         <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Game Name</label>
                         <input type="text" id="gameNameInput" placeholder="Enter custom game name..." maxlength="50" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                     </div>
                     <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Number of Rounds</label>
-                        <select id="roundsSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                            <option value="1">1 Round</option>
-                            <option value="2">2 Rounds</option>
-                            <option value="3">3 Rounds</option>
-                            <option value="4" selected>4 Rounds</option>
-                            <option value="5">5 Rounds</option>
-                            <option value="6">6 Rounds</option>
-                            <option value="7">7 Rounds</option>
-                            <option value="8">8 Rounds</option>
-                            <option value="9">9 Rounds</option>
-                            <option value="10">10 Rounds</option>
-                            <option value="11">11 Rounds</option>
-                            <option value="12">12 Rounds</option>
-                            <option value="13">13 Rounds</option>
-                            <option value="14">14 Rounds</option>
-                            <option value="15">15 Rounds</option>
-                            <option value="16">16 Rounds</option>
-                            <option value="17">17 Rounds</option>
-                            <option value="18">18 Rounds</option>
-                            <option value="19">19 Rounds</option>
-                            <option value="20">20 Rounds</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Throws per Round</label>
-                        <select id="throwsPerRoundSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                            <option value="1">1 Throw</option>
-                            <option value="2">2 Throws</option>
-                            <option value="3" selected>3 Throws</option>
-                            <option value="4">4 Throws</option>
-                            <option value="5">5 Throws</option>
-                            <option value="6">6 Throws</option>
-                            <option value="7">7 Throws</option>
-                            <option value="8">8 Throws</option>
-                            <option value="9">9 Throws</option>
-                            <option value="10">10 Throws</option>
-                            <option value="11">11 Throws</option>
-                            <option value="12">12 Throws</option>
-                            <option value="13">13 Throws</option>
-                            <option value="14">14 Throws</option>
-                            <option value="15">15 Throws</option>
-                            <option value="16">16 Throws</option>
-                            <option value="17">17 Throws</option>
-                            <option value="18">18 Throws</option>
-                            <option value="19">19 Throws</option>
-                            <option value="20">20 Throws</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Number of Distances</label>
-                        <select id="numDistancesSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                            <option value="1">1 Distance</option>
-                            <option value="2">2 Distances</option>
-                            <option value="3">3 Distances</option>
-                            <option value="4">4 Distances</option>
-                            <option value="5" selected>5 Distances</option>
-                            <option value="6">6 Distances</option>
-                            <option value="7">7 Distances</option>
-                            <option value="8">8 Distances</option>
-                            <option value="9">9 Distances</option>
-                            <option value="10">10 Distances</option>
-                            <option value="11">11 Distances</option>
-                            <option value="12">12 Distances</option>
-                            <option value="13">13 Distances</option>
-                            <option value="14">14 Distances</option>
-                            <option value="15">15 Distances</option>
-                            <option value="16">16 Distances</option>
-                            <option value="17">17 Distances</option>
-                            <option value="18">18 Distances</option>
-                            <option value="19">19 Distances</option>
-                            <option value="20">20 Distances</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Max Points per Throw</label>
-                        <select id="maxScoreSelect" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                            <option value="1">1 Point</option>
-                            <option value="2">2 Points</option>
-                            <option value="3">3 Points</option>
-                            <option value="4">4 Points</option>
-                            <option value="5" selected>5 Points</option>
-                            <option value="6">6 Points</option>
-                            <option value="7">7 Points</option>
-                            <option value="8">8 Points</option>
-                            <option value="9">9 Points</option>
-                            <option value="10">10 Points</option>
-                            <option value="11">11 Points</option>
-                            <option value="12">12 Points</option>
-                            <option value="13">13 Points</option>
-                            <option value="14">14 Points</option>
-                            <option value="15">15 Points</option>
-                            <option value="16">16 Points</option>
-                            <option value="17">17 Points</option>
-                            <option value="18">18 Points</option>
-                            <option value="19">19 Points</option>
-                            <option value="20">20 Points</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0; display: flex; align-items: center; gap: 8px;">
-                            <span>Play Mode</span>
-                            <span style="display: flex; align-items: center; gap: 4px;">
-                                <input type="checkbox" id="distancesOnTopCheckbox" onchange="updateDistancesOnTop()" style="width: 14px; height: 14px; cursor: pointer;">
-                                <span>🔄</span>
-                            </span>
-                        </label>
-                        <select id="playModeSelect" onchange="onPlayModeSelectChange()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                            <option value="sequential">Sequential Distance (2m→3m→4m→5m→6m, repeat)</option>
-                            <option value="consecutive" selected>Consecutive Rounds (all rounds at 2m, then all at 3m, etc.)</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Distance Preset</label>
+                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Comp Format</label>
                         <select id="distancePresetSelect" onchange="onDistancePresetSelectChange()" style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
                             <option value="amateur">Amateur (2m, 3m, 4m, 5m, 6m...)</option>
                             <option value="professional">Professional (3m, 4m, 5m, 6m, 7m...)</option>
-                            <option value="custom">Custom (Set your own)</option>
-                            <option value="" disabled>────────── Custom Presets ──────────</option>
                         </select>
                     </div>
                     <div style="display: flex; flex-direction: column;">
@@ -724,14 +748,6 @@
                             <option value="no-tiebreaker">No Tiebreaker (Allow ties)</option>
                         </select>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label style="font-size: 0.9rem; font-weight: 500; margin-bottom: 8px; color: #e2e8f0;">Save Current Settings</label>
-                        <div style="display: flex; flex-direction: row; gap: 8px; align-items: center; flex-wrap: nowrap;">
-                            <button id="savePresetBtn" onclick="saveGamePreset()" style="background: #059669; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; min-width: 120px;">💾 Save as Preset</button>
-                            <button onclick="removeSelectedPreset()" style="background: #ef4444; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease; min-width: 120px;">🗑️ Remove Preset</button>
-                        </div>
-                    </div>
-
                 </div>
                 
                 <!-- Custom Distance Configuration -->
@@ -745,10 +761,10 @@
                     </div>
                 </div>
                 
-                <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; align-items: center;">
-                    <button id="applySettingsBtn" onclick="applySettings()" style="background: #10b981; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Apply Changes</button>
-                    <button onclick="clearScores()" style="background: #f59e0b; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Clear Scores</button>
-                    <button onclick="clearPlayers()" style="background: #ef4444; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Clear Players</button>
+                <div class="settings-action-row">
+                    <button class="settings-action-btn" onclick="clearScores()">🧹 Clear Scores</button>
+                    <button class="settings-action-btn" onclick="resetToSpec()">🔄 Reset</button>
+                    <button class="settings-action-btn" onclick="showGameDynamicsModal()">🎮 Game Dynamics</button>
                 </div>
                 
                 <!-- Tournament Status Management -->
@@ -766,18 +782,55 @@
                         <button onclick="revertTournamentEventStatus()" style="background: #f59e0b; border: none; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500; transition: all 0.3s ease;">🔄 Revert to In-Progress</button>
                     </div>
                 </div>
+                </div>
             </div>
 
-            <!-- Track Progress Modal -->
+            <!-- Game Dynamics Modal -->
+            <div id="gameDynamicsModal" onclick="if(event.target===this)closeGameDynamicsModal()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10001; display: none; justify-content: center; align-items: center; padding: 24px; box-sizing: border-box;">
+                <div class="gd-modal-content" onclick="event.stopPropagation()">
+                    <div class="gd-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="font-size: 1.35rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 10px;">🎮 Game Dynamics</div>
+                            <div class="gd-subtitle">Leaderboard, targets & reports</div>
+                        </div>
+                        <button onclick="closeGameDynamicsModal()" style="background: rgba(100, 116, 139, 0.2); border: 1px solid rgba(148, 163, 184, 0.3); color: #94a3b8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;">✕</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); openLeaderboardWindow();">🏆 Leaderboard</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); showTrackProgressModal();">📈 Lane Tracker</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); showDynamicTargetModal();">🎯 Dynamic Target</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); showStats();">📊 Current Stats</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); exportData();">💾 Save Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dynamic Target Modal -->
+            <div id="dynamicTargetModal" onclick="if(event.target===this)closeDynamicTargetModal()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10002; display: none; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;">
+                <div onclick="event.stopPropagation()" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 2px solid #22c55e; border-radius: 20px; padding: 30px; max-width: 450px; width: 100%; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; color: #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+                        <span style="display: flex; align-items: center; gap: 10px;"><span>🎯</span> Dynamic Target</span>
+                        <button onclick="closeDynamicTargetModal()" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;">✕</button>
+                    </div>
+                    <p style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 20px;">Full-screen target faces for projectors. Click zones or use 0–5 keys to score. Use F for fullscreen.</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button onclick="openDynamicTarget('projector-targets/blade_aces_target.html', 'Blade Aces'); closeDynamicTargetModal();" style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px;">🎯 Blade Aces</button>
+                        <button onclick="openDynamicTarget('projector-targets/ikthof_target.html', 'IKTHOF'); closeDynamicTargetModal();" style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px;">🎯 IKTHOF</button>
+                        <button onclick="openDynamicTarget('projector-targets/akta.html', 'AKTA'); closeDynamicTargetModal();" style="background: rgba(34, 197, 94, 0.2); border: 2px solid #22c55e; color: #22c55e; padding: 14px 20px; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; text-align: left; display: flex; align-items: center; gap: 12px;">🎯 AKTA</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lane Tracker Modal -->
             <div id="trackProgressModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10000; display: none; justify-content: center; align-items: center;">
                 <div style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%); border: 2px solid #8b5cf6; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; text-align: center; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
                     <div style="font-size: 1.5rem; font-weight: bold; margin-bottom: 20px; color: #e2e8f0; display: flex; align-items: center; justify-content: center; gap: 10px;">
                         <span>📈</span>
-                        <span>Track Progress Setup</span>
+                        <span>Lane Tracker Setup</span>
                     </div>
                     
                     <div style="color: #cbd5e1; font-size: 1rem; margin-bottom: 25px; line-height: 1.5;">
-                        <p><strong>Track Progress</strong> provides real-time tournament management with group organization and status tracking.</p>
+                        <p><strong>Lane Tracker</strong> provides real-time tournament management with group organization and status tracking.</p>
                         <p style="margin-top: 15px; color: #94a3b8;"><strong>Features:</strong> Groups players by lane size • Shows THROWING/ON DECK/WAITING status • Real-time progress statistics</p>
                         <p style="margin-top: 10px; color: #94a3b8; font-size: 0.9rem;">Example: 8 lanes = groups of 8 players each</p>
                     </div>
@@ -790,7 +843,7 @@
                     </div>
                     
                     <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
-                        <button onclick="confirmTrackProgressSetup()" style="background: linear-gradient(45deg, #8b5cf6, #a855f7); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;">✅ Enable Track Progress</button>
+                        <button onclick="confirmTrackProgressSetup()" style="background: linear-gradient(45deg, #8b5cf6, #a855f7); border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease;">✅ Enable Lane Tracker</button>
                         <button onclick="closeTrackProgressModal()" style="background: #64748b; border: none; color: white; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: all 0.3s ease;">❌ Cancel</button>
                     </div>
                 </div>
@@ -886,7 +939,6 @@
             gameName: '',
             tiebreakerMode: 'sudden-death-podium-match',
             podiumTiebreakers: null,
-            playersImported: false, // Track if players were imported from management
             eventSetToInProgress: false, // Track if event status has been set to in-progress
             trackProgress: true, // Track progress feature always enabled
             numLanes: 4, // Number of lanes for progress tracking
@@ -908,6 +960,54 @@
         var settingsVisible = false;
         var gameFinalizedOnce = false;
         var trackProgressWindow = null; // Reference to the track progress window
+
+        // Dynamic target registry (Blade Aces, IKTHOF) - for compatibility warnings
+        var dynamicTargetRegistry = {};
+        var dynamicTargetWarningState = null;
+        try {
+            var registryChannel = new BroadcastChannel('triplenickel-target-registry');
+            registryChannel.onmessage = function(e) {
+                var d = e.data;
+                if (!d || !d.type) return;
+                if (d.action === 'register' && typeof d.targetCount === 'number') {
+                    dynamicTargetRegistry[d.type] = { targetCount: d.targetCount };
+                } else if (d.action === 'unregister') {
+                    delete dynamicTargetRegistry[d.type];
+                }
+                broadcastDynamicTargetCompatibilityState(gameState.throwsPerRound, gameState.maxScore);
+            };
+        } catch (err) {}
+
+        function checkDynamicTargetCompatibility(throwsPerRound, maxScore) {
+            var warnings = [];
+            for (var type in dynamicTargetRegistry) {
+                var entry = dynamicTargetRegistry[type];
+                var targetCount = entry && entry.targetCount;
+                if (targetCount > 1 && targetCount !== throwsPerRound) {
+                    warnings.push('You have a ' + type + ' dynamic target open with ' + targetCount + ' target face(s), but ' + throwsPerRound + ' throws per round. Target faces and throws per round must match for dynamic sync to work.');
+                }
+                if ((type === 'Blade Aces' || type === 'IKTHOF') && maxScore !== 5) {
+                    warnings.push(type + ' target face is designed for 0-5 points. With max score ' + maxScore + ', dynamic target features may not work correctly for that face.');
+                }
+            }
+            return warnings;
+        }
+
+        function broadcastDynamicTargetCompatibilityState(throwsPerRound, maxScore) {
+            var compatibilityWarnings = checkDynamicTargetCompatibility(throwsPerRound, maxScore);
+            var nextState = compatibilityWarnings.length > 0 ? ('show:' + compatibilityWarnings.join('|')) : 'hide';
+            if (nextState === dynamicTargetWarningState) return;
+            dynamicTargetWarningState = nextState;
+            try {
+                var warnCh = new BroadcastChannel('triplenickel-target-warning');
+                if (compatibilityWarnings.length > 0) {
+                    warnCh.postMessage({ action: 'showWarning', message: 'Dynamic target sync disabled: ' + compatibilityWarnings.join(' • ') });
+                } else {
+                    warnCh.postMessage({ action: 'hideWarning' });
+                }
+                warnCh.close();
+            } catch (e) {}
+        }
 
         // Helper functions for event type display
         function getEventIcon(eventType) {
@@ -1406,6 +1506,30 @@
                             <!-- Leaderboard items will be populated here -->
                         </div>
                     </div>
+                    <script>
+                    (function() {
+                        var ch = new BroadcastChannel('walkback-leaderboard');
+                        ch.onmessage = function(e) {
+                            if (!e.data || e.data.type !== 'update') return;
+                            var d = e.data, el;
+                            el = document.getElementById('leaderboardGameName');
+                            if (el) el.textContent = d.gameName || '';
+                            el = document.getElementById('leaderboardSubtitle');
+                            if (el) el.textContent = d.subtitle || '';
+                            el = document.getElementById('leaderboardStatus');
+                            if (el) {
+                                el.innerHTML = d.statusHtml || '';
+                                el.className = 'leaderboard-status' + (d.statusHtml ? ' show' : '');
+                            }
+                            el = document.getElementById('leaderboardContent');
+                            if (el) {
+                                el.className = d.contentClass || 'leaderboard-content';
+                                el.innerHTML = d.contentHtml || '';
+                            }
+                            if (d.docTitle) document.title = d.docTitle;
+                        };
+                    })();
+                    <\/script>
                 </body>
 
                 </html>
@@ -1438,7 +1562,7 @@
         // TRACK PROGRESS FUNCTIONS
         function showTrackProgressModal() {
             if (gameState.players.length === 0) {
-                alert('Please add players before enabling Track Progress.');
+                alert('Please add players before enabling Lane Tracker.');
                 return;
             }
             
@@ -1463,7 +1587,6 @@
             gameState.trackProgress = true;
             
             closeTrackProgressModal();
-            saveGameState();
             
             // Track progress enabled silently
             
@@ -1473,7 +1596,7 @@
         
         function toggleTrackProgress() {
             // This function is no longer needed since we removed the checkbox
-            // Track Progress is now always available via the button
+            // Lane Tracker is now always available via the button
         }
         
         function openTrackProgressWindow() {
@@ -1482,12 +1605,12 @@
             trackProgressWindow = window.open('', 'trackProgress', windowFeatures);
             
             if (!trackProgressWindow) {
-                alert('Pop-up blocked! Please allow pop-ups for this site to use the Track Progress window.');
+                alert('Pop-up blocked! Please allow pop-ups for this site to use the Lane Tracker window.');
                 return;
             }
 
             // Dark theme HTML content to match Leaderboard
-            var htmlContent = '<!DOCTYPE html><html><head><title>📈 Track Progress</title>';
+            var htmlContent = '<!DOCTYPE html><html><head><title>📈 Lane Tracker</title>';
             htmlContent += '<style>';
             htmlContent += 'body{margin:0;padding:20px;background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#334155 100%);';
             htmlContent += 'min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;color:#e2e8f0}';
@@ -1578,7 +1701,7 @@
 
         function updateTrackProgressWindow() {
             if (!trackProgressWindow || trackProgressWindow.closed) {
-                console.log('Track Progress window not available');
+                console.log('Lane Tracker window not available');
                 return;
             }
 
@@ -1820,7 +1943,7 @@
                 content.appendChild(laneDiv);
             });
             
-            console.log('Track Progress window updated with ' + laneGroups.length + ' groups');
+            console.log('Lane Tracker window updated with ' + laneGroups.length + ' groups');
         }
         
 
@@ -1861,6 +1984,16 @@
 
         // Function to update the leaderboard window content
         function updateLeaderboardWindow() {
+            // COMPLETELY BLOCK UPDATES DURING TIEBREAKERS
+            if (gameState.inTiebreaker) {
+                console.log('🔒 LEADERBOARD UPDATE BLOCKED - Tiebreaker in progress');
+                return;
+            }
+
+            // Always broadcast via BroadcastChannel so the leaderboard window can
+            // update itself even when the main page has lost its direct window reference.
+            broadcastLeaderboardUpdate();
+
             if (!leaderboardWindow || leaderboardWindow.closed) {
                 return;
             }
@@ -1869,13 +2002,6 @@
             var subtitle = leaderboardWindow.document.getElementById('leaderboardSubtitle');
             
             if (!content || !subtitle) return;
-            
-            // COMPLETELY BLOCK UPDATES DURING TIEBREAKERS
-            if (gameState.inTiebreaker) {
-                console.log('🔒 LEADERBOARD UPDATE BLOCKED - Tiebreaker in progress');
-                console.log('🔒 Stack trace:', new Error().stack);
-                return;
-            }
             
             // Update window title and header
             leaderboardWindow.document.title = '🏆 ' + (gameState.gameName || 'Walkback Championship') + ' - Live Leaderboard';
@@ -2025,6 +2151,123 @@
             });
         }
 
+        // Build a serialisable leaderboard payload (HTML strings) from current gameState.
+        // Used by BroadcastChannel so the leaderboard window can render itself without
+        // needing the main page to hold a direct window reference.
+        function buildLeaderboardPayload() {
+            var gameName = gameState.gameName || 'Walkback Championship';
+            var docTitle = '🏆 ' + gameName + ' - Live Leaderboard';
+
+            var statusHtml = '';
+            if (gameState.gameFinalized) {
+                statusHtml = '🔒 FINALIZED RESULTS - SCORES LOCKED';
+            } else if (gameState.inTiebreaker) {
+                statusHtml = '🔥 TIEBREAKER ROUND ' + gameState.tiebreakerRound + ' - ' + gameState.tiebreakerPlayers.length + ' players tied';
+            } else if (isEntireGameComplete()) {
+                statusHtml = '🏆 WALKBACK COMPLETE - FINAL RESULTS';
+            }
+
+            var subtitle;
+            if (gameState.inTiebreaker) {
+                var tiedCount = gameState.tiedPlayers ? gameState.tiedPlayers.length : 0;
+                subtitle = 'Tiebreaker Round ' + gameState.tiebreakerRound + ' - ' + tiedCount + ' players tied';
+            } else {
+                var completedPlayers = gameState.players.filter(function(p) { return p.gameComplete; }).length;
+                subtitle = completedPlayers + '/' + gameState.players.length + ' players completed';
+            }
+
+            var contentClass = 'leaderboard-content';
+            var contentHtml = '';
+
+            if (gameState.players.length === 0) {
+                contentHtml = '<div class="no-players">👥 No players added yet<br><span style="font-size: 0.9rem; opacity: 0.7; margin-top: 10px; display: block;">Add players to see live rankings</span></div>';
+            } else {
+                var sortedPlayers = gameState.players.slice().sort(function(a, b) {
+                    return gameState.isGolf ? a.total - b.total : b.total - a.total;
+                });
+                var playersToShow = sortedPlayers.slice(0, 20);
+                var playerCount = playersToShow.length;
+
+                if (playerCount <= 10) {
+                    var sizeClass = playerCount <= 2 ? ' few-players-1-2' :
+                                    playerCount <= 4 ? ' few-players-3-4' :
+                                    playerCount <= 6 ? ' few-players-5-6' :
+                                    playerCount <= 8 ? ' few-players-7-8' : ' few-players-9-10';
+                    contentClass += ' single-column' + sizeClass;
+                } else {
+                    contentClass += ' two-column';
+                }
+
+                playersToShow.forEach(function(player, index) {
+                    var rank = index + 1;
+                    var trophy = rank === 1 ? '🏆' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🎯';
+                    var rankClass = rank === 1 ? 'rank-1' : rank === 2 ? 'rank-2' : rank === 3 ? 'rank-3' : 'rank-other';
+                    var rankColor = rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#64748b';
+                    var maxScoreLabel = gameState.maxScore === 5 ? 'Bullseyes' : 'Max Scores';
+
+                    var playerTeam = getPlayerTeam(player.name);
+                    var teamInfoHtml = '';
+                    if (playerTeam) {
+                        var tc = playerTeam.color || '#3b82f6';
+                        var isCaptain = playerTeam.captainId && playerTeam.members.find(function(m) { return m.id === player.id && m.id === playerTeam.captainId; });
+                        teamInfoHtml = '<div style="background: ' + tc + '1A; border: 1px solid ' + tc + '; padding: 4px 8px; border-radius: 4px; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem;">' +
+                            '<span style="color: ' + tc + ';">🏆</span>' +
+                            '<span style="color: ' + tc + '; font-weight: 500;">' + playerTeam.name + '</span>' +
+                            (isCaptain ? '<span style="color: #f59e0b;">👑</span>' : '') +
+                            '</div>';
+                    }
+
+                    var itemStyleParts = [];
+                    if (rank === 1 && (isEntireGameComplete() || gameState.gameFinalized)) {
+                        itemStyleParts.push('background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.1))');
+                        itemStyleParts.push('border: 2px solid #fbbf24');
+                        itemStyleParts.push('box-shadow: 0 4px 15px rgba(251, 191, 36, 0.3)');
+                    }
+                    if (gameState.inTiebreaker && player.hiddenForTiebreaker) {
+                        itemStyleParts.push('opacity: 0.5');
+                        itemStyleParts.push('filter: grayscale(70%)');
+                    }
+                    var styleAttr = itemStyleParts.length ? ' style="' + itemStyleParts.join('; ') + '"' : '';
+
+                    contentHtml += '<div class="leaderboard-item ' + rankClass + '"' + styleAttr + '>' +
+                        '<div class="leaderboard-trophy">' + trophy + '</div>' +
+                        '<div class="leaderboard-rank" style="color: ' + rankColor + ';">#' + rank + '</div>' +
+                        '<div class="leaderboard-info">' +
+                            '<div class="leaderboard-name">' + player.name + (rank === 1 && (isEntireGameComplete() || gameState.gameFinalized) ? ' 🎉' : '') + '</div>' +
+                            teamInfoHtml +
+                            '<div class="leaderboard-stats">' +
+                                '<div class="leaderboard-stat">Avg: <span class="leaderboard-stat-value">' + player.average + '</span></div>' +
+                                '<span>•</span>' +
+                                '<div class="leaderboard-stat">Efficiency: <span class="leaderboard-stat-value">' + (player.percentage || 0) + '%</span></div>' +
+                                '<span>•</span>' +
+                                '<div class="leaderboard-stat" style="color: #fbbf24; font-weight: bold;">🎯 ' + maxScoreLabel + ': ' + player.bullseyes + '</div>' +
+                                (player.tripleNickels > 0 ? '<span>•</span><div class="leaderboard-stat" style="color: #ef4444; font-weight: bold;">🔥 Triple Nickels: ' + player.tripleNickels + '</div>' : '') +
+                                (player.noDrops > 0 ? '<span>•</span><div class="leaderboard-stat" style="color: #22c55e; font-weight: bold;">💎 No Drops: ' + player.noDrops + '</div>' : '') +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="leaderboard-score">' +
+                            '<div>' + player.total + '</div>' +
+                            '<div class="leaderboard-score-label">POINTS</div>' +
+                        '</div>' +
+                    '</div>';
+                });
+            }
+
+            return { type: 'update', gameName: gameName, docTitle: docTitle, subtitle: subtitle, statusHtml: statusHtml, contentClass: contentClass, contentHtml: contentHtml };
+        }
+
+        // Broadcast current leaderboard state to any open leaderboard window via BroadcastChannel.
+        // This works across page navigations — no window reference needed.
+        function broadcastLeaderboardUpdate() {
+            if (localStorage.getItem('walkbackLeaderboardOpen') !== 'true') return;
+            if (gameState.inTiebreaker) return;
+            try {
+                var ch = new BroadcastChannel('walkback-leaderboard');
+                ch.postMessage(buildLeaderboardPayload());
+                ch.close();
+            } catch(e) {}
+        }
+
         // Keep the old function for backward compatibility but redirect to new function
         function toggleLeaderboard() {
             openLeaderboardWindow();
@@ -2119,51 +2362,15 @@
             }
         }
 
-        // Try to reconnect to leaderboard window if reference was lost
+        // Try to reconnect to leaderboard window if reference was lost.
+        // NOTE: We intentionally do NOT call window.open() here. Calling
+        // window.open('', 'leaderboard') can navigate an already-open leaderboard
+        // popup to the current page (walkback.html), destroying its content.
+        // Post-navigation updates are handled exclusively via BroadcastChannel
+        // in refreshLeaderboardIfOpen(). This function only confirms whether
+        // we already hold a live direct reference.
         function tryReconnectLeaderboard() {
-            // If we already have a valid reference, we're good
-            if (leaderboardWindow && !leaderboardWindow.closed) {
-                return true;
-            }
-            
-            // Only try to reconnect if localStorage says a window should exist
-            if (localStorage.getItem('walkbackLeaderboardOpen') !== 'true') {
-                return false;
-            }
-            
-            try {
-                // Try to get reference to existing window using minimal features
-                // If a new window is created, it will be tiny and off-screen
-                var existingWindow = window.open('', 'leaderboard', 'width=1,height=1,left=-2000,top=-2000');
-                
-                if (existingWindow && !existingWindow.closed) {
-                    // Check if it's actually our leaderboard window
-                    var hasContent = existingWindow.document.body && 
-                                   existingWindow.document.body.children.length > 0 &&
-                                   existingWindow.document.getElementById('leaderboardContent');
-                    
-                    if (hasContent) {
-                        console.log('🔗 Reconnected to existing leaderboard window!');
-                        leaderboardWindow = existingWindow;
-                        // Restore window to normal size if it was our existing window
-                        if (existingWindow.outerWidth === 1) {
-                            existingWindow.resizeTo(1200, 800);
-                        }
-                        return true;
-                    } else {
-                        // Not our window or blank - close it immediately and clear flag
-                        existingWindow.close();
-                        localStorage.removeItem('walkbackLeaderboardOpen');
-                    }
-                } else {
-                    // Window doesn't exist - clear flag
-                    localStorage.removeItem('walkbackLeaderboardOpen');
-                }
-            } catch (error) {
-                // Silently fail
-                localStorage.removeItem('walkbackLeaderboardOpen');
-            }
-            return false;
+            return !!(leaderboardWindow && !leaderboardWindow.closed);
         }
         
         // Try to reconnect to track progress window if reference was lost
@@ -2179,12 +2386,9 @@
             }
             
             try {
-                // Try to get reference to existing window using minimal features
-                // If a new window is created, it will be tiny and off-screen
-                var existingWindow = window.open('', 'trackProgress', 'width=1,height=1,left=-2000,top=-2000');
+                var existingWindow = window.open('', 'trackProgress');
                 
                 if (existingWindow && !existingWindow.closed) {
-                    // Check if it's actually our track progress window
                     var hasContent = existingWindow.document.body && 
                                    existingWindow.document.body.children.length > 0 &&
                                    existingWindow.document.getElementById('content');
@@ -2192,32 +2396,30 @@
                     if (hasContent) {
                         console.log('🔗 Reconnected to existing track progress window!');
                         trackProgressWindow = existingWindow;
-                        // Restore window to normal size if it was our existing window
-                        if (existingWindow.outerWidth === 1) {
-                            existingWindow.resizeTo(1200, 800);
-                        }
                         return true;
                     } else {
-                        // Not our window or blank - close it immediately and clear flag
+                        // A new blank window was returned — the real track progress window was already closed
                         existingWindow.close();
                         localStorage.removeItem('walkbackTrackProgressOpen');
                     }
-                } else {
-                    // Window doesn't exist - clear flag
-                    localStorage.removeItem('walkbackTrackProgressOpen');
                 }
+                // If null: popup blocked — don't clear the flag; the window may still be open
             } catch (error) {
-                // Silently fail
-                localStorage.removeItem('walkbackTrackProgressOpen');
+                // Don't clear the flag on error
             }
             return false;
         }
 
         // Function to manually refresh leaderboard (called when tiebreakers start/end)
         function refreshLeaderboardIfOpen() {
-            // Try to reconnect if needed, then update
-            if (tryReconnectLeaderboard() && !gameState.inTiebreaker) {
+            if (gameState.inTiebreaker) return;
+            if (tryReconnectLeaderboard()) {
+                // Direct DOM update (also calls broadcastLeaderboardUpdate internally)
                 updateLeaderboardWindow();
+            } else {
+                // Direct window reference unavailable (e.g. after page navigation).
+                // BroadcastChannel reaches the popup without needing a window reference.
+                broadcastLeaderboardUpdate();
             }
         }
         
@@ -2324,94 +2526,97 @@
 
 
         // Initialize the game
-        function initializeGame() {
-            // Load saved game state if available
-            loadGameState();
-            
-            // Load custom presets
-            loadCustomPresets();
-            
-            // Note: We don't reconnect windows on page load to avoid creating blank windows
-            // Reconnection happens automatically when scores are entered (via refreshLeaderboardIfOpen)
-            
-            // Ensure distances array matches numDistances
-            if (gameState.distances.length !== gameState.numDistances) {
-                gameState.distances = getDefaultDistances(gameState.distancePreset, gameState.numDistances);
-            }
-            
-            // Generate target rings based on max score
-            gameState.targetRings = generateTargetRings();
-            
-            // Only add first player if no saved data was loaded
-            if (gameState.players.length === 0) {
-                addPlayer(); // Add first player
-            }
-            
-            updateGameDisplay();
-            updateAddPlayerButton(); // Set initial button state
-        }
-
-        // Auto-save functionality
         function saveGameState() {
             try {
-                const saveData = {
+                var saveData = {
                     gameState: gameState,
                     playerId: playerId,
-                    timestamp: new Date().toISOString()
+                    savedAt: Date.now()
                 };
                 localStorage.setItem('walkbackGameState', JSON.stringify(saveData));
-            } catch (error) {
-                console.error('Error saving game state:', error);
-            }
+            } catch (e) { /* localStorage full or unavailable */ }
         }
 
         function loadGameState() {
             try {
-                const savedData = localStorage.getItem('walkbackGameState');
-                if (savedData) {
-                    const parsed = JSON.parse(savedData);
-                    if (parsed.gameState) {
-                        // Restore game state
-                        gameState = parsed.gameState;
-                        playerId = parsed.playerId || 1;
-                        
-                        // Ensure all required properties exist
-                        if (!gameState.targetRings) {
-                            gameState.targetRings = generateTargetRings();
-                        }
-                        if (!gameState.distances) {
-                            gameState.distances = getDefaultDistances(gameState.distancePreset, gameState.numDistances);
-                        }
-                        // Set default playMode to consecutive if not set (for new defaults)
-                        if (!gameState.playMode) {
-                            gameState.playMode = 'consecutive';
-                        }
-                        // Set default distancesOnTop based on playMode if not set
-                        if (gameState.distancesOnTop === undefined || gameState.distancesOnTop === null) {
-                            gameState.distancesOnTop = (gameState.playMode === 'sequential');
-                        }
-                        
-                        // Update UI
-                        renderPlayers();
-                        updateGameDisplay();
-                        updateAddPlayerButton();
-                        return true;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading game state:', error);
+                var savedJson = localStorage.getItem('walkbackGameState');
+                if (!savedJson) return false;
+                var saveData = JSON.parse(savedJson);
+                if (!saveData || !saveData.gameState) return false;
+                // Merge saved state into gameState, preserving any new fields
+                var saved = saveData.gameState;
+                Object.keys(saved).forEach(function(key) {
+                    gameState[key] = saved[key];
+                });
+                if (saveData.playerId) playerId = saveData.playerId;
+                return true;
+            } catch (e) {
+                localStorage.removeItem('walkbackGameState');
+                return false;
             }
-            return false;
+        }
+
+        function initializeGame() {
+            // Load custom presets
+            loadCustomPresets();
+
+            // Apply spec chosen on the walkbackspec.html page (one-time, then clear)
+            var specJson = localStorage.getItem('walkbackSpec');
+            if (specJson) {
+                // New game from spec page — clear any prior saved game
+                localStorage.removeItem('walkbackGameState');
+                try {
+                    var spec = JSON.parse(specJson);
+                    if (spec.compFormat) {
+                        gameState.distancePreset = spec.compFormat;
+                        gameState.distances      = getDefaultDistances(spec.compFormat, gameState.numDistances);
+                        gameState.numDistances   = gameState.distances.length;
+                        gameState.implement      = spec.implement || 'knife';
+                        if (spec.rounds) gameState.rounds = spec.rounds;
+                        if (spec.specName) {
+                            gameState.gameName = spec.specName + (spec.implement ? ' – ' + spec.implement.charAt(0).toUpperCase() + spec.implement.slice(1) : '');
+                        }
+                    }
+                } catch (e) {}
+                localStorage.removeItem('walkbackSpec');
+            } else {
+                // No new spec — try to restore a saved game
+                var restored = loadGameState();
+                if (restored) {
+                    // Reconnect any popup windows that were open before navigating away
+                    // (safe because tryReconnect* only acts when the localStorage flag is set)
+                    setTimeout(function() {
+                        refreshLeaderboardIfOpen();
+                        refreshTrackProgressIfOpen();
+                    }, 300);
+                }
+            }
+
+            // Note: We don't reconnect windows on page load for new games to avoid creating blank windows
+            // For restored games, reconnection is handled above
+
+            // Ensure distances array matches numDistances
+            if (gameState.distances.length !== gameState.numDistances) {
+                gameState.distances = getDefaultDistances(gameState.distancePreset, gameState.numDistances);
+                gameState.numDistances = gameState.distances.length;
+            }
+
+            // Generate target rings based on max score
+            gameState.targetRings = generateTargetRings();
+
+            if (gameState.players.length === 0) {
+                addPlayer(); // Add first player — also calls renderPlayers()
+            } else {
+                renderPlayers(); // Render restored players from saved game
+            }
+
+            updateGameDisplay();
+            updateAddPlayerButton(); // Set initial button state
         }
 
         function addPlayer() {
             if (hasGameStarted()) {
                 showCustomAlert('Cannot add players after scoring has begun! Reset the game to add more players.');
-                return;
-            }
-            
-            if (gameState.playersImported) {
-                showCustomAlert('Cannot manually add players when using imported players! Clear all players first to add manual players.');
                 return;
             }
             
@@ -2449,8 +2654,8 @@
             
             // Update track progress if open
             refreshTrackProgressIfOpen();
-            
-            saveGameState(); // Auto-save after adding player
+
+            saveGameState();
         }
 
         function removePlayer(playerId) {
@@ -2500,8 +2705,8 @@
                 // Update track progress if open
                 refreshTrackProgressIfOpen();
                 
-                saveGameState(); // Auto-save after removing player
-                
+                saveGameState();
+
                 // If no players left, continue silently
             });
         }
@@ -2529,8 +2734,7 @@
             var totalThrows = gameState.rounds * gameState.numDistances * gameState.throwsPerRound;
             var playModeDisplay = gameState.playMode === 'consecutive' ? ' • Consecutive Rounds' : ' • Sequential Distance';
             var maxScoreDisplay = gameState.maxScore !== 5 ? ' • Max: ' + gameState.maxScore + ' pts' : '';
-            var importStatus = gameState.playersImported ? ' • 📥 Imported Players' : '';
-            document.getElementById('gameStatus').textContent = '🗡️ ' + gameState.type + ' Game' + gameNameDisplay + tiebreakerInfo + ' • ' + gameState.rounds + ' Rounds • ' + gameState.numDistances + ' Distances • ' + totalThrows + ' Total Throws' + playModeDisplay + maxScoreDisplay + importStatus;
+            document.getElementById('gameStatus').textContent = '🗡️ ' + gameState.type + ' Game' + gameNameDisplay + tiebreakerInfo + ' • ' + gameState.rounds + ' Rounds • ' + gameState.numDistances + ' Distances • ' + totalThrows + ' Total Throws' + playModeDisplay + maxScoreDisplay;
             
             // Show/hide finalized banner
             var finalizedBanner = document.getElementById('finalizedBanner');
@@ -2608,43 +2812,19 @@
 
         function updateAddPlayerButton() {
             var addPlayerBtn = document.getElementById('addPlayerBtn');
-            var importBtn = document.querySelector('button[onclick="importFromManagement()"]');
             var gameStarted = hasGameStarted();
-            // Update Add Player button
             if (addPlayerBtn) {
                 if (gameStarted) {
                     addPlayerBtn.disabled = true;
                     addPlayerBtn.style.opacity = '0.5';
                     addPlayerBtn.style.cursor = 'not-allowed';
                     addPlayerBtn.textContent = '🔒 Game Started - Cannot Add Players';
-                } else if (gameState.playersImported) {
-                    addPlayerBtn.disabled = true;
-                    addPlayerBtn.style.opacity = '0.5';
-                    addPlayerBtn.style.cursor = 'not-allowed';
-                    addPlayerBtn.textContent = '📥 Using Imported Players';
-                    addPlayerBtn.title = 'Cannot manually add players when using imported players. Clear all players first to add manual players.';
                 } else {
                     addPlayerBtn.disabled = false;
                     addPlayerBtn.style.opacity = '1';
                     addPlayerBtn.style.cursor = 'pointer';
                     addPlayerBtn.textContent = '👥 Add Player';
                     addPlayerBtn.title = 'Add a new player to the game';
-                }
-            }
-            // Update Import Players button
-            if (importBtn) {
-                if (gameStarted) {
-                    importBtn.disabled = true;
-                    importBtn.style.opacity = '0.5';
-                    importBtn.style.cursor = 'not-allowed';
-                    importBtn.textContent = '🔒 Game Started - Cannot Import';
-                    importBtn.title = 'Cannot import players after scoring has begun! Reset the game to import players.';
-                } else {
-                    importBtn.disabled = false;
-                    importBtn.style.opacity = '1';
-                    importBtn.style.cursor = 'pointer';
-                    importBtn.textContent = '📥 Import Players';
-                    importBtn.title = 'Import players from Management.html (click "Import to Walkback" in Management first)';
                 }
             }
         }
@@ -2660,8 +2840,11 @@
                 displayThrow = gameState.editingThrow.throw;
             }
             
-            var currentRoundDistanceScores = player.scores[displayRound - 1] && player.scores[displayRound - 1][displayDistance - 1] ? 
-                player.scores[displayRound - 1][displayDistance - 1] : Array(gameState.throwsPerRound).fill(null);
+            var rawScores = player.scores[displayRound - 1] && player.scores[displayRound - 1][displayDistance - 1] ? 
+                player.scores[displayRound - 1][displayDistance - 1] : [];
+            var currentRoundDistanceScores = Array(gameState.throwsPerRound).fill(null).map(function(_, i) {
+                return (i < rawScores.length && rawScores[i] != null) ? rawScores[i] : null;
+            });
             var currentRoundDistanceTotal = currentRoundDistanceScores.reduce(function(sum, score) { return sum + (score || 0); }, 0);
 
             var selectedScore = null;
@@ -2686,6 +2869,7 @@
             var canEnterCurrentScore = !isViewingFuturePosition && canEnterScore(player, player.currentRound, player.currentDistance, player.currentThrow);
             var scoreButtonsHtml = gameState.targetRings.slice().reverse().map(function(score) {
                 var isSelected = selectedScore === score;
+                var isPresetDisabled = !isScoreAllowedForCurrentPreset(score);
                 var backgroundColor = getScoreColor(score);
                 var textColor = getScoreTextColor(score);
                 var borderStyle = isSelected ? 'border: 3px solid #fbbf24;' : 'border: 2px solid rgba(255,255,255,0.2);';
@@ -2694,8 +2878,9 @@
                 var buttonStyle = 'background: ' + backgroundColor + '; color: ' + textColor + '; ' + borderStyle + ' ' + boxShadow + 
                        ' padding: 12px; border-radius: 8px; font-weight: bold; font-size: 1.1rem; min-width: 45px; min-height: 45px;';
                 
-                if (!canEnterCurrentScore) {
-                    buttonStyle += ' opacity: 0.5; cursor: not-allowed;';
+                if (!canEnterCurrentScore || isPresetDisabled) {
+                    buttonStyle += ' opacity: 0.45; cursor: not-allowed;';
+                    if (isPresetDisabled) buttonStyle += ' filter: grayscale(100%);';
                     return '<button class="score-button" disabled ' +
                            'style="' + buttonStyle + '">' + score + '</button>';
                 } else {
@@ -2779,7 +2964,16 @@
             }).join('');
 
             var throwDisplayHtml = Array(gameState.throwsPerRound).fill(null).map(function(_, throwIndex) {
+                var throwNum = throwIndex + 1;
+                var roundNum = displayRound;
+                var distanceNum = displayDistance;
                 var score = currentRoundDistanceScores[throwIndex];
+                // Past throw = has score. Future throw = unscored, at current round/distance, but throwNum > currentThrow.
+                var isFutureThrow = !isViewingFuturePosition && displayRound === player.currentRound && 
+                    displayDistance === player.currentDistance && score === null && throwNum > player.currentThrow;
+                var canEditThisThrow = score !== null && canEnterScore(player, roundNum, distanceNum, throwNum);
+                var canEnterThisThrow = score === null && canEnterScore(player, roundNum, distanceNum, throwNum) && 
+                    !isViewingFuturePosition && !isFutureThrow;
                 var isCurrent = throwIndex === player.currentThrow - 1 && displayRound === player.currentRound && displayDistance === player.currentDistance && !gameState.editingThrow;
                 var isEditing = gameState.editingThrow && 
                                 gameState.editingThrow.playerId === player.id && 
@@ -2819,7 +3013,7 @@
                     backgroundColor = 'background: linear-gradient(45deg, #10b981, #059669);';
                     textColor = 'white';
                     borderStyle = 'border: 2px solid #34d399;';
-                } else if (isViewingFuturePosition) {
+                } else if (isViewingFuturePosition || isFutureThrow) {
                     className += 'future';
                     backgroundColor = 'background: #374151;';
                     textColor = '#6b7280';
@@ -2831,12 +3025,6 @@
                     borderStyle = 'border: 2px solid #64748b;';
                 }
                 
-                var throwNum = throwIndex + 1;
-                var roundNum = displayRound;
-                var distanceNum = displayDistance;
-                
-                var canEditThisThrow = canEnterScore(player, roundNum, distanceNum, throwNum);
-                var canEnterThisThrow = score === null && canEnterScore(player, roundNum, distanceNum, throwNum) && !isViewingFuturePosition;
                 var isNextAvailable = score === null && roundNum === player.currentRound && distanceNum === player.currentDistance && throwNum === player.currentThrow;
                 
                 var clickHandler = score !== null ? 
@@ -2851,7 +3039,7 @@
                 return '<div class="' + className + '" onclick="' + clickHandler + '" title="' + tooltip + '" ' +
                        'style="padding: 15px; border-radius: 8px; text-align: center; font-weight: bold; cursor: pointer; ' +
                        'transition: all 0.3s ease; position: relative; ' + backgroundColor + ' color: ' + textColor + '; ' + borderStyle + '">' + 
-                       (score !== null ? score : throwNum) + '</div>';
+                       (score != null ? score : throwNum) + '</div>';
             }).join('');
             
             // Determine if viewing past/future round/distance based on actual game progression
@@ -2965,6 +3153,9 @@
                 '</div></div></div>' +
                 teamInfoHtml +
                 '<div style="margin-bottom: 15px; padding: 10px; background: rgba(15, 23, 42, 0.5); border-radius: 8px; border: 1px solid #475569;">' +
+                '<div style="display: flex; justify-content: flex-end; margin-bottom: 6px;">' +
+                '<button onclick="toggleDistancesOnTop()" title="Swap Rounds / Distances order" style="background: rgba(71, 85, 105, 0.5); border: 1px solid #475569; color: #94a3b8; padding: 3px 9px; border-radius: 5px; cursor: pointer; font-size: 0.7rem; font-family: inherit; transition: all 0.2s ease;" onmouseover="this.style.borderColor=\'#60a5fa\';this.style.color=\'#60a5fa\';" onmouseout="this.style.borderColor=\'#475569\';this.style.color=\'#94a3b8\';">🔄 ' + (gameState.distancesOnTop ? 'D / R' : 'R / D') + '</button>' +
+                '</div>' +
                 (gameState.distancesOnTop ? 
                     // Distances on top, Rounds on bottom
                     '<div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">' +
@@ -3014,16 +3205,21 @@
             
             var scoreButtonsHtml = gameState.targetRings.slice().reverse().map(function(score) {
                 var isSelected = selectedScore === score;
+                var isPresetDisabled = !isScoreAllowedForCurrentPreset(score);
                 var backgroundColor = getScoreColor(score);
                 var textColor = getScoreTextColor(score);
                 var borderStyle = isSelected ? 'border: 3px solid #fbbf24;' : 'border: 2px solid rgba(255,255,255,0.2);';
                 var boxShadow = isSelected ? 'box-shadow: 0 0 15px rgba(251, 191, 36, 0.5);' : '';
-                
+                var buttonStyle = 'background: ' + backgroundColor + '; color: ' + textColor + '; ' + borderStyle + ' ' + boxShadow +
+                       ' padding: 12px; border-radius: 8px; font-weight: bold; transition: all 0.3s ease; font-size: 1.1rem; min-width: 45px; min-height: 45px;';
+                if (isPresetDisabled) {
+                    buttonStyle += ' opacity: 0.45; cursor: not-allowed; filter: grayscale(100%);';
+                    return '<button class="score-button" disabled style="' + buttonStyle + '">' + score + '</button>';
+                }
                 return '<button class="score-button" onclick="addScore(' + player.id + ', ' + score + ')" ' +
-                       'style="background: ' + backgroundColor + '; color: ' + textColor + '; ' + borderStyle + ' ' + boxShadow + 
-                       ' padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; font-size: 1.1rem; min-width: 45px; min-height: 45px;" ' +
+                       'style="' + buttonStyle + ' cursor: pointer;" ' +
                        'onmouseover="this.style.transform=\'scale(1.05)\'; this.style.boxShadow=\'0 4px 12px rgba(0,0,0,0.3)\'" ' +
-                       'onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'' + boxShadow + '\'">' + 
+                       'onmouseout="this.style.transform=\'scale(1)\'; this.style.boxShadow=\'' + boxShadow + '\'">' +
                        score + '</button>';
             }).join('');
 
@@ -3154,6 +3350,10 @@
         function addScore(playerId, score) {
             var player = gameState.players.find(function(p) { return p.id === playerId; });
             if (!player) return;
+            if (!isScoreAllowedForCurrentPreset(score)) {
+                showTimedNotification('AKTA preset only allows scores of 0, 3, 4, and 5.', 2500);
+                return;
+            }
 
             // Check if we're in tiebreaker mode
             if (gameState.inTiebreaker) {
@@ -3216,6 +3416,12 @@
             var oldScore = player.scores[roundIndex][distanceIndex][throwIndex];
             player.scores[roundIndex][distanceIndex][throwIndex] = score;
 
+            // Notify projector target (Dynamic Targets) so it can react
+            try {
+                var ch = new BroadcastChannel('triplenickel-projector-score');
+                ch.postMessage({ points: score, throwsPerRound: gameState.throwsPerRound, throwIndex: throwIndex + 1 });
+            } catch (e) {}
+
             // Force a complete refresh of the display
             if (wasEditingExistingScore) {
                 // When editing, ensure the viewing position is maintained
@@ -3239,20 +3445,20 @@
                         if (player.currentRound < gameState.rounds) {
                             player.currentRound++;
                             player.viewingRound = player.currentRound;
-                            
+                            try { new BroadcastChannel('triplenickel-projector-score').postMessage({ action: 'newRound' }); } catch (e) {}
                             // Round completion notification removed
                         } else if (player.currentDistance < gameState.numDistances) {
                             player.currentDistance++;
                             player.currentRound = 1;
                             player.viewingDistance = player.currentDistance;
                             player.viewingRound = player.currentRound;
-                            
+                            try { new BroadcastChannel('triplenickel-projector-score').postMessage({ action: 'newRound' }); } catch (e) {}
                             var distanceName = gameState.distances[player.currentDistance - 1] || 'Distance ' + player.currentDistance;
                             // Distance advancement notification removed
                         } else {
                             player.gameComplete = true;
                             
-                            // Update Track Progress window if open
+                            // Update Lane Tracker window if open
                             if (trackProgressWindow && !trackProgressWindow.closed) {
                                 setTimeout(updateTrackProgressWindow, 500);
                             }
@@ -3279,7 +3485,7 @@
                         if (player.currentDistance < gameState.numDistances) {
                             player.currentDistance++;
                             player.viewingDistance = player.currentDistance;
-                            
+                            try { new BroadcastChannel('triplenickel-projector-score').postMessage({ action: 'newRound' }); } catch (e) {}
                             var distanceName = gameState.distances[player.currentDistance - 1] || 'Distance ' + player.currentDistance;
                             // Distance advancement notification removed
                         } else if (player.currentRound < gameState.rounds) {
@@ -3287,12 +3493,12 @@
                             player.currentDistance = 1;
                             player.viewingRound = player.currentRound;
                             player.viewingDistance = player.currentDistance;
-                            
+                            try { new BroadcastChannel('triplenickel-projector-score').postMessage({ action: 'newRound' }); } catch (e) {}
                             // Round advancement notification removed
                         } else {
                             player.gameComplete = true;
                             
-                            // Update Track Progress window if open
+                            // Update Lane Tracker window if open
                             if (trackProgressWindow && !trackProgressWindow.closed) {
                                 setTimeout(updateTrackProgressWindow, 500);
                             }
@@ -3327,7 +3533,7 @@
                     player.gameComplete = true;
                     showTimedNotification('🏆 ' + player.name + ' completed the walkback! Click any throw to edit.', 4000);
                     
-                    // Update Track Progress window if open
+                    // Update Lane Tracker window if open
                     if (trackProgressWindow && !trackProgressWindow.closed) {
                         setTimeout(updateTrackProgressWindow, 500);
                     }
@@ -3392,21 +3598,49 @@
                 }
             }
             
-            saveGameState(); // Auto-save after every score entry
+            saveGameState();
         }
+
+        // Listen for scores from projector target (Dynamic Targets) – enter for first player who needs a score
+        try {
+            var fromTargetChannel = new BroadcastChannel('triplenickel-projector-score-from-target');
+            fromTargetChannel.onmessage = function(e) {
+                var d = e.data;
+                if (!d || typeof d.points !== 'number' || d.points < 0) return;
+                if (gameState.gameFinalized || gameState.inTiebreaker) return;
+                var points = Math.min(d.points, gameState.maxScore);
+                // If the target sends a targetIndex (which face was clicked, 1-based),
+                // only enter the score for a player whose current throw matches that target face.
+                var hasTargetCorrelation = typeof d.targetIndex === 'number' && d.targetIndex >= 1;
+                for (var i = 0; i < gameState.players.length; i++) {
+                    var player = gameState.players[i];
+                    if (player.gameComplete) continue;
+                    if (!canEnterScore(player, player.currentRound, player.currentDistance, player.currentThrow)) continue;
+                    if (hasTargetCorrelation && player.currentThrow !== d.targetIndex) continue;
+                    var ri = player.currentRound - 1, di = player.currentDistance - 1, ti = player.currentThrow - 1;
+                    var slot = player.scores[ri] && player.scores[ri][di] ? player.scores[ri][di][ti] : undefined;
+                    if (slot !== null && slot !== undefined) continue;
+                    addScore(player.id, points);
+                    return;
+                }
+            };
+        } catch (err) {}
 
         function navigateToThrow(playerId, roundNumber, distanceNumber, throwNumber) {
             var player = gameState.players.find(function(p) { return p.id === playerId; });
-            if (player) {
-                player.currentRound = roundNumber;
-                player.currentDistance = distanceNumber;
-                player.currentThrow = throwNumber;
-                player.viewingRound = roundNumber;
-                player.viewingDistance = distanceNumber;
-                gameState.editingThrow = null;
-                updateGameDisplay();
-                renderPlayers();
+            if (!player) return;
+            // Only allow navigating to the next throw in sequence - never to future throws
+            if (!canEnterScore(player, roundNumber, distanceNumber, throwNumber)) {
+                return;
             }
+            player.currentRound = roundNumber;
+            player.currentDistance = distanceNumber;
+            player.currentThrow = throwNumber;
+            player.viewingRound = roundNumber;
+            player.viewingDistance = distanceNumber;
+            gameState.editingThrow = null;
+            updateGameDisplay();
+            renderPlayers();
         }
 
         function navigateToRound(playerId, roundNumber) {
@@ -4092,7 +4326,13 @@
             }
             
             player.tiebreakerScores[currentRound][currentThrow] = score;
-            
+
+            var tbThrowsPerRound = (gameState.tiebreakerMode === 'sudden-death-podium-match') ? 3 : (gameState.tiebreakerMode === 'sudden-death' || gameState.tiebreakerMode === 'sudden-death-podium') ? 1 : 3;
+            try {
+                var ch = new BroadcastChannel('triplenickel-projector-score');
+                ch.postMessage({ points: score, throwsPerRound: tbThrowsPerRound, throwIndex: currentThrow + 1 });
+            } catch (e) {}
+
             // Calculate tiebreaker total
             player.tiebreakerTotal = 0;
             player.tiebreakerScores.forEach(function(round) {
@@ -5592,7 +5832,8 @@
             refreshTrackProgressIfOpen();
             
             showTimedNotification('🏆 Walkback Game Finalized! Results are now locked.', 3000);
-            
+            saveGameState();
+
             // Update tournament status if players were imported from an event
             updateTournamentEventStatus();
             
@@ -7975,84 +8216,65 @@
 
         function toggleSettings() {
             settingsVisible = !settingsVisible;
-            var panel = document.getElementById('settingsPanel');
+            var modal = document.getElementById('settingsModal');
             if (settingsVisible) {
-                panel.style.display = 'block';
+                modal.style.display = 'flex';
                 updateSettingsPanel();
             } else {
-                panel.style.display = 'none';
+                modal.style.display = 'none';
             }
+        }
+
+        function showGameDynamicsModal() {
+            var modal = document.getElementById('gameDynamicsModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeGameDynamicsModal() {
+            var modal = document.getElementById('gameDynamicsModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function showDynamicTargetModal() {
+            var modal = document.getElementById('dynamicTargetModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeDynamicTargetModal() {
+            var modal = document.getElementById('dynamicTargetModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function openDynamicTarget(path, name) {
+            window.open(path, 'DynamicTarget_' + (name || 'Target'), 'width=1200,height=900,menubar=no,toolbar=no,location=no,status=no');
         }
 
         function updateSettingsPanel() {
             var gameStarted = hasGameStarted();
-            
+
             document.getElementById('gameNameInput').value = gameState.gameName || '';
-            document.getElementById('roundsSelect').value = gameState.rounds || 4;
-            document.getElementById('throwsPerRoundSelect').value = gameState.throwsPerRound || 3;
-            
+
             // Update track progress if open
             refreshTrackProgressIfOpen();
-            
-            // Update number of distances - handle default presets properly
-            var numDistancesSelect = document.getElementById('numDistancesSelect');
-            if (numDistancesSelect) {
-                if (gameState.distancePreset && gameState.distancePreset !== 'custom') {
-                    // For default presets, use the actual number of distances
-                    numDistancesSelect.value = gameState.distances.length;
-                } else {
-                    // For custom, use the stored value
-                    numDistancesSelect.value = gameState.numDistances || 5;
-                }
-            }
-            document.getElementById('maxScoreSelect').value = gameState.maxScore || 5;
-            
-            // Ensure playMode is set to consecutive if not set (new default)
-            if (!gameState.playMode) {
-                gameState.playMode = 'consecutive';
-            }
-            document.getElementById('playModeSelect').value = gameState.playMode;
-            
-            // Update distances on top checkbox
-            // Set default based on play mode if not already set
-            if (gameState.distancesOnTop === undefined || gameState.distancesOnTop === null) {
-                gameState.distancesOnTop = (gameState.playMode === 'sequential');
-            }
-            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
-            if (distancesOnTopCheckbox) {
-                distancesOnTopCheckbox.checked = gameState.distancesOnTop;
-            }
-            
-            // Handle distance preset dropdown - check if we have a custom preset loaded
+
+            // Handle comp format (distance preset) dropdown
             var distancePresetSelect = document.getElementById('distancePresetSelect');
             if (distancePresetSelect) {
-                if (gameState.distancePreset === 'custom' && gameState.gameName) {
-                    // Check if this matches a custom preset
-                    var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-                    var customPresetName = gameState.gameName;
-                    if (customPresets[customPresetName]) {
-                        distancePresetSelect.value = 'custom_' + customPresetName;
-                    } else {
-                        distancePresetSelect.value = 'custom';
-                    }
-                } else if (gameState.distancePreset && gameState.distancePreset !== 'amateur' && gameState.distancePreset !== 'professional') {
-                    // Handle new default presets
-                    distancePresetSelect.value = gameState.distancePreset;
-                } else {
-                    distancePresetSelect.value = gameState.distancePreset || 'amateur';
-                }
+                var validPresets = ['amateur','professional','dangerfest_am_knife','dangerfest_pro_knife','dangerfest_am_hawk','dangerfest_pro_hawk','akta','blade_aces_am_knife','blade_aces_pro_knife','blade_aces_am_hawk','blade_aces_pro_hawk'];
+                var presetToUse = (gameState.distancePreset && validPresets.indexOf(gameState.distancePreset) >= 0) ? gameState.distancePreset : 'amateur';
+                try { distancePresetSelect.value = presetToUse; } catch (e) {}
             }
             document.getElementById('tiebreakerSelect').value = gameState.tiebreakerMode || 'sudden-death-podium-match';
-            
+
             updateCustomDistanceInputs();
-            
+
             var warning = document.getElementById('gameStartedWarning');
             if (warning) {
                 warning.style.display = gameStarted ? 'block' : 'none';
             }
-            
+
             // Disable inputs if game started
-            var inputs = ['gameNameInput', 'roundsSelect', 'throwsPerRoundSelect', 'numDistancesSelect', 'maxScoreSelect', 'playModeSelect', 'distancePresetSelect', 'tiebreakerSelect'];
+            var inputs = ['gameNameInput', 'distancePresetSelect', 'tiebreakerSelect'];
             inputs.forEach(function(inputId) {
                 var input = document.getElementById(inputId);
                 if (input) {
@@ -8060,31 +8282,7 @@
                     input.style.opacity = gameStarted ? '0.5' : '1';
                 }
             });
-            
-            // Disable distance inputs if game started or not custom
-            var customDistanceInputs = document.querySelectorAll('#customDistanceInputs input');
-            customDistanceInputs.forEach(function(input) {
-                var selectedValue = document.getElementById('distancePresetSelect').value;
-                var isCustomPreset = selectedValue === 'custom' || selectedValue.startsWith('custom_');
-                input.disabled = gameStarted || !isCustomPreset;
-                input.style.opacity = (gameStarted || !isCustomPreset) ? '0.5' : '1';
-            });
-            
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn) {
-                applyBtn.disabled = gameStarted;
-                applyBtn.style.opacity = gameStarted ? '0.5' : '1';
-                applyBtn.classList.remove('apply-glow');
-            }
-            
-            var savePresetBtn = document.getElementById('savePresetBtn');
-            if (savePresetBtn) {
-                savePresetBtn.disabled = gameStarted;
-                savePresetBtn.style.opacity = gameStarted ? '0.5' : '1';
-            }
-            
-            // Remove preset button is always enabled since it doesn't affect game state
-            
+
             // Show/hide tournament status section if players were imported
             var tournamentStatusSection = document.getElementById('tournamentStatusSection');
             if (tournamentStatusSection) {
@@ -8168,11 +8366,19 @@
             return 'white';
         }
 
+        function isScoreAllowedForCurrentPreset(score) {
+            // AKTA format only allows 3, 4, 5 (and miss 0).
+            if (gameState.distancePreset === 'akta') {
+                return score === 0 || score === 3 || score === 4 || score === 5;
+            }
+            return true;
+        }
+
         function updatePlayerName(playerId, newName) {
             var player = gameState.players.find(function(p) { return p.id === playerId; });
             if (player) {
                 player.name = newName || 'Player ' + playerId;
-                saveGameState(); // Auto-save after name change
+ saveGameState();
             }
         }
 
@@ -8258,32 +8464,23 @@
             
             gameState.numDistances = newNumDistances;
             
-            // Update distances based on current preset
+            // Update distances based on current preset, then sync numDistances to actual preset length.
             var preset = document.getElementById('distancePresetSelect').value;
-            if (preset !== 'custom') {
-                gameState.distances = getDefaultDistances(preset, newNumDistances);
-            } else {
-                // For custom, adjust the distances array length
-                if (gameState.distances.length > newNumDistances) {
-                    gameState.distances = gameState.distances.slice(0, newNumDistances);
-                } else if (gameState.distances.length < newNumDistances) {
-                    for (var i = gameState.distances.length; i < newNumDistances; i++) {
-                        gameState.distances.push((i + 2) + ' Meters');
-                    }
-                }
-            }
+            gameState.distances = getDefaultDistances(preset, newNumDistances);
+            gameState.numDistances = gameState.distances.length;
+            var numDistancesToUse = gameState.numDistances;
             
             // Update all player scores arrays
             gameState.players.forEach(function(player) {
                 for (var r = 0; r < gameState.rounds; r++) {
                     if (!player.scores[r]) {
-                        player.scores[r] = Array(newNumDistances).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); });
+                        player.scores[r] = Array(numDistancesToUse).fill(null).map(function() { return Array(gameState.throwsPerRound).fill(null); });
                     } else {
                         // Adjust existing round to match new distance count
-                        if (player.scores[r].length > newNumDistances) {
-                            player.scores[r] = player.scores[r].slice(0, newNumDistances);
-                        } else if (player.scores[r].length < newNumDistances) {
-                            for (var d = player.scores[r].length; d < newNumDistances; d++) {
+                        if (player.scores[r].length > numDistancesToUse) {
+                            player.scores[r] = player.scores[r].slice(0, numDistancesToUse);
+                        } else if (player.scores[r].length < numDistancesToUse) {
+                            for (var d = player.scores[r].length; d < numDistancesToUse; d++) {
                                 player.scores[r].push(Array(gameState.throwsPerRound).fill(null));
                             }
                         }
@@ -8291,9 +8488,9 @@
                 }
                 
                 // Reset player position if they're beyond the new number of distances
-                if (player.currentDistance > newNumDistances) {
-                    player.currentDistance = newNumDistances;
-                    player.viewingDistance = newNumDistances;
+                if (player.currentDistance > numDistancesToUse) {
+                    player.currentDistance = numDistancesToUse;
+                    player.viewingDistance = numDistancesToUse;
                 }
                 
                 // Recalculate stats
@@ -8315,13 +8512,17 @@
             }
         }
 
+        function toggleDistancesOnTop() {
+            gameState.distancesOnTop = !gameState.distancesOnTop;
+            renderPlayers();
+        }
+
         /** When Play Mode dropdown changes, update the distances-on-top checkbox to the default for that mode (Sequential = checked, Consecutive = unchecked). Does not apply settings. */
         function onPlayModeSelectChange() {
             var playModeSelect = document.getElementById('playModeSelect');
             var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
             if (playModeSelect && distancesOnTopCheckbox) {
                 distancesOnTopCheckbox.checked = (playModeSelect.value === 'sequential');
-                markSettingsChanged();
             }
         }
 
@@ -8413,46 +8614,13 @@
 
         /** Only updates form/UI when distance preset dropdown changes. Nothing is applied to gameState until Apply is clicked. */
         function onDistancePresetSelectChange() {
-            var preset = document.getElementById('distancePresetSelect').value;
             var customGroup = document.getElementById('customDistanceGroup');
-            
-            if (customGroup) {
-                var shouldShowCustom = preset === 'custom' || (preset && preset.startsWith('custom_'));
-                customGroup.style.display = shouldShowCustom ? 'block' : 'none';
+            if (customGroup) customGroup.style.display = 'none';
+            var presetEl = document.getElementById('distancePresetSelect');
+            var throwsEl = document.getElementById('throwsPerRoundSelect');
+            if (presetEl && throwsEl && presetEl.value === 'akta') {
+                throwsEl.value = '5';
             }
-            
-            if (preset && preset.startsWith('custom_')) {
-                var presetName = preset.substring(7);
-                populateFormFromCustomPreset(presetName);
-                return;
-            }
-            
-            if (preset === 'custom') {
-                var gameNameInput = document.getElementById('gameNameInput');
-                if (gameNameInput) gameNameInput.value = 'Custom (Set your own)';
-                updateCustomDistanceInputs();
-            }
-        }
-        
-        /** Populates form fields from a custom preset without applying to gameState or players. */
-        function populateFormFromCustomPreset(presetName) {
-            var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-            var preset = customPresets[presetName];
-            if (!preset) return;
-            var oldDistances = gameState.distances ? gameState.distances.slice() : [];
-            gameState.distances = preset.distances ? preset.distances.slice() : [];
-            document.getElementById('roundsSelect').value = preset.rounds !== undefined ? preset.rounds : 4;
-            document.getElementById('throwsPerRoundSelect').value = preset.throwsPerRound !== undefined ? preset.throwsPerRound : 3;
-            document.getElementById('numDistancesSelect').value = (preset.distances && preset.distances.length) ? preset.distances.length : (preset.numDistances || 5);
-            document.getElementById('maxScoreSelect').value = preset.maxScore !== undefined ? preset.maxScore : 5;
-            document.getElementById('playModeSelect').value = preset.playMode || 'consecutive';
-            document.getElementById('tiebreakerSelect').value = preset.tiebreakerMode || 'sudden-death-podium-match';
-            var gameNameInput = document.getElementById('gameNameInput');
-            if (gameNameInput) gameNameInput.value = preset.gameName || presetName + ' (Custom Preset)';
-            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
-            if (distancesOnTopCheckbox) distancesOnTopCheckbox.checked = preset.playMode === 'sequential';
-            updateCustomDistanceInputs();
-            gameState.distances = oldDistances;
         }
         
         function updateDistancePreset() {
@@ -8586,38 +8754,34 @@
                 ((pointsInCompletedSets / maxPossibleInCompletedSets) * 100).toFixed(1) : 0;
         }
 
-        function markSettingsChanged() {
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn && !applyBtn.disabled) {
-                applyBtn.classList.add('apply-glow');
-            }
+        function resetToSpec() {
+            showCustomConfirm('Reset the game and return to the spec chooser? All players and scores will be cleared.', function() {
+                localStorage.removeItem('walkbackGameState');
+                window.location.href = 'walkbackspec.html';
+            });
         }
-        
+
         function resetSettingsToDefaultsInPanel() {
             if (hasGameStarted()) {
                 alert('Cannot reset settings after game has started! Reset the game to change settings.');
                 return;
             }
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn) applyBtn.classList.remove('apply-glow');
             var newRounds = 4;
-            var newNumDistances = 5;
-            var newMaxScore = 5;
-            var newPlayMode = 'consecutive';
-            var newDistancePreset = 'amateur';
+            var newDistancePreset = 'dangerfest_am_knife';
             var newTiebreakerMode = 'sudden-death-podium-match';
             var newGameName = '';
             gameState.rounds = newRounds;
             gameState.throwsPerRound = 3;
-            gameState.numDistances = newNumDistances;
-            gameState.maxScore = newMaxScore;
-            gameState.playMode = newPlayMode;
+            gameState.maxScore = 5;
+            gameState.playMode = 'consecutive';
+            gameState.distancesOnTop = false;
             gameState.distancePreset = newDistancePreset;
             gameState.tiebreakerMode = newTiebreakerMode;
             gameState.gameName = newGameName;
-            gameState.distancesOnTop = false; // Default for consecutive mode
             gameState.targetRings = generateTargetRings();
-            gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
+            gameState.distances = getDefaultDistances(newDistancePreset, 5);
+            var newNumDistances = gameState.distances.length;
+            gameState.numDistances = newNumDistances;
             gameState.players.forEach(function(player) {
                 if (player.scores.length > newRounds) {
                     player.scores = player.scores.slice(0, newRounds);
@@ -8657,74 +8821,41 @@
             updateCustomDistanceInputs();
             refreshLeaderboardIfOpen();
             refreshTrackProgressIfOpen();
-            saveGameState();
             showTimedNotification('Settings reset to defaults.', 2000);
         }
         
         function applySettings() {
-            var applyBtn = document.getElementById('applySettingsBtn');
-            if (applyBtn) applyBtn.classList.remove('apply-glow');
-            var newRounds = parseInt(document.getElementById('roundsSelect').value);
-            var newNumDistances = parseInt(document.getElementById('numDistancesSelect').value);
-            var newMaxScore = parseInt(document.getElementById('maxScoreSelect').value);
-            var newThrowsPerRound = parseInt(document.getElementById('throwsPerRoundSelect').value);
-            var newPlayMode = document.getElementById('playModeSelect').value;
             var newDistancePreset = document.getElementById('distancePresetSelect').value;
             var newTiebreakerMode = document.getElementById('tiebreakerSelect').value;
             var newGameName = document.getElementById('gameNameInput').value.trim();
-            var distancesOnTopCheckbox = document.getElementById('distancesOnTopCheckbox');
-            var newDistancesOnTop = distancesOnTopCheckbox ? distancesOnTopCheckbox.checked : false;
+
             // Check if game has started
             if (hasGameStarted()) {
                 alert('Cannot change settings after game has started! Reset the game to change settings.');
                 return;
             }
-            
+
+            // Derive distances from preset (akta uses 5 throws)
+            var newThrowsPerRound = (newDistancePreset === 'akta') ? 5 : gameState.throwsPerRound;
+
+            // Broadcast compatibility state so targets can disable/enable sync immediately
+            broadcastDynamicTargetCompatibilityState(newThrowsPerRound, gameState.maxScore);
+
             // Update game state
-            gameState.rounds = newRounds;
-            gameState.numDistances = newNumDistances;
-            gameState.throwsPerRound = newThrowsPerRound;
-            gameState.maxScore = newMaxScore;
-            gameState.playMode = newPlayMode;
-            gameState.distancePreset = newDistancePreset;
-            gameState.tiebreakerMode = newTiebreakerMode;
-            gameState.gameName = newGameName;
-            gameState.distancesOnTop = newDistancesOnTop;
-            
+            gameState.distancePreset  = newDistancePreset;
+            gameState.tiebreakerMode  = newTiebreakerMode;
+            gameState.gameName        = newGameName;
+            gameState.throwsPerRound  = newThrowsPerRound;
+
             // Update target rings
             gameState.targetRings = generateTargetRings();
-            
+
             // Update distances based on preset
-            if (newDistancePreset && newDistancePreset.startsWith('custom_')) {
-                var presetName = newDistancePreset.substring(7);
-                var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-                var preset = customPresets[presetName];
-                if (preset && preset.distances) {
-                    gameState.distances = preset.distances.slice();
-                    gameState.numDistances = gameState.distances.length;
-                } else {
-                    gameState.distances = getDefaultDistances('amateur', newNumDistances);
-                }
-            } else if (newDistancePreset === 'custom') {
-                var customDistances = [];
-                var distanceInputs = document.querySelectorAll('#customDistanceInputs input');
-                for (var i = 0; i < distanceInputs.length; i++) {
-                    var value = distanceInputs[i].value.trim();
-                    if (value) {
-                        customDistances.push(value);
-                    } else {
-                        customDistances.push(gameState.distances[i] || 'Distance ' + (i + 1));
-                    }
-                }
-                if (customDistances.length > 0) {
-                    gameState.distances = customDistances;
-                } else {
-                    gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
-                }
-            } else {
-                gameState.distances = getDefaultDistances(newDistancePreset, newNumDistances);
-            }
-            var numDistancesToUse = gameState.numDistances;
+            gameState.distances = getDefaultDistances(newDistancePreset, gameState.numDistances);
+            var numDistancesToUse = gameState.distances.length;
+            gameState.numDistances = numDistancesToUse;
+            var newRounds = gameState.rounds;
+            var newNumDistances = numDistancesToUse;
             
             // Update player scores arrays for new rounds and distances count
             gameState.players.forEach(function(player) {
@@ -8783,11 +8914,7 @@
             // Update track progress if open
             refreshTrackProgressIfOpen();
             
-            saveGameState(); // Auto-save after settings change
-            // Settings notification removed
-            
-            // Close settings panel after applying
-            document.getElementById('settingsPanel').style.display = 'none';
+ saveGameState();
         }
 
         function clearScores() {
@@ -8881,9 +9008,8 @@
                     localStorage.removeItem('walkbackTrackProgressOpen');
                 }
                 
-                // Save the cleared state
                 saveGameState();
-                
+
                 showTimedNotification('🧹 All scores cleared! Game settings and players preserved.', 3000);
             });
         }
@@ -8914,7 +9040,6 @@
                 gameState.podiumTiebreakersBackup = null;
                 gameState.allTiebreakerParticipants = null;
                 gameState.originalRegulationScoresStored = false;
-                gameState.playersImported = false; // Reset import flag
                 gameState.eventSetToInProgress = false; // Reset event status flag
                 gameFinalizedOnce = false; // Reset finalization guard
                 // Reset pagination settings
@@ -8953,8 +9078,8 @@
                     localStorage.removeItem('walkbackTrackProgressOpen');
                 }
                 
-                // Save the cleared state
-                saveGameState();
+                localStorage.removeItem('walkbackGameState'); // no active game — route back to spec page
+
                 showTimedNotification('👥 All players removed and settings reset to default! You can now add new players.', 3000);
             });
         }
@@ -9106,618 +9231,15 @@
             initializeGame();
         });
 
-        // --- IMPORT FROM MANAGEMENT LOGIC ---
-        // Import functionality from management.html
-        function importFromManagement() {
-            // Check if game has started
-            if (hasGameStarted()) {
-                alert('Cannot import players after scoring has begun! Reset the game to import players.');
-                return;
-            }
-            // Try to get data from the new format first (competitorImportData)
-            let importData = localStorage.getItem('competitorImportData');
-            // If not found, try to get from the old format (tournamentPlayers)
-            if (!importData) {
-                const tournamentPlayers = localStorage.getItem('tournamentPlayers');
-                if (tournamentPlayers) {
-                    try {
-                        const players = JSON.parse(tournamentPlayers);
-                        if (players.length > 0) {
-                            // Show class/division selection modal
-                            showImportSelectionModal(players);
-                            return;
-                        }
-                    } catch (e) {
-                        console.error('Error converting tournament players:', e);
-                    }
-                }
-            }
-            if (!importData) {
-                showTimedNotification('❌ No players found in import data. Please add players in Management first.', 4000);
-                return;
-            }
-            try {
-                const players = JSON.parse(importData);
-                if (players.length === 0) {
-                    showTimedNotification('❌ No players found in import data.', 3000);
-                    return;
-                }
-                
-                // Set game name for imported players
-                const tournamentName = localStorage.getItem('tournamentName') || 'Tournament';
-                gameState.gameName = `${tournamentName} - Imported Players`;
-                
-                // Update the game name input field
-                const gameNameInput = document.getElementById('gameNameInput');
-                if (gameNameInput) {
-                    gameNameInput.value = gameState.gameName;
-                }
-                
-                // Save the game state to persist the game name
-                saveGameState();
-                
-                // Clear the import data
-                localStorage.removeItem('competitorImportData');
-                // Use the common import function
-                performImport(players);
-                
-                // Update track progress if open
-                refreshTrackProgressIfOpen();
-                
-                // Import success notification removed
-            } catch (error) {
-                console.error('Import error:', error);
-                showTimedNotification('❌ Error importing players. Please try again.', 4000);
-            }
-        }
-        // Import selection modal to choose class and division
-        function showImportSelectionModal(allPlayers) {
-            const classes = [...new Set(allPlayers.map(p => p.className).filter(className => className && className.trim() !== ''))].sort();
-            const divisions = [...new Set(allPlayers.map(p => p.divisionName).filter(divisionName => divisionName && divisionName.trim() !== ''))].sort();
-            const playerCounts = {};
-            allPlayers.forEach(player => {
-                const key = `${player.className} - ${player.divisionName}`;
-                playerCounts[key] = (playerCounts[key] || 0) + 1;
-            });
-            const modal = document.createElement('div');
-            modal.style.cssText = `position: fixed;top: 0;left: 0;width: 100vw;height: 100vh;background: rgba(0, 0, 0, 0.8);display: flex;align-items: center;justify-content: center;z-index: 10002;padding: 20px;`;
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = `background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%, #1e293b 100%);border: 2px solid #8b5cf6;border-radius: 15px;padding: 30px;max-width: 600px;max-height: 80vh;overflow-y: auto;color: #e2e8f0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;`;
-            modalContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <h2 style="color: #8b5cf6; font-size: 1.5rem; margin-bottom: 10px;">📥 Select Players to Import</h2>
-                    <p style="color: #94a3b8; font-size: 0.9rem;">Choose class and division to import from Management</p>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155;">
-                    <h3 style="color: #f1f5f9; margin-bottom: 15px; font-size: 1.1rem;">🎯 Select Class and Division:</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-                        <div>
-                            <label style="display: block; margin-bottom: 8px; color: #cbd5e1; font-weight: 500; font-size: 0.9rem;">Class:</label>
-                            <select id="importClassSelect" onchange="updateImportDivisionOptions()" style="width: 100%; background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                <option value="">Select Class...</option>
-                                ${classes.map(className => `<option value="${className}">${className}</option>`).join('')}
-                            </select>
-                        </div>
-                        <div>
-                            <label style="display: block; margin-bottom: 8px; color: #cbd5e1; font-weight: 500; font-size: 0.9rem;">Division:</label>
-                            <select id="importDivisionSelect" style="width: 100%; background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 0.9rem; outline: none;">
-                                <option value="">Select Division...</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="importPlayerCount" style="background: rgba(30, 41, 59, 0.8); padding: 15px; border-radius: 8px; border: 1px solid #475569; margin-bottom: 15px; display: none;">
-                        <div style="text-align: center; color: #f1f5f9; font-weight: 500;">
-                            <span id="selectedPlayerCount">0</span> players available for import
-                        </div>
-                    </div>
-                    <button id="importSelectedBtn" onclick="importFromDropdown()" style="background: linear-gradient(45deg, #8b5cf6, #a855f7); border: none; color: white; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: 500; width: 100%; font-size: 1rem; transition: all 0.3s ease; opacity: 0.5; pointer-events: none;">📥 Import Selected Players</button>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155;">
-                    <h3 style="color: #f1f5f9; margin-bottom: 15px; font-size: 1.1rem;">📊 Quick Import Options:</h3>
-                    <div style="display: grid; gap: 10px;">
-                        <button onclick="importAllPlayers();" style="background: linear-gradient(45deg, #10b981, #059669); border: none; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">📥 Import All ${allPlayers.length} Players</button>
-                        <button onclick="showAvailableGroups();" style="background: linear-gradient(45deg, #f59e0b, #d97706); border: none; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">📋 View All Available Groups</button>
-                        <button onclick="showEventImportOptions();" style="background: linear-gradient(45deg, #3b82f6, #1d4ed8); border: none; color: white; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;">🎯 Import by Event</button>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="closeMainImportModal();" style="background: #64748b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Cancel</button>
-                </div>
-            `;
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-            window.importModalAllPlayers = allPlayers;
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    modal.remove();
-                    delete window.importModalAllPlayers;
-                }
-            });
-        }
-        function updateImportDivisionOptions() {
-            const classSelect = document.getElementById('importClassSelect');
-            const divisionSelect = document.getElementById('importDivisionSelect');
-            const playerCountDiv = document.getElementById('importPlayerCount');
-            const importBtn = document.getElementById('importSelectedBtn');
-            if (!classSelect || !divisionSelect || !window.importModalAllPlayers) return;
-            const selectedClass = classSelect.value;
-            divisionSelect.innerHTML = '<option value="">Select Division...</option>';
-            playerCountDiv.style.display = 'none';
-            importBtn.style.opacity = '0.5';
-            importBtn.style.pointerEvents = 'none';
-            if (!selectedClass) return;
-            const divisionsForClass = [...new Set(window.importModalAllPlayers.filter(player => player.className === selectedClass).map(player => player.divisionName))].sort();
-            divisionsForClass.forEach(division => {
-                const option = document.createElement('option');
-                option.value = division;
-                option.textContent = division;
-                divisionSelect.appendChild(option);
-            });
-            divisionSelect.onchange = function() { updateImportPlayerCount(); };
-        }
-        function updateImportPlayerCount() {
-            const classSelect = document.getElementById('importClassSelect');
-            const divisionSelect = document.getElementById('importDivisionSelect');
-            const playerCountDiv = document.getElementById('importPlayerCount');
-            const playerCountSpan = document.getElementById('selectedPlayerCount');
-            const importBtn = document.getElementById('importSelectedBtn');
-            if (!classSelect || !divisionSelect || !window.importModalAllPlayers) return;
-            const selectedClass = classSelect.value;
-            const selectedDivision = divisionSelect.value;
-            if (!selectedClass || !selectedDivision) {
-                playerCountDiv.style.display = 'none';
-                importBtn.style.opacity = '0.5';
-                importBtn.style.pointerEvents = 'none';
-                return;
-            }
-            const playerCount = window.importModalAllPlayers.filter(player => player.className === selectedClass && player.divisionName === selectedDivision).length;
-            if (playerCount > 0) {
-                playerCountSpan.textContent = playerCount;
-                playerCountDiv.style.display = 'block';
-                importBtn.style.opacity = '1';
-                importBtn.style.pointerEvents = 'auto';
-            } else {
-                playerCountDiv.style.display = 'none';
-                importBtn.style.opacity = '0.5';
-                importBtn.style.pointerEvents = 'none';
-            }
-        }
-        function importFromDropdown() {
-            const classSelect = document.getElementById('importClassSelect');
-            const divisionSelect = document.getElementById('importDivisionSelect');
-            if (!classSelect || !divisionSelect || !window.importModalAllPlayers) return;
-            const selectedClass = classSelect.value;
-            const selectedDivision = divisionSelect.value;
-            if (!selectedClass || !selectedDivision) {
-                showTimedNotification('❌ Please select both class and division.', 3000);
-                return;
-            }
-            importSelectedPlayers(selectedClass, selectedDivision);
-            
-            // Update track progress if open
-            refreshTrackProgressIfOpen();
-            
-            const modal = document.querySelector('div[style*="z-index: 10002"]');
-            if (modal) {
-                modal.remove();
-                delete window.importModalAllPlayers;
-            }
-        }
-        function showAvailableGroups() {
-            if (!window.importModalAllPlayers) return;
-            const playerCounts = {};
-            window.importModalAllPlayers.forEach(player => {
-                const key = `${player.className} - ${player.divisionName}`;
-                playerCounts[key] = (playerCounts[key] || 0) + 1;
-            });
-            const filterOptions = [];
-            Object.entries(playerCounts).forEach(([key, count]) => {
-                const [className, divisionName] = key.split(' - ');
-                filterOptions.push({ className, divisionName, count, key });
-            });
-            filterOptions.sort((a, b) => b.count - a.count);
-            const groupsModal = document.createElement('div');
-            groupsModal.style.cssText = `position: fixed;top: 0;left: 0;width: 100vw;height: 100vh;background: rgba(0, 0, 0, 0.8);display: flex;align-items: center;justify-content: center;z-index: 10003;padding: 20px;`;
-            const groupsContent = document.createElement('div');
-            groupsContent.style.cssText = `background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%, #1e293b 100%);border: 2px solid #f59e0b;border-radius: 15px;padding: 30px;max-width: 600px;max-height: 80vh;overflow-y: auto;color: #e2e8f0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;`;
-            groupsContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <h2 style="color: #f59e0b; font-size: 1.5rem; margin-bottom: 10px;">📋 Available Groups</h2>
-                    <p style="color: #94a3b8; font-size: 0.9rem;">All class and division combinations with player counts</p>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155;">
-                    <div style="display: grid; gap: 10px;">
-                        ${filterOptions.map(option => `
-                            <div style="background: linear-gradient(45deg, #475569, #64748b); border: 1px solid #64748b; color: white; padding: 15px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <div style="font-size: 1.1rem; font-weight: bold; color: #f1f5f9;">${option.className} - ${option.divisionName}</div>
-                                    <div style="font-size: 0.9rem; color: #94a3b8; margin-top: 4px;">${option.count} player${option.count !== 1 ? 's' : ''}</div>
-                                </div>
-                                <div style="font-size: 1.2rem; color: #f59e0b;">📊</div>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="closeAvailableGroupsModal();" style="background: #64748b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Close</button>
-                </div>
-            `;
-            groupsModal.appendChild(groupsContent);
-            document.body.appendChild(groupsModal);
-            groupsModal.addEventListener('click', function(e) {
-                if (e.target === groupsModal) {
-                    groupsModal.remove();
-                }
-            });
-        }
-        function importSelectedPlayers(className, divisionName) {
-            const tournamentPlayers = localStorage.getItem('tournamentPlayers');
-            if (!tournamentPlayers) {
-                showTimedNotification('❌ No player data found.', 3000);
-                return;
-            }
-            try {
-                const allPlayers = JSON.parse(tournamentPlayers);
-                const selectedPlayers = allPlayers.filter(player => player.className === className && player.divisionName === divisionName);
-                if (selectedPlayers.length === 0) {
-                    showTimedNotification('❌ No players found for selected class and division.', 3000);
-                    return;
-                }
-                const convertedData = selectedPlayers.map(player => ({ name: player.name, class: player.className, division: player.divisionName }));
-                
-                // Set game name to the class and division combination
-                const gameName = `${className} - ${divisionName}`;
-                gameState.gameName = gameName;
-                
-                // Update the game name input field
-                const gameNameInput = document.getElementById('gameNameInput');
-                if (gameNameInput) {
-                    gameNameInput.value = gameName;
-                }
-                
-                // Save the game state to persist the game name
-                saveGameState();
-                
-                performImport(convertedData);
-                
-                // Update track progress if open
-                refreshTrackProgressIfOpen();
-                
-                // Import success notification removed
-            } catch (error) {
-                console.error('Import error:', error);
-                showTimedNotification('❌ Error importing players. Please try again.', 4000);
-            }
-        }
-        function importAllPlayers() {
-            const tournamentPlayers = localStorage.getItem('tournamentPlayers');
-            if (!tournamentPlayers) {
-                showTimedNotification('❌ No player data found.', 3000);
-                return;
-            }
-            try {
-                const allPlayers = JSON.parse(tournamentPlayers);
-                const convertedData = allPlayers.map(player => ({ name: player.name, class: player.className, division: player.divisionName }));
-                
-                // Set game name to indicate all players were imported
-                const tournamentName = localStorage.getItem('tournamentName') || 'Tournament';
-                gameState.gameName = `${tournamentName} - All Players`;
-                
-                // Update the game name input field
-                const gameNameInput = document.getElementById('gameNameInput');
-                if (gameNameInput) {
-                    gameNameInput.value = gameState.gameName;
-                }
-                
-                // Save the game state to persist the game name
-                saveGameState();
-                
-                performImport(convertedData);
-                
-                // Update track progress if open
-                refreshTrackProgressIfOpen();
-                
-                // Import success notification removed
-            } catch (error) {
-                console.error('Import error:', error);
-                showTimedNotification('❌ Error importing players. Please try again.', 4000);
-            }
-        }
-
-        function showEventImportOptions() {
-            if (!window.importModalAllPlayers) return;
-            
-            // Check if there are events stored in localStorage
-            const events = JSON.parse(localStorage.getItem('tournamentEvents') || '[]');
-            
-            if (events.length === 0) {
-                alert('No events found in the tournament data.\n\nTo use event-based importing:\n1. Go to Management.html\n2. Create events in the Events section\n3. Assign players to events\n4. Then try importing by event again.');
-                return;
-            }
-            
-            // Create event-player mapping using the participants array in each event
-            const eventPlayerCounts = {};
-            events.forEach(event => {
-                if (event.participants && event.participants.length > 0) {
-                    // Count how many participants from this event are in the available players
-                    const eventPlayers = window.importModalAllPlayers.filter(player => 
-                        event.participants.some(participant => participant.id === player.id)
-                    );
-                    eventPlayerCounts[event.name] = eventPlayers.length;
-                } else {
-                    eventPlayerCounts[event.name] = 0;
-                }
-            });
-            
-            // Filter out events with no players
-            const eventsWithPlayers = events.filter(event => eventPlayerCounts[event.name] > 0);
-            
-            if (eventsWithPlayers.length === 0) {
-                alert('No players are assigned to events.\n\nTo assign players to events:\n1. Go to Management.html\n2. Go to the Events section\n3. Click "Manage Participants" on an event\n4. Add players to the event\n5. Then try importing by event again.');
-                return;
-            }
-            
-            const eventModal = document.createElement('div');
-            eventModal.style.cssText = `position: fixed;top: 0;left: 0;width: 100vw;height: 100vh;background: rgba(0, 0, 0, 0.8);display: flex;align-items: center;justify-content: center;z-index: 10004;padding: 20px;`;
-            
-            const eventContent = document.createElement('div');
-            eventContent.style.cssText = `background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%, #1e293b 100%);border: 2px solid #3b82f6;border-radius: 15px;padding: 30px;max-width: 600px;max-height: 80vh;overflow-y: auto;color: #e2e8f0;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;`;
-            
-            // Create simple event buttons like in custom.html
-            const eventButtonsHtml = eventsWithPlayers.map(event => {
-                const playerCount = eventPlayerCounts[event.name];
-                const eventIcon = getEventIcon(event.type);
-                const eventTypeLabel = getEventTypeLabel(event.type);
-                return `<button onclick="importEventPlayers('${event.name.replace(/'/g, "\\'")}', 'event');" style="background: linear-gradient(45deg, #3b82f6, #1d4ed8); border: none; color: white; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: 500; transition: all 0.3s ease; text-align: left; width: 100%;">
-                    <div style="font-size: 1.1rem; margin-bottom: 5px;">${eventIcon} ${event.name}</div>
-                    <div style="font-size: 0.85rem; color: #cbd5e1; opacity: 0.8;">${eventTypeLabel}</div>
-                    <div style="font-size: 0.9rem; color: #cbd5e1; margin-top: 4px;">${playerCount} player${playerCount !== 1 ? 's' : ''} available</div>
-                </button>`;
-            }).join('');
-            
-            eventContent.innerHTML = `
-                <div style="text-align: center; margin-bottom: 25px;">
-                    <h2 style="color: #3b82f6; font-size: 1.5rem; margin-bottom: 10px;">🎯 Import by Event</h2>
-                    <p style="color: #94a3b8; font-size: 0.9rem;">Select an event to import all its participants</p>
-                </div>
-                <div style="background: rgba(15, 23, 42, 0.6); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #334155;">
-                    <div style="display: grid; gap: 10px;">
-                        ${eventButtonsHtml}
-                    </div>
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: center;">
-                    <button onclick="closeEventImportModal();" style="background: #64748b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem;">Cancel</button>
-                </div>
-            `;
-            
-            eventModal.appendChild(eventContent);
-            document.body.appendChild(eventModal);
-            eventModal.addEventListener('click', function(e) {
-                if (e.target === eventModal) {
-                    eventModal.remove();
-                }
-            });
-        }
-
-        function importEventPlayers(eventName, eventProperty = 'event') {
-            const tournamentPlayers = localStorage.getItem('tournamentPlayers');
-            const events = JSON.parse(localStorage.getItem('tournamentEvents') || '[]');
-            
-            if (!tournamentPlayers) {
-                showTimedNotification('❌ No player data found.', 3000);
-                return;
-            }
-            
-            // Find the event by name
-            const event = events.find(e => e.name === eventName);
-            if (!event || !event.participants || event.participants.length === 0) {
-                showTimedNotification('❌ No players found for the selected event.', 3000);
-                return;
-            }
-            
-            try {
-                const allPlayers = JSON.parse(tournamentPlayers);
-                const eventPlayers = allPlayers.filter(player => 
-                    event.participants.some(participant => participant.id === player.id)
-                );
-                
-                if (eventPlayers.length === 0) {
-                    showTimedNotification('❌ No players found for the selected event.', 3000);
-                    return;
-                }
-                
-                const convertedData = eventPlayers.map(player => ({ 
-                    name: player.name, 
-                    class: player.className, 
-                    division: player.divisionName,
-                    event: eventName
-                }));
-                
-                // Set game name to the event name
-                gameState.gameName = eventName;
-                
-                // Update the game name input field
-                const gameNameInput = document.getElementById('gameNameInput');
-                if (gameNameInput) {
-                    gameNameInput.value = eventName;
-                }
-                
-                // Save the game state to persist the game name
-                saveGameState();
-                
-                performImport(convertedData);
-                
-                // Update track progress if open
-                refreshTrackProgressIfOpen();
-                
-                // Import success notification removed
-            } catch (error) {
-                console.error('Import error:', error);
-                showTimedNotification('❌ Error importing players. Please try again.', 4000);
-            }
-        }
-        function closeMainImportModal() {
-            // Find and remove the main import modal (z-index: 10002)
-            const mainModal = document.querySelector('div[style*="z-index: 10002"]');
-            if (mainModal) {
-                mainModal.remove();
-            }
-            
-            // Also clear any stuck backdrops
-            const backdrops = document.querySelectorAll('div[style*="background: rgba(0, 0, 0, 0.8)"]');
-            backdrops.forEach(backdrop => {
-                if (backdrop.style.position === 'fixed' && backdrop.style.zIndex === '10002') {
-                    backdrop.remove();
-                }
-            });
-            
-            // Clear import modal data
-            delete window.importModalAllPlayers;
-        }
-
-        function closeEventImportModal() {
-            // Find and remove the event import modal (z-index: 10004)
-            const eventModal = document.querySelector('div[style*="z-index: 10004"]');
-            if (eventModal) {
-                eventModal.remove();
-            }
-            
-            // Also clear any stuck backdrops
-            const backdrops = document.querySelectorAll('div[style*="background: rgba(0, 0, 0, 0.8)"]');
-            backdrops.forEach(backdrop => {
-                if (backdrop.style.position === 'fixed' && backdrop.style.zIndex === '10004') {
-                    backdrop.remove();
-                }
-            });
-        }
-
-        function closeAvailableGroupsModal() {
-            // Find and remove the available groups modal (z-index: 10003)
-            const groupsModal = document.querySelector('div[style*="z-index: 10003"]');
-            if (groupsModal) {
-                groupsModal.remove();
-            }
-            
-            // Also clear any stuck backdrops
-            const backdrops = document.querySelectorAll('div[style*="background: rgba(0, 0, 0, 0.8)"]');
-            backdrops.forEach(backdrop => {
-                if (backdrop.style.position === 'fixed' && backdrop.style.zIndex === '10003') {
-                    backdrop.remove();
-                }
-            });
-        }
-
-        function closeAllImportModals() {
-            // Close all import-related modals by removing them from the DOM
-            const importModals = document.querySelectorAll('div[style*="z-index: 10002"], div[style*="z-index: 10003"], div[style*="z-index: 10004"]');
-            importModals.forEach(modal => {
-                modal.remove();
-            });
-            
-            // Clear import modal data
-            delete window.importModalAllPlayers;
-        }
-
-        function performImport(players) {
-            if (players.length === 0) {
-                showTimedNotification('❌ No players to import.', 3000);
-                return;
-            }
-            
-            // Clear existing players if any
-            if (gameState.players.length > 0) {
-                showImportConfirm(`Import will replace ${gameState.players.length} existing players with ${players.length} imported players. Continue?`, function() {
-                    gameState.players = [];
-                    // Continue with import logic
-                    importPlayersLogic();
-                }, function() {
-                    return; // Cancel import
-                });
-                return;
-            }
-            
-            // If no existing players, proceed directly
-            importPlayersLogic();
-            
-            function importPlayersLogic() {
-            
-            // Import players
-            players.forEach(function(playerData, index) {
-                const newPlayer = {
-                    id: playerId++,
-                    name: playerData.name || `Player ${index + 1}`,
-                    class: playerData.class || 'Open',
-                    division: playerData.division || 'Open',
-                    event: playerData.event || 'No Event',
-                    scores: [],
-                    total: 0,
-                    bullseyes: 0,
-                    tripleNickels: 0,
-                    noDrops: 0,
-                    average: 0,
-                    percentage: 0,
-                    currentRound: 1,
-                    currentDistance: 1,
-                    currentThrow: 1,
-                    viewingRound: 1,
-                    viewingDistance: 1,
-                    gameComplete: false,
-                    tiebreakerScores: [],
-                    tiebreakerTotal: 0,
-                    podiumTiebreakerPoints: 0,
-                    podiumTiebreakerPosition: null,
-                    podiumTiebreakerInfo: null
-                };
-                
-                // Initialize scores array for the player
-                for (var r = 0; r < gameState.rounds; r++) {
-                    newPlayer.scores.push([]);
-                    for (var d = 0; d < gameState.numDistances; d++) {
-                        newPlayer.scores[r].push(Array(gameState.throwsPerRound).fill(null));
-                    }
-                }
-                
-                gameState.players.push(newPlayer);
-            });
-            
-            // Mark that players were imported
-            gameState.playersImported = true;
-            
-            // Reset pagination to show imported players
-            gameState.currentPage = 1;
-            
-            // Update display
-            renderPlayers();
-            updateGameDisplay();
-            updateAddPlayerButton(); // Update button state after import
-            
-            // Update track progress if open
-            refreshTrackProgressIfOpen();
-            
-            saveGameState(); // Auto-save after import
-            
-            // Close all import modals
-            closeAllImportModals();
-            
-            // Import success notification removed
-            }
-        }
-
+        // Import functionality removed (Walkback Lite - no load/import)
 
         // Team-related functions
         function getPlayerTeam(playerName) {
             try {
                 const teams = JSON.parse(localStorage.getItem('tournamentTeams') || '[]');
-                console.log('Walkback: Found', teams.length, 'teams in localStorage');
-                teams.forEach(team => {
-                    console.log('Team:', team.name, 'color:', team.color, 'members:', team.members ? team.members.length : 0);
-                });
-                const foundTeam = teams.find(team => 
+                const foundTeam = teams.find(team =>
                     team.members && team.members.some(member => member.name === playerName)
                 );
-                if (foundTeam) {
-                    console.log('Found team for', playerName, ':', foundTeam.name, 'color:', foundTeam.color);
-                }
                 return foundTeam;
             } catch (e) {
                 console.error('Error getting player team:', e);
@@ -9730,13 +9252,10 @@
                 const teams = JSON.parse(localStorage.getItem('tournamentTeams') || '[]');
                 const team = teams.find(t => t.name === teamName);
                 if (!team || !team.members) return 0;
-                
                 let teamTotal = 0;
                 team.members.forEach(member => {
                     const player = gameState.players.find(p => p.name === member.name);
-                    if (player) {
-                        teamTotal += player.total;
-                    }
+                    if (player) teamTotal += player.total;
                 });
                 return teamTotal;
             } catch (e) {
@@ -9754,7 +9273,6 @@
             }
         }
 
-        // Helper function to format player name with team info for export
         function getPlayerNameWithTeam(playerName) {
             var playerTeam = getPlayerTeam(playerName);
             if (playerTeam) {
@@ -9765,6 +9283,7 @@
         }
 
         // Reset Game Functions
+            
         function showResetGameWarning() {
             const modal = document.createElement('div');
             modal.style.cssText = `position: fixed;top: 0;left: 0;width: 100vw;height: 100vh;background: rgba(0, 0, 0, 0.8);display: flex;align-items: center;justify-content: center;z-index: 10004;padding: 20px;`;
@@ -9805,11 +9324,6 @@
         }
 
         function resetGame() {
-            // Automatically revert tournament status when resetting if game is linked to tournament
-            if (gameState.playersImported && gameState.gameName) {
-                revertTournamentEventStatus();
-            }
-
             // Close any open popup windows (leaderboard, victory, track progress)
             if (leaderboardWindow && !leaderboardWindow.closed) {
                 leaderboardWindow.close();
@@ -9855,7 +9369,6 @@
                 tiebreakerRound: 1,
                 preTiebreakerStandings: null,
                 allTiebreakerParticipants: [],
-                playersImported: false,
                 eventSetToInProgress: false,
                 trackProgress: true, // Track progress feature always enabled
                 numLanes: 4, // Number of lanes for progress tracking
@@ -9899,114 +9412,17 @@
             showTimedNotification('🔄 Game reset successfully! Ready for a new game.', 3000);
         }
 
-        // Custom Preset Functions
-
-        function saveGamePreset() {
-            if (hasGameStarted()) {
-                showCustomAlert('Cannot save preset after game has started! Reset the game to save settings.');
-                return;
-            }
-            
-            // Get the game name from the input field
-            var gameNameInput = document.getElementById('gameNameInput');
-            var presetName = gameNameInput ? gameNameInput.value.trim() : '';
-            
-            if (!presetName) {
-                showCustomAlert('Please enter a Game Name first before saving a preset.');
-                return;
-            }
-            
-            // Check if name already exists in custom presets
-            var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-            if (customPresets[presetName]) {
-                showCustomConfirm('A preset with this name already exists. Do you want to overwrite it?', function() {
-                    // Continue with saving
-                    savePresetLogic();
-                });
-                return;
-            }
-            
-            // If no conflict, proceed directly
-            savePresetLogic();
-            
-            function savePresetLogic() {
-            
-            // Get current distances from custom distance input fields if they exist
-            var currentDistances = [...gameState.distances]; // Start with current distances
-            
-            // Check if custom distance inputs are visible and get their values
-            var customDistanceInputs = document.querySelectorAll('#customDistanceInputs input');
-            if (customDistanceInputs.length > 0) {
-                // Custom distance inputs are visible, get their current values
-                currentDistances = [];
-                for (var i = 0; i < customDistanceInputs.length; i++) {
-                    var inputValue = customDistanceInputs[i].value.trim();
-                    if (inputValue) {
-                        currentDistances.push(inputValue);
-                    } else {
-                        // If input is empty, use the original distance or a default
-                        currentDistances.push(gameState.distances[i] || 'Distance ' + (i + 1));
-                    }
-                }
-            }
-            
-            // Create preset object with current settings
-            var newPreset = {
-                rounds: gameState.rounds,
-                throwsPerRound: gameState.throwsPerRound,
-                maxScore: gameState.maxScore,
-                numDistances: currentDistances.length,
-                distances: currentDistances,
-                distancePreset: 'custom', // Always save as custom when saving custom preset
-                playMode: gameState.playMode,
-                tiebreakerMode: gameState.tiebreakerMode,
-                gameName: presetName // Save the game name in the preset
-            };
-            
-            try {
-                // Save to localStorage as custom preset
-                var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-                customPresets[presetName] = newPreset;
-                localStorage.setItem('walkbackCustomPresets', JSON.stringify(customPresets));
-                
-                // Update the dropdown to include the new preset
-                updatePresetDropdown();
-                
-                showTimedNotification('💾 Preset saved: ' + presetName, 2000);
-            } catch (error) {
-                showCustomAlert('Error saving preset: ' + error.message);
-            }
-            }
-        }
-
         function updatePresetDropdown() {
             var select = document.getElementById('distancePresetSelect');
             var currentValue = select.value;
             
-            // Clear existing options and add the new default presets first
-            select.innerHTML = '<option value="" disabled>────────── Default Presets ──────────</option>' +
-                             '<option value="dangerfest_am_knife">Dangerfest Am Knife (2m, 3m, 4m, 5m, 6m)</option>' +
-                             '<option value="dangerfest_pro_knife">Dangerfest Pro Knife (3m, 4m, 5m, 6m, 7m)</option>' +
-                             '<option value="dangerfest_am_hawk">Dangerfest Am Hawk (3m, 4m, 5m, 7m)</option>' +
-                             '<option value="dangerfest_pro_hawk">Dangerfest Pro Hawk (3m, 4m, 5m, 7m, 9m)</option>' +
-                             '<option value="akta">AKTA (7ft, 10ft, 13ft, 16ft)</option>' +
-                             '<option value="blade_aces_am_knife">Blade Aces Am Knife (2m, 3m, 4m, 5m)</option>' +
-                             '<option value="blade_aces_pro_knife">Blade Aces Pro Knife (3m, 4m, 5m, 6m, 7m)</option>' +
-                             '<option value="blade_aces_am_hawk">Blade Aces Am Hawk (3m, 4m, 5m)</option>' +
-                             '<option value="blade_aces_pro_hawk">Blade Aces Pro Hawk (3m, 4m, 5m, 7m, 9m)</option>';
+            select.innerHTML = '<option value="amateur">Am Knife (2m, 3m, 4m, 5m, 6m)</option>' +
+                             '<option value="professional">Pro Knife (3m, 4m, 5m, 6m, 7m)</option>' +
+                             '<option value="dangerfest_am_hawk">Am Hawk (3m, 4m, 5m, 7m)</option>' +
+                             '<option value="dangerfest_pro_hawk">Pro Hawk (3m, 4m, 5m, 7m, 9m)</option>' +
+                             '<option value="akta">AKTA (7ft, 10ft, 13ft, 16ft)</option>';
             
             // Add Custom option at the bottom
-            select.innerHTML += '<option value="" disabled>────────── Custom Presets ──────────</option>' +
-                              '<option value="custom">Custom (Set your own)</option>';
-            
-            // Add custom presets after the separator
-            var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-            Object.keys(customPresets).forEach(function(presetName) {
-                var option = document.createElement('option');
-                option.value = 'custom_' + presetName;
-                option.textContent = presetName + ' (Custom)';
-                select.appendChild(option);
-            });
             
             // Restore current selection if it still exists
             if (currentValue) {
@@ -10017,128 +9433,6 @@
         // Load custom presets on page load
         function loadCustomPresets() {
             updatePresetDropdown();
-        }
-
-        function loadCustomPreset(presetName) {
-            if (hasGameStarted()) {
-                alert('Cannot load preset after game has started! Reset the game to change settings.');
-                document.getElementById('distancePresetSelect').value = 'custom';
-                return;
-            }
-            
-            var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-            var preset = customPresets[presetName];
-            if (!preset) {
-                alert('Preset not found!');
-                document.getElementById('distancePresetSelect').value = 'custom';
-                return;
-            }
-            
-            // Apply preset settings
-            gameState.rounds = preset.rounds;
-            gameState.throwsPerRound = preset.throwsPerRound;
-            gameState.maxScore = preset.maxScore;
-            gameState.numDistances = preset.numDistances;
-            gameState.distances = preset.distances;
-            gameState.distancePreset = preset.distancePreset;
-            gameState.playMode = preset.playMode;
-            gameState.tiebreakerMode = preset.tiebreakerMode;
-            gameState.gameName = preset.gameName || presetName; // Use saved game name or preset name
-            gameState.targetRings = generateTargetRings();
-            
-            // Set the Game Name to the custom preset name
-            var customPresetDisplayName = presetName + ' (Custom Preset)';
-            gameState.gameName = customPresetDisplayName;
-            
-            // Update UI elements manually to avoid conflicts
-            updateCustomDistanceInputs();
-            updateGameDisplay();
-            renderPlayers();
-            
-            // Update game name input field
-            var gameNameInput = document.getElementById('gameNameInput');
-            if (gameNameInput) {
-                gameNameInput.value = customPresetDisplayName;
-            }
-            
-            // Set the distance preset dropdown to show the selected custom preset
-            var presetSelect = document.getElementById('distancePresetSelect');
-            if (presetSelect) {
-                presetSelect.value = 'custom_' + presetName;
-            }
-            
-            // Update other settings fields manually
-            document.getElementById('roundsSelect').value = gameState.rounds || 4;
-            document.getElementById('throwsPerRoundSelect').value = gameState.throwsPerRound || 3;
-            document.getElementById('numDistancesSelect').value = gameState.distances.length; // Use actual distances length
-            document.getElementById('maxScoreSelect').value = gameState.maxScore || 5;
-            document.getElementById('playModeSelect').value = gameState.playMode || 'consecutive';
-            document.getElementById('tiebreakerSelect').value = gameState.tiebreakerMode || 'sudden-death-podium-match';
-            
-            showTimedNotification('🎯 Loaded custom preset: ' + presetName, 2000);
-        }
-
-
-
-        function removeSelectedPreset() {
-            // Get the currently selected preset from the distance preset dropdown
-            var presetSelect = document.getElementById('distancePresetSelect');
-            var selectedPresetValue = presetSelect.value;
-            
-            // Check if anything is selected
-            if (!selectedPresetValue) {
-                showCustomAlert('Please select a preset from the dropdown to remove.');
-                return;
-            }
-            
-            var selectedPresetName = '';
-            var isCustomPreset = false;
-            
-            // Handle different types of presets
-            if (selectedPresetValue.startsWith('custom_')) {
-                // Custom preset
-                selectedPresetName = selectedPresetValue.substring(7); // Remove "custom_" prefix
-                isCustomPreset = true;
-                
-                // Check if the custom preset exists
-                var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-                if (!customPresets[selectedPresetName]) {
-                    showCustomAlert('Custom preset not found.');
-                    return;
-                }
-            } else {
-                // Default preset (amateur, professional, custom, or new default presets)
-                selectedPresetName = selectedPresetValue;
-                isCustomPreset = false;
-            }
-            
-            // Confirm removal
-            var confirmMessage = 'Are you sure you want to remove the preset "' + selectedPresetName + '"?\n\n';
-            if (isCustomPreset) {
-                confirmMessage += 'This will also reset all settings to defaults.';
-            } else {
-                confirmMessage += 'This will reset all settings to defaults.';
-            }
-            
-            showCustomConfirm(confirmMessage, function() {
-                if (isCustomPreset) {
-                    // Remove custom preset from localStorage
-                    var customPresets = JSON.parse(localStorage.getItem('walkbackCustomPresets') || '{}');
-                    delete customPresets[selectedPresetName];
-                    localStorage.setItem('walkbackCustomPresets', JSON.stringify(customPresets));
-                    
-                    // Update the dropdown first
-                    updatePresetDropdown();
-                    
-                    showTimedNotification('🗑️ Custom preset removed: ' + selectedPresetName, 3000);
-                } else {
-                    // For default presets, just reset settings
-                    showTimedNotification('🔄 Settings reset to defaults', 3000);
-                }
-                
-                // Reset settings to defaults
-                resetSettingsToDefaults();
-            });
         }
 
         function resetSettingsToDefaults() {
@@ -10816,181 +10110,6 @@
         }
 
         // Import confirmation modal function
-        function showImportConfirm(message, onConfirm, onCancel) {
-            const modal = document.createElement('div');
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0, 0, 0, 0.8); display: flex; align-items: center; justify-content: center; z-index: 10005; padding: 20px;';
-            
-            // Generate unique IDs for this modal instance
-            const modalId = 'importModal_' + Date.now();
-            const confirmBtnId = 'importConfirmBtn_' + Date.now();
-            const cancelBtnId = 'importCancelBtn_' + Date.now();
-            
-            const modalContent = document.createElement('div');
-            modalContent.style.cssText = 'background: linear-gradient(135deg, #1e293b 0%, #1e3a8a 50%, #1e293b 100%); border: 2px solid #8b5cf6; border-radius: 15px; padding: 30px; max-width: 500px; width: 100%; color: #e2e8f0; font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; text-align: center;';
-            
-            modalContent.innerHTML = `
-                <div style="margin-bottom: 25px;">
-                    <div style="font-size: 3rem; margin-bottom: 15px;">📥</div>
-                    <h2 style="margin: 0; color: #8b5cf6; font-size: 1.5rem; margin-bottom: 15px;">Triple Nickel</h2>
-                    <p style="margin: 0; color: #cbd5e1; font-size: 1rem; line-height: 1.5;">${message}</p>
-                </div>
-                
-                <div style="display: flex; gap: 12px; justify-content: center;">
-                    <button id="${confirmBtnId}" style="background: linear-gradient(45deg, #8b5cf6, #a855f7); color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.3s ease;">📥 Import Players</button>
-                    <button id="${cancelBtnId}" style="background: #64748b; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 500; font-size: 0.9rem; transition: all 0.3s ease;">❌ Cancel</button>
-                </div>
-            `;
-            
-            modal.appendChild(modalContent);
-            document.body.appendChild(modal);
-            
-            // Get button references after adding to DOM using unique IDs
-            const confirmBtn = document.getElementById(confirmBtnId);
-            const cancelBtn = document.getElementById(cancelBtnId);
-            
-            // Ensure buttons exist before adding event listeners
-            if (confirmBtn && cancelBtn) {
-                console.log('✅ Found both import buttons successfully:', confirmBtn, cancelBtn);
-                // Add hover effects
-                confirmBtn.addEventListener('mouseenter', () => {
-                    confirmBtn.style.transform = 'scale(1.05)';
-                    confirmBtn.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.3)';
-                });
-                
-                confirmBtn.addEventListener('mouseleave', () => {
-                    confirmBtn.style.transform = 'scale(1)';
-                    confirmBtn.style.boxShadow = 'none';
-                });
-                
-                cancelBtn.addEventListener('mouseenter', () => {
-                    cancelBtn.style.transform = 'scale(1.05)';
-                    cancelBtn.style.boxShadow = '0 4px 12px rgba(100, 116, 139, 0.3)';
-                });
-                
-                cancelBtn.addEventListener('mouseleave', () => {
-                    cancelBtn.style.transform = 'scale(1)';
-                    cancelBtn.style.boxShadow = 'none';
-                });
-                
-                // Handle button clicks
-                confirmBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔍 Import confirm button clicked - calling onConfirm');
-                    try {
-                        if (modal.parentNode) {
-                            modal.parentNode.removeChild(modal);
-                        } else {
-                            modal.remove();
-                        }
-                        console.log('✅ Import modal removed successfully');
-                    } catch (error) {
-                        console.error('❌ Error removing import modal:', error);
-                        // Last resort
-                        if (document.body.contains(modal)) {
-                            document.body.removeChild(modal);
-                        }
-                    }
-                    if (onConfirm) {
-                        onConfirm();
-                    } else {
-                        console.log('❌ onConfirm callback is null or undefined');
-                    }
-                });
-                
-                cancelBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    console.log('🔍 Import cancel button clicked - calling onCancel');
-                    try {
-                        if (modal.parentNode) {
-                            modal.parentNode.removeChild(modal);
-                        } else {
-                            modal.remove();
-                        }
-                        console.log('✅ Import modal removed successfully');
-                    } catch (error) {
-                        console.error('❌ Error removing import modal:', error);
-                        // Last resort
-                        if (document.body.contains(modal)) {
-                            document.body.removeChild(modal);
-                        }
-                    }
-                    if (onCancel) {
-                        onCancel();
-                    } else {
-                        console.log('❌ onCancel callback is null or undefined');
-                    }
-                });
-                
-                // Focus the confirm button for keyboard navigation
-                setTimeout(() => confirmBtn.focus(), 100);
-            } else {
-                console.error('❌ Could not find import confirm or cancel buttons in modal');
-            }
-            
-            // Close modal when clicking outside
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    console.log('🔍 Clicked outside import modal - closing');
-                    try {
-                        if (modal.parentNode) {
-                            modal.parentNode.removeChild(modal);
-                        } else {
-                            modal.remove();
-                        }
-                        console.log('✅ Import modal removed successfully (outside click)');
-                    } catch (error) {
-                        console.error('❌ Error removing import modal (outside click):', error);
-                        // Last resort
-                        if (document.body.contains(modal)) {
-                            document.body.removeChild(modal);
-                        }
-                    }
-                    if (onCancel) onCancel();
-                }
-            });
-            
-            // Handle keyboard events
-            modal.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    console.log('🔍 Escape key pressed - closing import modal');
-                    try {
-                        if (modal.parentNode) {
-                            modal.parentNode.removeChild(modal);
-                        } else {
-                            modal.remove();
-                        }
-                        console.log('✅ Import modal removed successfully (escape)');
-                    } catch (error) {
-                        console.error('❌ Error removing import modal (escape):', error);
-                        // Last resort
-                        if (document.body.contains(modal)) {
-                            document.body.removeChild(modal);
-                        }
-                    }
-                    if (onCancel) onCancel();
-                } else if (e.key === 'Enter') {
-                    console.log('🔍 Enter key pressed - confirming import');
-                    try {
-                        if (modal.parentNode) {
-                            modal.parentNode.removeChild(modal);
-                        } else {
-                            modal.remove();
-                        }
-                        console.log('✅ Import modal removed successfully (enter)');
-                    } catch (error) {
-                        console.error('❌ Error removing import modal (enter):', error);
-                        // Last resort
-                        if (document.body.contains(modal)) {
-                            document.body.removeChild(modal);
-                        }
-                    }
-                    if (onConfirm) onConfirm();
-                }
-            });
-        }
-
         // Finalization confirmation modal function with dynamic button text
         function showFinalizationConfirm(message, confirmButtonText, cancelButtonText, onConfirm, onCancel) {
             const modal = document.createElement('div');
@@ -11216,10 +10335,7 @@
             var settingsPanel = document.getElementById('settingsPanel');
             if (settingsPanel) {
                 settingsPanel.addEventListener('change', function(e) {
-                    if (e.target.matches('input, select, textarea')) markSettingsChanged();
-                });
-                settingsPanel.addEventListener('input', function(e) {
-                    if (e.target.matches('input, select, textarea')) markSettingsChanged();
+                    if (e.target.matches('input, select, textarea')) applySettings();
                 });
             }
             // Initialize pagination controls and dropdown after a short delay to ensure DOM is ready
