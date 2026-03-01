@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Knife Throwing Background</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    overflow: hidden;
+    background: #000000;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .bg-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000000;
+  }
+
+  .grain {
+    position: absolute;
+    inset: 0;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  .vignette {
+    display: none;
+  }
+
+  .ember {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #ff8c42;
+    box-shadow: 0 0 8px 3px rgba(255, 140, 66, 0.7), 0 0 16px 6px rgba(255, 80, 30, 0.4);
+    opacity: 0;
+    animation: ember-rise linear infinite;
+  }
+
+  @keyframes ember-rise {
+    0% { opacity: 0; transform: translateY(0) translateX(0) scale(1); }
+    10% { opacity: 1; }
+    70% { opacity: 0.7; }
+    100% { opacity: 0; transform: translateY(-100vh) translateX(var(--drift)) scale(0.3); }
+  }
+
+  /* Spinning knife wrapper — handles horizontal travel */
+  .knife-throw {
+    position: absolute;
+    opacity: 0;
+    z-index: 10;
+    filter: drop-shadow(0 0 12px rgba(255, 140, 60, 0.4));
+  }
+
+  .knife-throw.ltr {
+    animation: fly-ltr linear infinite;
+  }
+  @keyframes fly-ltr {
+    0%   { opacity: 0; left: -200px; }
+    3%   { opacity: var(--k-op, 0.5); }
+    47%  { opacity: var(--k-op, 0.5); }
+    52%  { opacity: 0; }
+    100% { opacity: 0; left: calc(100vw + 200px); }
+  }
+
+  .knife-throw.rtl {
+    animation: fly-rtl linear infinite;
+  }
+  @keyframes fly-rtl {
+    0%   { opacity: 0; right: -200px; }
+    3%   { opacity: var(--k-op, 0.5); }
+    47%  { opacity: var(--k-op, 0.5); }
+    52%  { opacity: 0; }
+    100% { opacity: 0; right: calc(100vw + 200px); }
+  }
+
+  .knife-throw.diag {
+    animation: fly-diag linear infinite;
+  }
+  @keyframes fly-diag {
+    0%   { opacity: 0; left: -200px; top: var(--sy); }
+    3%   { opacity: var(--k-op, 0.45); }
+    47%  { opacity: var(--k-op, 0.45); }
+    52%  { opacity: 0; }
+    100% { opacity: 0; left: calc(100vw + 200px); top: var(--ey); }
+  }
+
+  /* Inner spin */
+  .knife-spin {
+    display: inline-block;
+    animation: spin linear infinite;
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(var(--rot, 1800deg)); }
+  }
+
+  .target-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(200, 80, 40, 0.15);
+    animation: target-pulse ease-in-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes target-pulse {
+    0% { opacity: 0; transform: scale(0.5); }
+    30% { opacity: 0.3; }
+    70% { opacity: 0.15; }
+    100% { opacity: 0; transform: scale(2.5); }
+  }
+
+  .scratch {
+    position: absolute;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(180, 160, 140, 0.1), transparent);
+    transform-origin: center;
+    animation: scratch-flash ease-in-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes scratch-flash {
+    0%, 100% { opacity: 0; }
+    50% { opacity: 1; }
+  }
+
+  .wood-line {
+    position: absolute;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(90, 60, 30, 0.06) 20%, rgba(90, 60, 30, 0.04) 80%, transparent 100%);
+    animation: wood-shift linear infinite;
+  }
+
+  @keyframes wood-shift {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(30px); }
+  }
+
+  .crosshair {
+    position: absolute;
+    opacity: 0.06;
+    animation: crosshair-rotate linear infinite;
+  }
+
+  @keyframes crosshair-rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .shimmer {
+    position: absolute;
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(200, 200, 220, 0.08), rgba(255, 255, 255, 0.12), rgba(200, 200, 220, 0.08), transparent);
+    animation: shimmer-slide linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes shimmer-slide {
+    0% { opacity: 0; transform: translateX(-200px) rotate(var(--angle)); }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; transform: translateX(calc(100vw + 200px)) rotate(var(--angle)); }
+  }
+
+  .impact {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(255, 200, 100, 0.8);
+    box-shadow: 0 0 20px 8px rgba(255, 150, 50, 0.3), 0 0 40px 16px rgba(255, 100, 30, 0.1);
+    opacity: 0;
+    animation: impact-flash ease-out infinite;
+  }
+
+  @keyframes impact-flash {
+    0% { opacity: 0; transform: scale(0); }
+    5% { opacity: 1; transform: scale(1); }
+    8% { opacity: 0.8; transform: scale(2); }
+    15% { opacity: 0; transform: scale(3); }
+    100% { opacity: 0; }
+  }
+
+  .center-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 500px;
+    border-radius: 50%;
+    background: none;
+    animation: center-breathe ease-in-out infinite 4s;
+  }
+
+  @keyframes center-breathe {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.15); opacity: 1; }
+  }
+
+  .dust {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background: rgba(180, 160, 140, 0.3);
+    animation: dust-wander linear infinite;
+    opacity: 0;
+  }
+
+  @keyframes dust-wander {
+    0% { opacity: 0; transform: translate(0, 0); }
+    20% { opacity: 0.4; }
+    80% { opacity: 0.2; }
+    100% { opacity: 0; transform: translate(var(--wdx), var(--wdy)); }
+  }
+</style>
+</head>
+<body>
+<div class="bg-container" id="bg">
+  <div class="center-glow"></div>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+</div>
+
+<script>
+const bg = document.getElementById('bg');
+
+// ============================================================
+// SVG KNIFE SHAPES
+// ============================================================
+
+// STANDARD COMPETITION THROWER — straight blade, cord-wrapped handle
+function standardKnifeSVG(size = 80) {
+  const h = size * 0.15;
+  return `<svg width="${size}" height="${h}" viewBox="0 0 120 18" xmlns="http://www.w3.org/2000/svg">
+    <polygon points="0,9 58,3.5 61,9 58,14.5" fill="#b0b0b8" opacity="0.85"/>
+    <polygon points="0,9 58,3.5 58,9" fill="#d0d0d8" opacity="0.4"/>
+    <line x1="2" y1="9" x2="57" y2="4" stroke="rgba(255,255,255,0.28)" stroke-width="0.4"/>
+    <rect x="60" y="1.5" width="2.5" height="15" rx="0.8" fill="#888" opacity="0.75"/>
+    <rect x="62.5" y="4.5" width="42" height="9" rx="2" fill="#555558" opacity="0.8"/>
+    <line x1="69" y1="4.5" x2="69" y2="13.5" stroke="rgba(160,140,120,0.3)" stroke-width="0.8"/>
+    <line x1="75" y1="4.5" x2="75" y2="13.5" stroke="rgba(160,140,120,0.3)" stroke-width="0.8"/>
+    <line x1="81" y1="4.5" x2="81" y2="13.5" stroke="rgba(160,140,120,0.3)" stroke-width="0.8"/>
+    <line x1="87" y1="4.5" x2="87" y2="13.5" stroke="rgba(160,140,120,0.3)" stroke-width="0.8"/>
+    <line x1="93" y1="4.5" x2="93" y2="13.5" stroke="rgba(160,140,120,0.3)" stroke-width="0.8"/>
+    <line x1="99" y1="4.5" x2="99" y2="13.5" stroke="rgba(160,140,120,0.3)" stroke-width="0.8"/>
+    <rect x="104.5" y="3.5" width="11" height="11" rx="3.5" fill="#2e2e32" opacity="0.7"/>
+  </svg>`;
+}
+
+// BOWIE-STYLE THROWER — clip point, curved belly, fuller, brass guard, stacked leather handle
+function bowieKnifeSVG(size = 90) {
+  const h = size * 0.22;
+  return `<svg width="${size}" height="${h}" viewBox="0 0 130 28" xmlns="http://www.w3.org/2000/svg">
+    <!-- Main blade body -->
+    <polygon points="0,14 55,5 60,5 64,11 64,19 55,24" fill="#a0a0aa" opacity="0.8"/>
+    <!-- Clip point bevel -->
+    <polygon points="0,14 55,5 40,8" fill="#c0c0ca" opacity="0.3"/>
+    <!-- Clip curve -->
+    <path d="M 0,14 Q 8,8 25,6 L 55,5" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="0.5"/>
+    <!-- Fuller groove -->
+    <line x1="14" y1="12" x2="50" y2="8" stroke="rgba(80,80,90,0.45)" stroke-width="1.4"/>
+    <line x1="14" y1="12.8" x2="50" y2="8.8" stroke="rgba(200,200,210,0.1)" stroke-width="0.4"/>
+    <!-- Belly curve highlight -->
+    <path d="M 2,14 Q 30,26 55,24" fill="none" stroke="rgba(200,200,210,0.08)" stroke-width="0.5"/>
+    <!-- Brass guard -->
+    <rect x="63" y="2" width="4" height="24" rx="1.2" fill="#b09838" opacity="0.7"/>
+    <rect x="63.8" y="2.8" width="2.4" height="22.4" rx="0.8" fill="#d0b848" opacity="0.25"/>
+    <!-- Stacked leather handle -->
+    <rect x="67" y="7" width="44" height="14" rx="3.5" fill="#6a4830" opacity="0.8"/>
+    <line x1="73" y1="7" x2="73" y2="21" stroke="rgba(80,50,25,0.35)" stroke-width="0.9"/>
+    <line x1="79" y1="7" x2="79" y2="21" stroke="rgba(80,50,25,0.35)" stroke-width="0.9"/>
+    <line x1="85" y1="7" x2="85" y2="21" stroke="rgba(80,50,25,0.35)" stroke-width="0.9"/>
+    <line x1="91" y1="7" x2="91" y2="21" stroke="rgba(80,50,25,0.35)" stroke-width="0.9"/>
+    <line x1="97" y1="7" x2="97" y2="21" stroke="rgba(80,50,25,0.35)" stroke-width="0.9"/>
+    <line x1="103" y1="7" x2="103" y2="21" stroke="rgba(80,50,25,0.35)" stroke-width="0.9"/>
+    <!-- Pommel -->
+    <rect x="111" y="6" width="13" height="16" rx="5.5" fill="#3a2818" opacity="0.7"/>
+    <rect x="113.5" y="12" width="8" height="4" rx="2" fill="#8a7530" opacity="0.25"/>
+  </svg>`;
+}
+
+// DIAMOND-HEAD PERFORMER THROWER — symmetrical diamond blade, no guard, slim paracord handle
+function diamondKnifeSVG(size = 85) {
+  const h = size * 0.19;
+  return `<svg width="${size}" height="${h}" viewBox="0 0 125 24" xmlns="http://www.w3.org/2000/svg">
+    <!-- Diamond blade — wide symmetrical profile -->
+    <polygon points="0,12 28,2 56,8 56,16 28,22" fill="#b0b0b8" opacity="0.82"/>
+    <!-- Top bevel -->
+    <polygon points="0,12 28,2 56,8 28,12" fill="#d0d0d8" opacity="0.32"/>
+    <!-- Center ridge -->
+    <line x1="3" y1="12" x2="55" y2="12" stroke="rgba(255,255,255,0.1)" stroke-width="0.6"/>
+    <!-- Top edge highlight -->
+    <line x1="1" y1="12" x2="28" y2="2.5" stroke="rgba(255,255,255,0.16)" stroke-width="0.4"/>
+    <!-- Bottom edge -->
+    <line x1="1" y1="12" x2="28" y2="21.5" stroke="rgba(255,255,255,0.06)" stroke-width="0.4"/>
+    <!-- Shoulder -->
+    <rect x="55" y="7" width="2" height="10" rx="0.6" fill="#80808a" opacity="0.45"/>
+    <!-- Slim handle — no guard, performer style -->
+    <rect x="57" y="8" width="52" height="8" rx="2.8" fill="#3a3a42" opacity="0.82"/>
+    <!-- Paracord wrap — red accent -->
+    <line x1="63" y1="8" x2="63" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="68" y1="8" x2="68" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="73" y1="8" x2="73" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="78" y1="8" x2="78" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="83" y1="8" x2="83" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="88" y1="8" x2="88" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="93" y1="8" x2="93" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="98" y1="8" x2="98" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <line x1="103" y1="8" x2="103" y2="16" stroke="rgba(210,55,55,0.4)" stroke-width="0.8"/>
+    <!-- Flat pommel -->
+    <rect x="109" y="7.5" width="12" height="9" rx="3.5" fill="#222228" opacity="0.7"/>
+    <line x1="115" y1="8" x2="115" y2="16" stroke="rgba(255,255,255,0.06)" stroke-width="0.5"/>
+  </svg>`;
+}
+
+// Crosshair SVG
+function crosshairSVG(size = 120) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(200,80,40,0.3)" stroke-width="0.5"/>
+    <circle cx="50" cy="50" r="25" fill="none" stroke="rgba(200,80,40,0.2)" stroke-width="0.5"/>
+    <circle cx="50" cy="50" r="10" fill="none" stroke="rgba(200,80,40,0.25)" stroke-width="0.5"/>
+    <line x1="50" y1="5" x2="50" y2="95" stroke="rgba(200,80,40,0.15)" stroke-width="0.5"/>
+    <line x1="5" y1="50" x2="95" y2="50" stroke="rgba(200,80,40,0.15)" stroke-width="0.5"/>
+  </svg>`;
+}
+
+// ============================================================
+// POPULATE
+// ============================================================
+
+// Embers
+for (let i = 0; i < 25; i++) {
+  const ember = document.createElement('div');
+  ember.className = 'ember';
+  ember.style.left = Math.random() * 100 + '%';
+  ember.style.bottom = '-10px';
+  ember.style.setProperty('--drift', (Math.random() - 0.5) * 200 + 'px');
+  ember.style.animationDuration = (6 + Math.random() * 10) + 's';
+  ember.style.animationDelay = Math.random() * 12 + 's';
+  ember.style.width = (2 + Math.random() * 2) + 'px';
+  ember.style.height = ember.style.width;
+  if (Math.random() > 0.6) {
+    ember.style.background = '#ffaa50';
+    ember.style.boxShadow = '0 0 8px 3px rgba(255,170,80,0.6), 0 0 18px 6px rgba(255,120,40,0.3)';
+  }
+  bg.appendChild(ember);
+}
+
+// ============================================================
+// SPINNING THROWING KNIVES — all types, various trajectories
+// ============================================================
+const knivesSVG = [standardKnifeSVG, bowieKnifeSVG, diamondKnifeSVG];
+
+const throws = [
+  // === STANDARD THROWERS ===
+  { type: 0, dir:'ltr',  y:14,  dur:17, delay:0,   op:0.70, rot:1440,  sz:80 },
+  { type: 0, dir:'rtl',  y:78,  dur:24, delay:14,  op:0.55, rot:-1080, sz:70 },
+  { type: 0, dir:'diag', y:8,   dur:20, delay:7,   op:0.60, rot:1800,  sz:75, ey:60 },
+
+  // === BOWIE THROWERS ===
+  { type: 1, dir:'rtl',  y:32,  dur:19, delay:4,   op:0.70, rot:-1800, sz:95 },
+  { type: 1, dir:'ltr',  y:88,  dur:26, delay:20,  op:0.50, rot:1440,  sz:85 },
+  { type: 1, dir:'diag', y:70,  dur:22, delay:11,  op:0.55, rot:-1080, sz:90, ey:25 },
+
+  // === DIAMOND PERFORMER THROWERS ===
+  { type: 2, dir:'ltr',  y:50,  dur:15, delay:2,   op:0.75, rot:2160,  sz:85 },
+  { type: 2, dir:'rtl',  y:22,  dur:21, delay:16,  op:0.60, rot:-2520, sz:78 },
+  { type: 2, dir:'diag', y:5,   dur:18, delay:9,   op:0.60, rot:1800,  sz:82, ey:75 },
+
+  // === EXTRA MIXED for density ===
+  { type: 2, dir:'ltr',  y:65,  dur:28, delay:25,  op:0.45, rot:1440,  sz:70 },
+  { type: 1, dir:'ltr',  y:45,  dur:30, delay:30,  op:0.42, rot:1080,  sz:80 },
+  { type: 0, dir:'rtl',  y:55,  dur:23, delay:18,  op:0.50, rot:-1800, sz:65 },
+];
+
+throws.forEach(t => {
+  const wrapper = document.createElement('div');
+  wrapper.className = `knife-throw ${t.dir}`;
+  wrapper.style.top = t.y + '%';
+  wrapper.style.setProperty('--k-op', t.op);
+  wrapper.style.animationDuration = t.dur + 's';
+  wrapper.style.animationDelay = t.delay + 's';
+
+  if (t.dir === 'diag') {
+    wrapper.style.setProperty('--sy', t.y + '%');
+    wrapper.style.setProperty('--ey', (t.ey ?? t.y) + '%');
+  }
+
+  const spinner = document.createElement('div');
+  spinner.className = 'knife-spin';
+  spinner.innerHTML = knivesSVG[t.type](t.sz);
+  spinner.style.animationDuration = t.dur + 's';
+  spinner.style.setProperty('--rot', t.rot + 'deg');
+
+  wrapper.appendChild(spinner);
+  bg.appendChild(wrapper);
+});
+
+// Target ring pulses
+for (let i = 0; i < 5; i++) {
+  const ring = document.createElement('div');
+  ring.className = 'target-ring';
+  const size = 80 + Math.random() * 120;
+  ring.style.width = size + 'px';
+  ring.style.height = size + 'px';
+  ring.style.left = (10 + Math.random() * 80) + '%';
+  ring.style.top = (10 + Math.random() * 80) + '%';
+  ring.style.animationDuration = (5 + Math.random() * 6) + 's';
+  ring.style.animationDelay = Math.random() * 10 + 's';
+  bg.appendChild(ring);
+}
+
+// Scratches
+for (let i = 0; i < 12; i++) {
+  const scratch = document.createElement('div');
+  scratch.className = 'scratch';
+  scratch.style.width = (40 + Math.random() * 120) + 'px';
+  scratch.style.left = Math.random() * 100 + '%';
+  scratch.style.top = Math.random() * 100 + '%';
+  scratch.style.transform = `rotate(${Math.random() * 180}deg)`;
+  scratch.style.animationDuration = (6 + Math.random() * 10) + 's';
+  scratch.style.animationDelay = Math.random() * 15 + 's';
+  bg.appendChild(scratch);
+}
+
+// Wood grain lines
+for (let i = 0; i < 20; i++) {
+  const line = document.createElement('div');
+  line.className = 'wood-line';
+  line.style.width = (200 + Math.random() * 600) + 'px';
+  line.style.left = (Math.random() * 100 - 20) + '%';
+  line.style.top = (Math.random() * 100) + '%';
+  line.style.transform = `rotate(${-5 + Math.random() * 10}deg)`;
+  line.style.animationDuration = (20 + Math.random() * 30) + 's';
+  bg.appendChild(line);
+}
+
+// Crosshairs
+for (let i = 0; i < 3; i++) {
+  const ch = document.createElement('div');
+  ch.className = 'crosshair';
+  ch.innerHTML = crosshairSVG(100 + Math.random() * 80);
+  ch.style.left = (10 + Math.random() * 80) + '%';
+  ch.style.top = (10 + Math.random() * 80) + '%';
+  ch.style.animationDuration = (30 + Math.random() * 40) + 's';
+  bg.appendChild(ch);
+}
+
+// Shimmer streaks
+for (let i = 0; i < 6; i++) {
+  const shimmer = document.createElement('div');
+  shimmer.className = 'shimmer';
+  shimmer.style.top = Math.random() * 100 + '%';
+  shimmer.style.setProperty('--angle', (-15 + Math.random() * 30) + 'deg');
+  shimmer.style.animationDuration = (10 + Math.random() * 15) + 's';
+  shimmer.style.animationDelay = Math.random() * 20 + 's';
+  bg.appendChild(shimmer);
+}
+
+// Impact bursts
+for (let i = 0; i < 4; i++) {
+  const impact = document.createElement('div');
+  impact.className = 'impact';
+  impact.style.left = (15 + Math.random() * 70) + '%';
+  impact.style.top = (15 + Math.random() * 70) + '%';
+  impact.style.animationDuration = (8 + Math.random() * 12) + 's';
+  impact.style.animationDelay = (i * 5 + Math.random() * 5) + 's';
+  bg.appendChild(impact);
+}
+
+// Dust particles
+for (let i = 0; i < 30; i++) {
+  const dust = document.createElement('div');
+  dust.className = 'dust';
+  dust.style.left = Math.random() * 100 + '%';
+  dust.style.top = Math.random() * 100 + '%';
+  dust.style.setProperty('--wdx', (Math.random() - 0.5) * 150 + 'px');
+  dust.style.setProperty('--wdy', (Math.random() - 0.5) * 150 + 'px');
+  dust.style.animationDuration = (8 + Math.random() * 15) + 's';
+  dust.style.animationDelay = Math.random() * 10 + 's';
+  dust.style.width = (1 + Math.random() * 2) + 'px';
+  dust.style.height = dust.style.width;
+  bg.appendChild(dust);
+}
+</script>
+</body>
+</html>
