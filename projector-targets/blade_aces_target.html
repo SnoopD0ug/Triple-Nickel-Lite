@@ -704,7 +704,8 @@
         var ch = new BroadcastChannel('triplenickel-projector-score-from-target');
         var _wrapper = zoneEl ? zoneEl.closest('.target-wrapper') : null;
         var _msg = { points: score };
-        if (_wrapper) { _msg.targetIndex = parseInt(_wrapper.getAttribute('data-target-index') || '0', 10) + 1; }
+        var _targetCount = parseInt(targetsGridEl.getAttribute('data-count') || '1', 10);
+        if (_wrapper && _targetCount > 1) { _msg.targetIndex = parseInt(_wrapper.getAttribute('data-target-index') || '0', 10) + 1; }
         ch.postMessage(_msg);
       } catch (err) {}
     }
