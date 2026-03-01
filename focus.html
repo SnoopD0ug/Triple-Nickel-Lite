@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus — Coming Soon</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --accent: #00e5a0;
+    --accent-glow: rgba(0, 229, 160, 0.3);
+    --accent2: #00b8d4;
+    --text: #e8edf5;
+    --muted: #5a6278;
+    --ring: rgba(0, 229, 160, 0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  /* Animated grid background */
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 160, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 160, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 20s linear infinite;
+    z-index: 0;
+  }
+
+  @keyframes gridShift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+  }
+
+  /* Radial glow behind the rings */
+  .radial-glow {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 900px;
+    height: 900px;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(0,229,160,0.06) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* Concentric target rings */
+  .target-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--ring);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: ringPulse 4s ease-in-out infinite;
+  }
+
+  .ring:nth-child(1) { width: 150px; height: 150px; animation-delay: 0s; border-color: rgba(0,229,160,0.15); }
+  .ring:nth-child(2) { width: 300px; height: 300px; animation-delay: 0.5s; }
+  .ring:nth-child(3) { width: 450px; height: 450px; animation-delay: 1s; }
+  .ring:nth-child(4) { width: 600px; height: 600px; animation-delay: 1.5s; }
+  .ring:nth-child(5) { width: 750px; height: 750px; animation-delay: 2s; }
+
+  @keyframes ringPulse {
+    0%, 100% { opacity: 0.4; transform: translate(-50%, -50%) scale(1); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+  }
+
+  /* Crosshair lines */
+  .crosshair-h, .crosshair-v {
+    position: fixed;
+    background: rgba(0,229,160,0.04);
+    z-index: 0;
+    pointer-events: none;
+  }
+  .crosshair-h { width: 100%; height: 1px; top: 50%; left: 0; }
+  .crosshair-v { width: 1px; height: 100%; top: 0; left: 50%; }
+
+  /* Floating data particles */
+  .particles {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  .particle {
+    position: absolute;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--accent);
+    opacity: 0;
+    animation: floatUp 8s linear infinite;
+  }
+
+  @keyframes floatUp {
+    0% { opacity: 0; transform: translateY(100vh) scale(0.8); }
+    10% { opacity: 0.3; }
+    90% { opacity: 0.3; }
+    100% { opacity: 0; transform: translateY(-10vh) scale(1); }
+  }
+
+  /* Main content */
+  .content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 2rem;
+    max-width: 700px;
+  }
+
+  /* Logo / Brand */
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 2rem;
+    animation: fadeInDown 1s ease-out both;
+  }
+
+  .brand-icon {
+    width: 48px;
+    height: 48px;
+    position: relative;
+  }
+
+  .brand-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .brand-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Headline */
+  .headline {
+    font-size: clamp(2.5rem, 7vw, 5rem);
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 1.5rem;
+    animation: fadeInUp 1s ease-out 0.3s both;
+  }
+
+  .headline .line1 {
+    display: block;
+    color: var(--text);
+  }
+
+  .headline .line2 {
+    display: block;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Subheadline */
+  .subheadline {
+    font-size: 1.15rem;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    animation: fadeInUp 1s ease-out 0.6s both;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .subheadline strong {
+    color: var(--text);
+    font-weight: 400;
+  }
+
+  /* Stat preview cards */
+  .stats-preview {
+    display: flex;
+    gap: 1px;
+    justify-content: center;
+    margin-bottom: 3rem;
+    animation: fadeInUp 1s ease-out 0.8s both;
+    background: rgba(0,229,160,0.05);
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgba(0,229,160,0.08);
+  }
+
+  .stat-card {
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+    text-align: center;
+    flex: 1;
+    position: relative;
+  }
+
+  .stat-card + .stat-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 20%;
+    height: 60%;
+    width: 1px;
+    background: rgba(0,229,160,0.1);
+  }
+
+  .stat-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .stat-value .counter {
+    display: inline-block;
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  /* Mini animated chart in stat card */
+  .mini-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 30px;
+    justify-content: center;
+    margin-bottom: 8px;
+  }
+
+  .mini-bar {
+    width: 4px;
+    background: var(--accent);
+    border-radius: 2px;
+    animation: barGrow 2s ease-in-out infinite alternate;
+    opacity: 0.6;
+  }
+
+  @keyframes barGrow {
+    0% { transform: scaleY(0.3); }
+    100% { transform: scaleY(1); }
+  }
+
+  /* CTA / Email signup */
+  .cta-section {
+    animation: fadeInUp 1s ease-out 1s both;
+  }
+
+  .email-form {
+    display: flex;
+    gap: 0;
+    max-width: 440px;
+    margin: 0 auto 1.5rem;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid rgba(0,229,160,0.15);
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .email-form:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 30px rgba(0,229,160,0.1);
+  }
+
+  .email-form input {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    background: var(--surface);
+    border: none;
+    color: var(--text);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+  }
+
+  .email-form input::placeholder {
+    color: var(--muted);
+  }
+
+  .email-form button {
+    padding: 1rem 1.75rem;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.15s;
+    white-space: nowrap;
+  }
+
+  .email-form button:hover {
+    background: #00ffb3;
+    transform: scale(1.02);
+  }
+
+  .email-form button:active {
+    transform: scale(0.98);
+  }
+
+  .disclaimer {
+    font-size: 0.75rem;
+    color: var(--muted);
+    opacity: 0.6;
+  }
+
+  /* Floating feature tags */
+  .features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    animation: fadeInUp 1s ease-out 0.9s both;
+  }
+
+  .feature-tag {
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-size: 0.78rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.12);
+    background: rgba(0,229,160,0.03);
+    transition: all 0.3s;
+  }
+
+  .feature-tag:hover {
+    background: rgba(0,229,160,0.08);
+    border-color: rgba(0,229,160,0.3);
+    transform: translateY(-2px);
+  }
+
+  /* Live accuracy scanner line */
+  .scanner {
+    position: fixed;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.15;
+    z-index: 1;
+    pointer-events: none;
+    animation: scan 6s ease-in-out infinite;
+  }
+
+  @keyframes scan {
+    0%, 100% { top: 0; }
+    50% { top: 100%; }
+  }
+
+  /* Success state */
+  .success-msg {
+    display: none;
+    color: var(--accent);
+    font-weight: 400;
+    font-size: 0.95rem;
+    padding: 1rem;
+    animation: fadeInUp 0.5s ease-out;
+  }
+
+  .success-msg.show {
+    display: block;
+  }
+
+  .form-wrapper.submitted .email-form {
+    display: none;
+  }
+
+  /* Bottom ticker */
+  .ticker {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--surface);
+    border-top: 1px solid rgba(0,229,160,0.06);
+    padding: 10px 0;
+    overflow: hidden;
+    z-index: 20;
+  }
+
+  .ticker-inner {
+    display: flex;
+    white-space: nowrap;
+    animation: tickerScroll 30s linear infinite;
+  }
+
+  .ticker-item {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ticker-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+
+  @keyframes tickerScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .stats-preview {
+      flex-direction: column;
+    }
+    .stat-card + .stat-card::before {
+      width: 60%;
+      height: 1px;
+      top: 0;
+      left: 20%;
+    }
+    .email-form {
+      flex-direction: column;
+      border-radius: 12px;
+    }
+    .email-form button {
+      border-radius: 0 0 11px 11px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="radial-glow"></div>
+<div class="scanner"></div>
+
+<div class="crosshair-h"></div>
+<div class="crosshair-v"></div>
+
+<div class="target-container">
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+  <div class="ring"></div>
+</div>
+
+<div class="particles" id="particles"></div>
+
+<div class="content">
+  <div class="brand">
+    <div class="brand-icon">
+      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="24" cy="24" r="22" stroke="url(#grad)" stroke-width="2" opacity="0.3"/>
+        <circle cx="24" cy="24" r="14" stroke="url(#grad)" stroke-width="2" opacity="0.5"/>
+        <circle cx="24" cy="24" r="6" fill="url(#grad)"/>
+        <line x1="24" y1="0" x2="24" y2="10" stroke="#00e5a0" stroke-width="1.5" opacity="0.4"/>
+        <line x1="24" y1="38" x2="24" y2="48" stroke="#00e5a0" stroke-width="1.5" opacity="0.4"/>
+        <line x1="0" y1="24" x2="10" y2="24" stroke="#00e5a0" stroke-width="1.5" opacity="0.4"/>
+        <line x1="38" y1="24" x2="48" y2="24" stroke="#00e5a0" stroke-width="1.5" opacity="0.4"/>
+        <defs>
+          <linearGradient id="grad" x1="0" y1="0" x2="48" y2="48">
+            <stop offset="0%" stop-color="#00e5a0"/>
+            <stop offset="100%" stop-color="#00b8d4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="brand-name">Focus</span>
+  </div>
+
+  <h1 class="headline">
+    <span class="line1">Every Throw</span>
+    <span class="line2">Measured.</span>
+  </h1>
+
+  <p class="subheadline">
+    Performance analytics for competitive throwers.
+    Track your sessions, <strong>spot the trends</strong>, and dial in your precision with data-driven insight.
+  </p>
+
+  <div class="stats-preview">
+    <div class="stat-card">
+      <div class="mini-chart">
+        <div class="mini-bar" style="height:12px; animation-delay:0s"></div>
+        <div class="mini-bar" style="height:18px; animation-delay:0.1s"></div>
+        <div class="mini-bar" style="height:14px; animation-delay:0.2s"></div>
+        <div class="mini-bar" style="height:24px; animation-delay:0.3s"></div>
+        <div class="mini-bar" style="height:20px; animation-delay:0.4s"></div>
+        <div class="mini-bar" style="height:28px; animation-delay:0.5s"></div>
+        <div class="mini-bar" style="height:22px; animation-delay:0.6s"></div>
+      </div>
+      <span class="stat-value"><span class="counter" data-target="78.0">0</span>%</span>
+      <span class="stat-label">Accuracy Score</span>
+    </div>
+    <div class="stat-card">
+      <div class="mini-chart">
+        <div class="mini-bar" style="height:20px; animation-delay:0.2s"></div>
+        <div class="mini-bar" style="height:16px; animation-delay:0.3s"></div>
+        <div class="mini-bar" style="height:26px; animation-delay:0.4s"></div>
+        <div class="mini-bar" style="height:22px; animation-delay:0.5s"></div>
+        <div class="mini-bar" style="height:30px; animation-delay:0.6s"></div>
+        <div class="mini-bar" style="height:24px; animation-delay:0.7s"></div>
+        <div class="mini-bar" style="height:28px; animation-delay:0.8s"></div>
+      </div>
+      <span class="stat-value"><span class="counter" data-target="60">0</span></span>
+      <span class="stat-label">Throws Tracked</span>
+    </div>
+    <div class="stat-card">
+      <div class="mini-chart">
+        <div class="mini-bar" style="height:10px; animation-delay:0.1s"></div>
+        <div class="mini-bar" style="height:14px; animation-delay:0.2s"></div>
+        <div class="mini-bar" style="height:18px; animation-delay:0.3s"></div>
+        <div class="mini-bar" style="height:16px; animation-delay:0.4s"></div>
+        <div class="mini-bar" style="height:22px; animation-delay:0.5s"></div>
+        <div class="mini-bar" style="height:26px; animation-delay:0.6s"></div>
+        <div class="mini-bar" style="height:30px; animation-delay:0.7s"></div>
+      </div>
+      <span class="stat-value"><span class="counter" data-target="83">0</span>%</span>
+      <span class="stat-label">Efficiency</span>
+    </div>
+  </div>
+
+  <div class="features">
+    <span class="feature-tag">📊 Session Analytics</span>
+    <span class="feature-tag">🎯 Accuracy Heatmaps</span>
+    <span class="feature-tag">📈 Trend Tracking</span>
+  </div>
+
+
+</div>
+
+<!-- Bottom ticker -->
+<div class="ticker">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<script>
+  // Floating data particles
+  const particleContainer = document.getElementById('particles');
+  const dataPoints = ['97.2%', '±0.3"', '12/15', '48pts', 'x̄ 9.1', 'σ 0.4', '3×5', '142rpm', '94%', '10.2', '+3.1%', 'r²=.96', 'n=50'];
+
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.textContent = dataPoints[Math.floor(Math.random() * dataPoints.length)];
+    p.style.left = Math.random() * 100 + '%';
+    p.style.animationDelay = Math.random() * 8 + 's';
+    p.style.animationDuration = (6 + Math.random() * 6) + 's';
+    particleContainer.appendChild(p);
+  }
+
+  // Counter animation
+  const counters = document.querySelectorAll('.counter');
+  const observerOptions = { threshold: 0.5 };
+
+  const animateCounter = (el) => {
+    const target = parseFloat(el.dataset.target);
+    const isFloat = target % 1 !== 0;
+    const duration = 2000;
+    const start = performance.now();
+
+    const step = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = eased * target;
+      el.textContent = isFloat ? value.toFixed(1) : Math.floor(value).toLocaleString();
+      if (progress < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        animateCounter(e.target);
+        observer.unobserve(e.target);
+      }
+    });
+  }, observerOptions);
+
+  counters.forEach(c => observer.observe(c));
+
+  // Ticker
+  const tickerData = [
+    'ACCURACY TRACKING', 'SESSION ANALYTICS', 'TREND ANALYSIS',
+    'PERFORMANCE METRICS', 'THROW CONSISTENCY', 'HEATMAP VISUALIZATION',
+    'GROUPING ANALYSIS', 'PROGRESSIVE INSIGHTS'
+  ];
+
+  const tickerInner = document.getElementById('ticker');
+  const tickerHTML = tickerData.map(t =>
+    `<span class="ticker-item"><span class="ticker-dot"></span>${t}</span>`
+  ).join('');
+  tickerInner.innerHTML = tickerHTML + tickerHTML;
+</script>
+
+</body>
+</html>
