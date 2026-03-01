@@ -316,6 +316,123 @@
             filter: grayscale(1);
             pointer-events: none;
         }
+
+        /* Settings gear icon button */
+        .settings-gear-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 44px; height: 44px; padding: 0;
+            background: linear-gradient(135deg, #475569, #334155);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            color: #e2e8f0;
+        }
+        .settings-gear-btn:hover {
+            background: linear-gradient(135deg, #64748b, #475569);
+            transform: rotate(90deg) scale(1.05);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.3);
+        }
+        .settings-gear-btn svg {
+            width: 22px; height: 22px;
+        }
+
+        /* Settings modal */
+        #settingsModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #settingsPanel {
+            max-width: 900px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            margin: 0 !important;
+            box-sizing: border-box;
+        }
+        #settingsModal .settings-action-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        #settingsModal .settings-action-btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            text-align: left;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.25s ease;
+            color: #e2e8f0;
+            background: rgba(51, 65, 85, 0.6);
+        }
+        #settingsModal .settings-action-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Game Dynamics modal */
+        #gameDynamicsModal .gd-modal-content {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid #475569;
+            border-radius: 16px;
+            padding: 28px 32px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+        #gameDynamicsModal .gd-header {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+        }
+        #gameDynamicsModal .gd-subtitle {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        #gameDynamicsModal .gd-btn {
+            padding: 14px 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            transition: all 0.25s ease;
+            color: #e2e8f0;
+            background: rgba(51, 65, 85, 0.6);
+        }
+        #gameDynamicsModal .gd-btn:hover {
+            background: rgba(71, 85, 105, 0.9);
+            border-color: rgba(148, 163, 184, 0.4);
+            transform: translateX(4px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
     </style>
 </head>
 <body>
@@ -326,10 +443,7 @@
         <div id="gameInterface" class="game-interface">
             <div class="game-header">
                 <div class="action-buttons">
-                    <button class="action-button leaderboard-btn" onclick="openLeaderboardWindow()">🏆 Leaderboard</button>
-                    <button class="action-button stats-btn" onclick="showStats()">📊 Stats</button>
-                    <button class="action-button settings-btn" onclick="toggleSettings()">⚙️ Settings</button>
-                    <button class="action-button settings-btn" onclick="exportData()">💾 Export</button>
+                    <button class="action-button settings-btn settings-gear-btn" onclick="toggleSettings()" title="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg></button>
                     <button class="action-button" id="finalizeBtn" style="background: linear-gradient(45deg, #fbbf24, #f59e0b); display: none;" onclick="finalizeGame()">🏁 Finalize Game</button>
                 </div>
             </div>
@@ -350,14 +464,15 @@
                 </div>
             </div>
 
-            <!-- Settings Panel -->
-            <div id="settingsPanel" style="background: rgba(30, 41, 59, 0.9); border: 1px solid #475569; border-radius: 15px; padding: 25px; margin-bottom: 30px; display: none;">
+            <!-- Settings Modal -->
+            <div id="settingsModal" onclick="if(event.target===this)toggleSettings()">
+            <div id="settingsPanel" onclick="event.stopPropagation()" style="background: rgba(30, 41, 59, 0.98); border: 1px solid #475569; border-radius: 15px; padding: 25px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);">
                 <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <span>⚙️</span>
                         <span>Golf Settings</span>
                     </div>
-                    <button onclick="resetSettingsToDefaultsInPanel()" style="background: #64748b; border: none; color: white; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 500; transition: all 0.3s ease;">Reset</button>
+                    <button onclick="toggleSettings()" style="background: transparent; border: 1px solid #64748b; color: #94a3b8; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 1rem; transition: all 0.3s ease;" title="Close">✕</button>
                 </div>
                 
                 <div id="gameStartedWarning" style="background: rgba(245, 101, 101, 0.1); border: 1px solid #ef4444; padding: 15px; border-radius: 10px; margin-bottom: 20px; display: none;">
@@ -418,10 +533,33 @@
                     </div>
                 </div>
                 
+                <div class="settings-action-row">
+                    <button class="settings-action-btn" onclick="resetSettingsToDefaultsInPanel()">⚙️ Defaults</button>
+                    <button class="settings-action-btn" onclick="resetGame()">🔄 Reset Game</button>
+                    <button class="settings-action-btn" onclick="showGameDynamicsModal()">🎮 Game Dynamics</button>
+                </div>
+
                 <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px;">
                     <button id="applySettingsBtn" onclick="applySettings()" style="background: #10b981; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Apply Changes</button>
-                    <button onclick="resetGame()" style="background: #ef4444; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">Reset Game</button>
-                    <button onclick="exportData()" style="background: #8b5cf6; border: none; color: white; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: all 0.3s ease;">💾 Export Data</button>
+                </div>
+            </div>
+            </div>
+
+            <!-- Game Dynamics Modal -->
+            <div id="gameDynamicsModal" onclick="if(event.target===this)closeGameDynamicsModal()" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 10001; display: none; justify-content: center; align-items: center; padding: 24px; box-sizing: border-box;">
+                <div class="gd-modal-content" onclick="event.stopPropagation()">
+                    <div class="gd-header" style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+                        <div>
+                            <div style="font-size: 1.35rem; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 10px;">🎮 Game Dynamics</div>
+                            <div class="gd-subtitle">Leaderboard, stats & reports</div>
+                        </div>
+                        <button onclick="closeGameDynamicsModal()" style="background: rgba(100, 116, 139, 0.2); border: 1px solid rgba(148, 163, 184, 0.3); color: #94a3b8; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;">✕</button>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); openLeaderboardWindow();">🏆 Leaderboard</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); showStats();">📊 Current Stats</button>
+                        <button class="gd-btn" onclick="closeGameDynamicsModal(); exportData();">💾 Save Report</button>
+                    </div>
                 </div>
             </div>
 
@@ -2673,13 +2811,24 @@
 
         function toggleSettings() {
             settingsVisible = !settingsVisible;
+            var modal = document.getElementById('settingsModal');
             var panel = document.getElementById('settingsPanel');
             if (settingsVisible) {
-                panel.style.display = 'block';
+                if (modal) modal.style.display = 'flex';
                 updateSettingsPanel();
             } else {
-                panel.style.display = 'none';
+                if (modal) modal.style.display = 'none';
             }
+        }
+
+        function showGameDynamicsModal() {
+            var modal = document.getElementById('gameDynamicsModal');
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeGameDynamicsModal() {
+            var modal = document.getElementById('gameDynamicsModal');
+            if (modal) modal.style.display = 'none';
         }
 
         function markSettingsChanged() {
@@ -2812,8 +2961,8 @@
             showTimedNotification('⚙️ Golf settings applied successfully!', 2000);
             
             settingsVisible = false;
-            var panel = document.getElementById('settingsPanel');
-            if (panel) panel.style.display = 'none';
+            var modal = document.getElementById('settingsModal');
+            if (modal) modal.style.display = 'none';
         }
 
         function resetGame() {
@@ -2874,4 +3023,3 @@
     </script>
 </body>
 </html>
-
