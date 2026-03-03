@@ -47,10 +47,14 @@
     display: flex; align-items: center; justify-content: center;
     padding: 5vmin; position: relative;
   }
+  .targets-grid.has-alignment {
+    overflow: visible;
+  }
   .targets-grid.has-alignment .target-wrapper {
     width: fit-content !important;
     height: fit-content !important;
     padding: 0 !important;
+    transform-origin: center center;
   }
   .targets-grid.has-alignment[data-count="2"] .target-wrapper { max-width: 44vmin; max-height: 90vmin; }
   .targets-grid.has-alignment[data-count="3"] .target-wrapper { max-width: 28vmin; max-height: 90vmin; }
@@ -406,6 +410,19 @@
     : null;
 
   function isSupportedScore(score) { return Object.prototype.hasOwnProperty.call(SUPPORTED_SCORES, score); }
+  function findZoneAtPoint(clientX, clientY) {
+    var zones = targetsGridEl.querySelectorAll('.score-zone');
+    var best = null;
+    var bestArea = Infinity;
+    for (var i = 0; i < zones.length; i++) {
+      var r = zones[i].getBoundingClientRect();
+      if (clientX >= r.left && clientX <= r.right && clientY >= r.top && clientY <= r.bottom) {
+        var area = r.width * r.height;
+        if (area < bestArea) { bestArea = area; best = zones[i]; }
+      }
+    }
+    return best;
+  }
   function updateRoundTotal() {
     if (!currentRoundThrows.length) roundTotalEl.textContent = '-';
     else roundTotalEl.textContent = String(currentRoundThrows.reduce(function(a, b) { return a + b; }, 0));
@@ -799,10 +816,13 @@
   targetsGridEl.addEventListener('click', function(e) {
     if (isStaticMode) return;
     if (document.body.classList.contains('alignment-mode')) return;
-    var zone = e.target.closest('.score-zone');
+    var targetCount = parseInt(targetsGridEl.getAttribute('data-count') || '1', 10);
+    var hasAlignment = targetsGridEl.classList.contains('has-alignment');
+    var zone = (hasAlignment && targetCount > 1)
+      ? findZoneAtPoint(e.clientX, e.clientY)
+      : e.target.closest('.score-zone');
     if (!zone) return;
     var score = parseInt(zone.dataset.score, 10);
-    var targetCount = parseInt(targetsGridEl.getAttribute('data-count') || '1', 10);
     if (targetCount > 1) {
       var clickedWrapper = zone.closest('.target-wrapper');
       var clickedIndex = clickedWrapper ? parseInt(clickedWrapper.getAttribute('data-target-index') || '0', 10) : 0;
