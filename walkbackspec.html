@@ -682,22 +682,18 @@
 
     function checkForSavedGame() {
         try {
-            var saved = JSON.parse(localStorage.getItem('walkbackGameState'));
+            var saved = JSON.parse(localStorage.getItem('walkbackGameState') || 'null');
             if (!saved || !saved.gameState) return;
-            var gs = saved.gameState;
-            if (!gs.players || gs.players.length === 0) return;
 
-            var parts = [];
-            if (gs.gameName) parts.push(gs.gameName);
-            parts.push(gs.players.length + ' player' + (gs.players.length !== 1 ? 's' : ''));
-            if (saved.savedAt) parts.push(timeAgo(saved.savedAt));
+            // Use same logic as shared-sidebar: default state = no score, no additional players
+            if (typeof isWalkbackDefaultState === 'function' && isWalkbackDefaultState(saved)) {
+                // No real progress — clear and show spec selection (no resume banner)
+                localStorage.removeItem('walkbackGameState');
+                return;
+            }
 
-            document.getElementById('resumeDetails').textContent = parts.join(' · ');
-            var banner = document.getElementById('resumeBanner');
-            banner.style.display = 'flex';
-            banner.classList.remove('fade-in');
-            void banner.offsetWidth;
-            banner.classList.add('fade-in');
+            // Active game with progress — redirect straight to walkback, don't show this page
+            window.location.href = 'walkback.html';
         } catch (e) {}
     }
 
