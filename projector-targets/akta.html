@@ -806,7 +806,8 @@
     if (targetCount > 1) {
       var clickedWrapper = zone.closest('.target-wrapper');
       var clickedIndex = clickedWrapper ? parseInt(clickedWrapper.getAttribute('data-target-index') || '0', 10) : 0;
-      if (clickedIndex !== currentRoundThrows.length % targetCount) return;
+      var activeTargetIndex = throws.length % targetCount;
+      if (clickedIndex !== activeTargetIndex) return;
     }
     recordScore(score, e, zone);
   });
