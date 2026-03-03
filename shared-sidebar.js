@@ -177,4 +177,5 @@ if (document.readyState !== 'loading') {
 window.toggleSidebar = toggleSidebar;
 window.setActiveNavigation = setActiveNavigation;
 window.initializeSidebar = initializeSidebar;
-window.handleWalkbackNavClick = handleWalkbackNavClick; 
+window.handleWalkbackNavClick = handleWalkbackNavClick;
+window.isWalkbackDefaultState = isWalkbackDefaultState; 
