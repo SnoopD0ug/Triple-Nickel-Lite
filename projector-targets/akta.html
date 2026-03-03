@@ -255,19 +255,24 @@
     border-color: rgba(255,50,50,0.7);
   }
   body.alignment-mode .targets-grid .target-wrapper {
-    cursor: grab;
-    pointer-events: auto;
+    pointer-events: none;
     transform-origin: center center;
     width: fit-content !important;
     height: fit-content !important;
     padding: 0 !important;
   }
+  body.alignment-mode .targets-grid .target-wrapper .target-container {
+    pointer-events: none;
+  }
+  body.alignment-mode .targets-grid .target-wrapper .target-container .score-zone {
+    pointer-events: auto;
+    cursor: grab;
+  }
+  body.alignment-mode.align-dragging { cursor: grabbing !important; }
   body.alignment-mode .targets-grid[data-count="2"] .target-wrapper { max-width: 44vmin; max-height: 90vmin; }
   body.alignment-mode .targets-grid[data-count="3"] .target-wrapper { max-width: 28vmin; max-height: 90vmin; }
   body.alignment-mode .targets-grid[data-count="4"] .target-wrapper { max-width: 43vmin; max-height: 43vmin; }
   body.alignment-mode .targets-grid[data-count="5"] .target-wrapper { max-width: 16vmin; max-height: 90vmin; }
-  body.alignment-mode .targets-grid .target-wrapper:active { cursor: grabbing; }
-  body.alignment-mode .targets-grid .target-wrapper * { pointer-events: none; }
   .fs-hint {
     position: fixed; bottom: 8vmin; left: 50%; transform: translateX(-50%);
     color: rgba(255,255,255,0.2); font-size: 1.5vmin; z-index: 50;
@@ -676,6 +681,7 @@
   }
   function onAlignMouseDown(e) {
     if (!document.body.classList.contains('alignment-mode')) return;
+    if (!e.target.closest('.score-zone')) return;
     var wrapper = e.target.closest('.target-wrapper');
     if (!wrapper) return;
     alignActiveWrapper = wrapper;
@@ -688,6 +694,7 @@
     alignDragState.startOx = p.x;
     alignDragState.startOy = p.y;
     alignDragState.scale = p.s;
+    document.body.classList.add('align-dragging');
     document.addEventListener('mousemove', onAlignMouseMove);
     document.addEventListener('mouseup', onAlignMouseUp);
     e.preventDefault();
@@ -701,6 +708,7 @@
   function onAlignMouseUp() {
     alignDragState.dragging = false;
     alignDragState.wrapper = null;
+    document.body.classList.remove('align-dragging');
     document.removeEventListener('mousemove', onAlignMouseMove);
     document.removeEventListener('mouseup', onAlignMouseUp);
   }
@@ -723,7 +731,7 @@
     if (alignScaleSlider) alignScaleSlider.addEventListener('input', onAlignScaleSliderInput);
   }
   function exitAlignmentMode() {
-    document.body.classList.remove('alignment-mode');
+    document.body.classList.remove('alignment-mode', 'align-dragging');
     targetsGridEl.removeEventListener('mousedown', onAlignMouseDown);
     targetsGridEl.removeEventListener('wheel', onAlignWheel);
     if (alignScaleSlider) alignScaleSlider.removeEventListener('input', onAlignScaleSliderInput);
@@ -790,6 +798,7 @@
 
   targetsGridEl.addEventListener('click', function(e) {
     if (isStaticMode) return;
+    if (document.body.classList.contains('alignment-mode')) return;
     var zone = e.target.closest('.score-zone');
     if (!zone) return;
     var score = parseInt(zone.dataset.score, 10);
