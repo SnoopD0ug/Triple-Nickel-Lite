@@ -35,7 +35,7 @@
     <link rel="stylesheet" href="shared-sidebar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Abril+Fatface&family=Great+Vibes&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -82,27 +82,308 @@
             width: 100%;
         }
 
-        .logo-icon {
-            font-size: clamp(4rem, 10vw, 6rem);
-            margin-bottom: clamp(15px, 3vh, 25px);
-            animation: pulse 2s ease-in-out infinite;
+        /* Vegas-style neon marquee hero */
+        #tnlVegasHero {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: clamp(12px, 2.5vh, 24px);
+            max-width: 100%;
         }
 
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+        #tnlVegasHero .vegas-scene {
+            position: relative;
+            padding: clamp(24px, 4vw, 48px) clamp(16px, 3vw, 40px);
         }
 
-        .title {
-            font-size: clamp(2.5rem, 6vw, 4rem);
-            font-weight: 800;
-            font-family: 'Inter', sans-serif;
-            margin-bottom: clamp(10px, 2vh, 20px);
-            background: linear-gradient(45deg, #3b82f6, #60a5fa, #93c5fd);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 40px rgba(59, 130, 246, 0.3);
+        #tnlVegasHero .vegas-scene::before {
+            content: '';
+            position: absolute;
+            inset: -60px;
+            background:
+                radial-gradient(ellipse at 50% 40%, rgba(255, 60, 80, 0.07) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(80, 160, 255, 0.05) 0%, transparent 45%),
+                radial-gradient(ellipse at 50% 70%, rgba(255, 180, 60, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            animation: vegasAmbPulse 6s ease-in-out infinite;
+        }
+
+        @keyframes vegasAmbPulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        #tnlVegasHero .vegas-sign-wrapper {
+            position: relative;
+            filter: drop-shadow(0 25px 50px rgba(0,0,0,0.7));
+        }
+
+        #tnlVegasHero .vegas-chrome-frame {
+            position: relative;
+            background: linear-gradient(180deg, #444 0%, #222 40%, #333 60%, #111 100%);
+            border-radius: 16px;
+            padding: 4px;
+            box-shadow:
+                inset 0 1px 0 rgba(255,255,255,0.25),
+                inset 0 -1px 0 rgba(0,0,0,0.5),
+                0 0 0 2px #000;
+        }
+
+        #tnlVegasHero .vegas-bulb-panel {
+            position: relative;
+            background: linear-gradient(180deg, #1a1520, #0e0b14, #1a1520);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        #tnlVegasHero .vegas-bulbs-track {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        #tnlVegasHero .vegas-sign-face {
+            position: relative;
+            background:
+                radial-gradient(ellipse at 50% 35%, #1c1525 0%, #0d0a12 55%, #08060c 100%);
+            border-radius: 6px;
+            padding: clamp(32px, 5vw, 48px) clamp(28px, 8vw, 80px) clamp(28px, 5vw, 44px);
+            min-width: min(560px, 100%);
+            max-width: 100%;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow:
+                inset 0 3px 15px rgba(0,0,0,0.6),
+                inset 0 0 30px rgba(0,0,0,0.3);
+            z-index: 2;
+            overflow: visible;
+        }
+
+        #tnlVegasHero .vegas-bulb {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+
+        #tnlVegasHero .vegas-bulb.off {
+            background: radial-gradient(circle at 40% 35%, #3a3028, #1a1510);
+            box-shadow: none;
+        }
+
+        #tnlVegasHero .vegas-bulb.on-warm {
+            background: radial-gradient(circle at 35% 30%, #fff8e0, #ffe4a0, #e8c060);
+            box-shadow:
+                0 0 4px 2px rgba(255,228,160,0.9),
+                0 0 12px 4px rgba(255,220,130,0.35),
+                0 0 24px 6px rgba(255,200,80,0.1);
+        }
+
+        #tnlVegasHero .vegas-bulb.on-hot {
+            background: radial-gradient(circle at 35% 30%, #ffffff, #ffeecc, #ffd888);
+            box-shadow:
+                0 0 5px 2px rgba(255,255,255,0.8),
+                0 0 14px 5px rgba(255,240,200,0.4),
+                0 0 28px 7px rgba(255,220,140,0.12);
+        }
+
+        #tnlVegasHero .vegas-neon-triple {
+            font-family: 'Abril Fatface', serif;
+            font-size: clamp(40px, 7vw, 88px);
+            letter-spacing: 0.12em;
+            line-height: 1;
+            color: #fff;
+            text-shadow:
+                0 0 7px #fff,
+                0 0 20px rgba(255,255,255,0.7),
+                0 0 40px rgba(200,220,255,0.4),
+                0 0 80px rgba(180,200,255,0.2),
+                0 0 120px rgba(160,180,255,0.1);
+            animation: vegasNeonFlicker 8s ease-in-out infinite;
+            position: relative;
+        }
+
+        #tnlVegasHero .vegas-neon-nickel {
+            font-family: 'Abril Fatface', serif;
+            font-size: clamp(40px, 7vw, 88px);
+            letter-spacing: 0.12em;
+            line-height: 1;
+            color: #ff4455;
+            text-shadow:
+                0 0 7px #ff4455,
+                0 0 20px rgba(255,68,85,0.7),
+                0 0 40px rgba(255,50,70,0.4),
+                0 0 80px rgba(255,30,50,0.2),
+                0 0 120px rgba(255,20,40,0.1);
+            animation: vegasNeonFlicker2 8s ease-in-out infinite;
+            position: relative;
+            margin-top: 4px;
+        }
+
+        #tnlVegasHero .vegas-neon-lite {
+            font-family: 'Great Vibes', cursive;
+            font-size: clamp(28px, 5vw, 58px);
+            letter-spacing: 0.04em;
+            line-height: 1;
+            color: #55ccff;
+            position: relative;
+            margin-top: 8px;
+            text-shadow:
+                0 0 5px #55ccff,
+                0 0 12px rgba(85,204,255,0.8),
+                0 0 28px rgba(60,180,255,0.5),
+                0 0 55px rgba(40,150,255,0.3),
+                0 0 90px rgba(30,120,255,0.15),
+                0 0 140px rgba(20,100,255,0.06);
+            animation: vegasBlueNeonFlicker 7s linear infinite;
+        }
+
+        #tnlVegasHero .vegas-sign-face::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 15%; right: 15%;
+            height: 35%;
+            background: linear-gradient(0deg,
+                rgba(85,204,255,0.025) 0%,
+                rgba(255,68,85,0.015) 40%,
+                transparent 100%);
+            pointer-events: none;
+            border-radius: 0 0 6px 6px;
+        }
+
+        @keyframes vegasNeonFlicker {
+            0%, 100% { opacity: 1; }
+            4% { opacity: 0.85; }
+            6% { opacity: 1; }
+            50% { opacity: 1; }
+            52% { opacity: 0.9; }
+            53% { opacity: 1; }
+        }
+
+        @keyframes vegasNeonFlicker2 {
+            0%, 100% { opacity: 1; }
+            30% { opacity: 1; }
+            31% { opacity: 0.8; }
+            32% { opacity: 1; }
+            33% { opacity: 0.85; }
+            34% { opacity: 1; }
+            70% { opacity: 1; }
+            72% { opacity: 0.88; }
+            73% { opacity: 1; }
+        }
+
+        @keyframes vegasBlueNeonFlicker {
+            0%, 100% { opacity: 1; }
+            12% { opacity: 1; }
+            12.5% { opacity: 0.6; }
+            13% { opacity: 0.9; }
+            13.3% { opacity: 0.55; }
+            14% { opacity: 1; }
+            45% { opacity: 1; }
+            45.3% { opacity: 0.75; }
+            45.8% { opacity: 1; }
+            76% { opacity: 1; }
+            76.4% { opacity: 0.65; }
+            76.8% { opacity: 0.85; }
+            77.2% { opacity: 0.5; }
+            77.6% { opacity: 1; }
+        }
+
+        #tnlVegasHero .vegas-diamond-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        #tnlVegasHero .vegas-diamond-row .vegas-seg {
+            height: 1px;
+            width: clamp(20px, 5vw, 40px);
+            background: linear-gradient(90deg, transparent, rgba(255,200,100,0.3), transparent);
+        }
+
+        #tnlVegasHero .vegas-diamond-row .vegas-diamond {
+            width: 7px;
+            height: 7px;
+            background: rgba(255,200,100,0.5);
+            transform: rotate(45deg);
+            box-shadow: 0 0 6px rgba(255,200,100,0.3);
+            flex-shrink: 0;
+        }
+
+        #tnlVegasHero .vegas-diamond-row .vegas-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(255,68,85,0.6);
+            box-shadow: 0 0 6px rgba(255,68,85,0.4);
+            flex-shrink: 0;
+        }
+
+        #tnlVegasHero .vegas-diamond-row-bottom .vegas-dot {
+            background: rgba(85,204,255,0.5);
+            box-shadow: 0 0 6px rgba(85,204,255,0.3);
+        }
+
+        #tnlVegasHero .vegas-diamond-row-bottom .vegas-seg {
+            background: linear-gradient(90deg, transparent, rgba(85,180,255,0.2), transparent);
+        }
+
+        #tnlVegasHero .vegas-neon-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.7;
+        }
+
+        #tnlVegasHero .vegas-neon-arrow-left { left: 12px; }
+        #tnlVegasHero .vegas-neon-arrow-right { right: 12px; }
+
+        #tnlVegasHero .vegas-arrow-chevron {
+            width: 0; height: 0;
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+        }
+
+        #tnlVegasHero .vegas-arrow-chevron.down {
+            border-top: 8px solid #ff4455;
+            filter: drop-shadow(0 0 4px rgba(255,68,85,0.6));
+        }
+
+        #tnlVegasHero .vegas-neon-arrow .vegas-arrow-chevron:nth-child(1) { animation: vegasArrowPulse 1.5s ease-in-out 0s infinite; }
+        #tnlVegasHero .vegas-neon-arrow .vegas-arrow-chevron:nth-child(2) { animation: vegasArrowPulse 1.5s ease-in-out 0.2s infinite; }
+        #tnlVegasHero .vegas-neon-arrow .vegas-arrow-chevron:nth-child(3) { animation: vegasArrowPulse 1.5s ease-in-out 0.4s infinite; }
+
+        @keyframes vegasArrowPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        #tnlVegasHero .vegas-corner-neon {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            z-index: 5;
+            opacity: 0.4;
+        }
+
+        #tnlVegasHero .vegas-corner-neon.tl { top: 10px; left: 10px; border-top: 2px solid #ff4455; border-left: 2px solid #ff4455; border-radius: 3px 0 0 0; box-shadow: inset 2px 2px 6px rgba(255,68,85,0.15); }
+        #tnlVegasHero .vegas-corner-neon.tr { top: 10px; right: 10px; border-top: 2px solid #ff4455; border-right: 2px solid #ff4455; border-radius: 0 3px 0 0; box-shadow: inset -2px 2px 6px rgba(255,68,85,0.15); }
+        #tnlVegasHero .vegas-corner-neon.bl { bottom: 10px; left: 10px; border-bottom: 2px solid #55ccff; border-left: 2px solid #55ccff; border-radius: 0 0 0 3px; box-shadow: inset 2px -2px 6px rgba(85,204,255,0.15); }
+        #tnlVegasHero .vegas-corner-neon.br { bottom: 10px; right: 10px; border-bottom: 2px solid #55ccff; border-right: 2px solid #55ccff; border-radius: 0 0 3px 0; box-shadow: inset -2px -2px 6px rgba(85,204,255,0.15); }
+
+        @media (max-width: 680px) {
+            #tnlVegasHero .vegas-sign-face { padding: 28px 20px 26px; min-width: auto; }
+            #tnlVegasHero .vegas-neon-arrow { display: none; }
         }
 
         .tagline {
@@ -400,15 +681,6 @@
                 justify-content: flex-start;
             }
 
-            .logo-icon {
-                font-size: 3.5rem;
-                margin-bottom: 15px;
-            }
-
-            .title {
-                font-size: 2rem;
-            }
-
             .tagline {
                 font-size: 1.1rem;
                 margin-bottom: 20px;
@@ -469,10 +741,6 @@
                 padding: 20px 15px;
             }
 
-            .title {
-                font-size: 1.8rem;
-            }
-
             .dashboard-btn {
                 max-width: 280px;
                 padding: 18px 20px;
@@ -487,6 +755,18 @@
                 transition-duration: 0.01ms !important;
             }
         }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
     </style>
 </head>
 <body>
@@ -496,8 +776,55 @@
     <div class="main-container">
         <div class="content-wrapper main-content" id="contentWrapper">
             <div class="dashboard">
-                <div class="logo-icon">🔪</div>
-                <h1 class="title">Triple Nickel Lite</h1>
+                <h1 class="sr-only">Triple Nickel Lite</h1>
+                <div id="tnlVegasHero" aria-hidden="true">
+                    <div class="vegas-scene">
+                        <div class="vegas-sign-wrapper">
+                            <div class="vegas-chrome-frame">
+                                <div class="vegas-bulb-panel">
+                                    <div class="vegas-bulbs-track" id="tnlBulbsTrack"></div>
+                                    <div class="vegas-sign-face">
+                                        <div class="vegas-corner-neon tl"></div>
+                                        <div class="vegas-corner-neon tr"></div>
+                                        <div class="vegas-corner-neon bl"></div>
+                                        <div class="vegas-corner-neon br"></div>
+                                        <div class="vegas-neon-arrow vegas-neon-arrow-left">
+                                            <div class="vegas-arrow-chevron down"></div>
+                                            <div class="vegas-arrow-chevron down"></div>
+                                            <div class="vegas-arrow-chevron down"></div>
+                                        </div>
+                                        <div class="vegas-neon-arrow vegas-neon-arrow-right">
+                                            <div class="vegas-arrow-chevron down"></div>
+                                            <div class="vegas-arrow-chevron down"></div>
+                                            <div class="vegas-arrow-chevron down"></div>
+                                        </div>
+                                        <div class="vegas-diamond-row">
+                                            <span class="vegas-seg"></span>
+                                            <span class="vegas-dot"></span>
+                                            <span class="vegas-seg"></span>
+                                            <span class="vegas-diamond"></span>
+                                            <span class="vegas-seg"></span>
+                                            <span class="vegas-dot"></span>
+                                            <span class="vegas-seg"></span>
+                                        </div>
+                                        <div class="vegas-neon-triple">TRIPLE</div>
+                                        <div class="vegas-neon-nickel">NICKEL</div>
+                                        <div class="vegas-neon-lite">Lite</div>
+                                        <div class="vegas-diamond-row vegas-diamond-row-bottom">
+                                            <span class="vegas-seg"></span>
+                                            <span class="vegas-dot"></span>
+                                            <span class="vegas-seg"></span>
+                                            <span class="vegas-diamond"></span>
+                                            <span class="vegas-seg"></span>
+                                            <span class="vegas-dot"></span>
+                                            <span class="vegas-seg"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <p class="tagline">Knife Throwing Scoring Made Simple</p>
                 <p class="description">
                     A free score keeping utility for knife throwing games and competition training. 
@@ -560,6 +887,119 @@
                 document.getElementById('m3Modal').classList.remove('active');
             }
         });
+    </script>
+    <script>
+    (function() {
+        var track = document.getElementById('tnlBulbsTrack');
+        if (!track) return;
+        var panel = track.parentElement;
+        var BULB = 10;
+        var SPACING = 22;
+        var INSET = 9;
+
+        function createBulbs() {
+            track.innerHTML = '';
+            var rect = panel.getBoundingClientRect();
+            var w = rect.width;
+            var h = rect.height;
+            var bulbs = [];
+
+            function add(x, y) {
+                var b = document.createElement('div');
+                b.className = 'vegas-bulb off';
+                b.style.left = (x - BULB / 2) + 'px';
+                b.style.top = (y - BULB / 2) + 'px';
+                track.appendChild(b);
+                bulbs.push(b);
+            }
+
+            var tN = Math.max(1, Math.floor((w - INSET * 4) / SPACING));
+            var tX = (w - (tN - 1) * SPACING) / 2;
+            for (var i = 0; i < tN; i++) add(tX + i * SPACING, INSET);
+
+            var rN = Math.max(1, Math.floor((h - INSET * 4) / SPACING));
+            var rY = (h - (rN - 1) * SPACING) / 2;
+            for (var i = 0; i < rN; i++) add(w - INSET, rY + i * SPACING);
+
+            for (var i = tN - 1; i >= 0; i--) add(tX + i * SPACING, h - INSET);
+
+            for (var i = rN - 1; i >= 0; i--) add(INSET, rY + i * SPACING);
+
+            return bulbs;
+        }
+
+        var bulbs = createBulbs();
+        var frame = 0;
+
+        function setBulb(b, cls) {
+            b.classList.remove('on-warm', 'on-hot', 'off');
+            b.classList.add(cls);
+        }
+
+        var patterns = [
+            function(bl, f) {
+                for (var i = 0; i < bl.length; i++) {
+                    var d = (i - f % bl.length + bl.length) % bl.length;
+                    if (d < 3) setBulb(bl[i], 'on-hot');
+                    else if (d < 6) setBulb(bl[i], 'on-warm');
+                    else setBulb(bl[i], 'off');
+                }
+            },
+            function(bl, f) {
+                var flip = f % 2 === 0;
+                for (var i = 0; i < bl.length; i++) {
+                    setBulb(bl[i], ((i % 2 === 0) === flip) ? 'on-hot' : 'on-warm');
+                }
+            },
+            function(bl, f) {
+                for (var i = 0; i < bl.length; i++) {
+                    var d = Math.abs(((i - f % bl.length + bl.length) % bl.length));
+                    var d2 = Math.min(d, bl.length - d);
+                    if (d2 < 2) setBulb(bl[i], 'on-hot');
+                    else setBulb(bl[i], 'on-warm');
+                }
+            },
+            function(bl, f) {
+                var cycle = f % (bl.length + 8);
+                if (cycle >= bl.length) {
+                    var flash = cycle % 2 === 0;
+                    for (var i = 0; i < bl.length; i++) setBulb(bl[i], flash ? 'on-hot' : 'on-warm');
+                } else {
+                    for (var i = 0; i < bl.length; i++) {
+                        setBulb(bl[i], i <= cycle ? 'on-warm' : 'off');
+                    }
+                    if (cycle < bl.length) setBulb(bl[cycle], 'on-hot');
+                }
+            }
+        ];
+
+        var patIdx = 0, patFrames = 0;
+
+        function animate() {
+            if (!bulbs.length) return;
+            patterns[patIdx](bulbs, frame);
+            if (Math.random() < 0.05) {
+                setBulb(bulbs[Math.floor(Math.random() * bulbs.length)], 'off');
+            }
+            frame++;
+            patFrames++;
+            if (patFrames > 70) { patFrames = 0; patIdx = (patIdx + 1) % patterns.length; }
+        }
+
+        function refreshBulbs() {
+            bulbs = createBulbs();
+            frame = 0;
+        }
+
+        refreshBulbs();
+        setInterval(animate, 180);
+        window.addEventListener('load', refreshBulbs);
+        var rt;
+        window.addEventListener('resize', function() {
+            clearTimeout(rt);
+            rt = setTimeout(refreshBulbs, 200);
+        });
+    })();
     </script>
 </body>
 </html>
