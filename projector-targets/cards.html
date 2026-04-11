@@ -570,6 +570,42 @@
             flex-shrink: 0;
         }
 
+        .edit-banner-scale-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            color: var(--retro-green);
+            text-shadow: 0 0 6px rgba(51,255,51,0.35);
+            user-select: none;
+        }
+        .edit-banner-scale-label input[type="range"] {
+            width: 100px;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(51,255,51,0.2);
+            border-radius: 3px;
+            cursor: pointer;
+            border: none;
+            padding: 0;
+        }
+        .edit-banner-scale-label input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--retro-green);
+            cursor: pointer;
+            border: 2px solid #fff;
+        }
+        .edit-banner-scale-val {
+            min-width: 3.5em;
+            text-align: right;
+            font-family: 'VT323', monospace;
+            font-size: 20px;
+        }
+
         .edit-banner-btn {
             padding: 8px 18px;
             border-radius: 6px;
@@ -596,9 +632,10 @@
             border-color: var(--retro-green);
         }
 
-        body.edit-mode { cursor: default !important; }
+        body.edit-mode { cursor: grab !important; }
         body.edit-mode .card-slot { cursor: grab !important; }
         body.edit-mode .card-slot.dragging { cursor: grabbing !important; }
+        body.edit-mode.group-dragging { cursor: grabbing !important; }
         body.edit-mode .card-slot .card-back-face {
             box-shadow: 0 0 0 2px rgba(51,255,51,0.3), 0 2px 8px rgba(0,0,0,0.4);
         }
@@ -626,6 +663,11 @@
         <input type="checkbox" id="edit-banner-snap">
         <span>SNAP TO GRID</span>
     </label>
+    <label class="edit-banner-scale-label">
+        <span>SCALE</span>
+        <input type="range" id="edit-banner-scale" min="50" max="200" value="100" step="5">
+        <span id="edit-banner-scale-val" class="edit-banner-scale-val">100%</span>
+    </label>
     <button id="btn-back-to-options" class="edit-banner-btn">OPTIONS</button>
     <button id="btn-lock-cards" class="edit-banner-btn lock">LOCK &amp; PLAY</button>
 </div>
@@ -646,12 +688,6 @@
                 <label class="opt-check-main" for="opt-manual-snap">Snap to grid</label>
             </div>
             <p class="opt-check-hint">On release, each card aligns to the nearest cell (same spacing as Auto Grid).</p>
-        </div>
-
-        <div class="opt-group">
-            <label>Card Scale</label>
-            <input type="range" id="opt-scale" min="50" max="200" value="100" step="5">
-            <div class="range-val"><span id="scale-val">100</span>%</div>
         </div>
 
         <div class="opt-group">
@@ -703,7 +739,7 @@
         arrangement: 'auto',
         scale: 100,
         vanish: 'yes',
-        manualSnap: false
+        manualSnap: true
     };
 
     var editMode = false; // true = cards are draggable, false = cards are targets
@@ -910,6 +946,70 @@
         el.addEventListener('touchstart', onDown, {passive: false});
     }
 
+    // ── Group drag: click background in edit mode to move all cards ──
+    (function() {
+        var startX, startY, origPositions, moved;
+
+        function onGroupDown(e) {
+            if (!editMode) return;
+            if (e.target !== grid && e.target !== cardTable) return;
+            e.preventDefault();
+            var pt = e.touches ? e.touches[0] : e;
+            startX = pt.clientX;
+            startY = pt.clientY;
+            moved = false;
+            origPositions = [];
+            grid.querySelectorAll('.card-slot').forEach(function(el) {
+                origPositions.push({
+                    el: el,
+                    x: parseFloat(el.style.left) || 0,
+                    y: parseFloat(el.style.top) || 0
+                });
+            });
+            document.addEventListener('mousemove', onGroupMove);
+            document.addEventListener('mouseup', onGroupUp);
+            document.addEventListener('touchmove', onGroupMove, {passive: false});
+            document.addEventListener('touchend', onGroupUp);
+        }
+
+        function onGroupMove(e) {
+            e.preventDefault();
+            var pt = e.touches ? e.touches[0] : e;
+            var dx = pt.clientX - startX;
+            var dy = pt.clientY - startY;
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+            if (moved) {
+                document.body.classList.add('group-dragging');
+                for (var i = 0; i < origPositions.length; i++) {
+                    var p = origPositions[i];
+                    p.el.style.left = (p.x + dx) + 'px';
+                    p.el.style.top = (p.y + dy) + 'px';
+                }
+            }
+        }
+
+        function onGroupUp() {
+            document.removeEventListener('mousemove', onGroupMove);
+            document.removeEventListener('mouseup', onGroupUp);
+            document.removeEventListener('touchmove', onGroupMove);
+            document.removeEventListener('touchend', onGroupUp);
+            document.body.classList.remove('group-dragging');
+            if (moved) {
+                grid.querySelectorAll('.card-slot').forEach(function(el) {
+                    var idx = parseInt(el.getAttribute('data-index'), 10);
+                    if (!isNaN(idx) && state.cardPositions[idx]) {
+                        state.cardPositions[idx].x = parseFloat(el.style.left) || 0;
+                        state.cardPositions[idx].y = parseFloat(el.style.top) || 0;
+                    }
+                });
+            }
+            origPositions = null;
+        }
+
+        cardTable.addEventListener('mousedown', onGroupDown);
+        cardTable.addEventListener('touchstart', onGroupDown, {passive: false});
+    })();
+
     // ── Particles ──
     function spawnParticles(x, y, color) {
         for (var i = 0; i < 8; i++) {
@@ -1097,9 +1197,8 @@
         state.cardPositions = [];
         config.count = 5;
         config.arrangement = 'auto';
-        config.scale = 100;
         config.vanish = 'yes';
-        config.manualSnap = false;
+        config.manualSnap = true;
         deal();
     }
 
@@ -1130,8 +1229,6 @@
     function openOptions() {
         document.getElementById('opt-count').value = config.count;
         setArrangementChoice(config.arrangement);
-        document.getElementById('opt-scale').value = config.scale;
-        document.getElementById('scale-val').textContent = config.scale;
         document.getElementById('opt-vanish').value = config.vanish;
         syncSnapCheckboxes();
         updateManualOptionsVisibility();
@@ -1150,7 +1247,6 @@
         if (countVal > 52) countVal = 52;
         config.count = countVal;
         config.arrangement = getArrangementChoice();
-        config.scale = parseInt(document.getElementById('opt-scale').value);
         config.vanish = document.getElementById('opt-vanish').value;
         config.manualSnap = document.getElementById('opt-manual-snap').checked;
         syncSnapCheckboxes();
@@ -1181,6 +1277,10 @@
 
         document.body.classList.toggle('edit-mode', editMode);
         syncSnapCheckboxes();
+        var scaleSlider = document.getElementById('edit-banner-scale');
+        var scaleLabel = document.getElementById('edit-banner-scale-val');
+        if (scaleSlider) scaleSlider.value = config.scale;
+        if (scaleLabel) scaleLabel.textContent = config.scale + '%';
         syncEditChrome();
     }
 
@@ -1227,22 +1327,19 @@
 
     function readArrangeInputs() {
         var useForm = optOverlay.classList.contains('open');
-        var countVal, scaleVal, vanishVal, snapVal;
+        var countVal, vanishVal, snapVal;
         if (useForm) {
             countVal = parseInt(document.getElementById('opt-count').value, 10);
-            scaleVal = parseInt(document.getElementById('opt-scale').value, 10);
             vanishVal = document.getElementById('opt-vanish').value;
             snapVal = document.getElementById('opt-manual-snap').checked;
         } else {
             countVal = config.count;
-            scaleVal = config.scale;
             vanishVal = config.vanish;
             snapVal = config.manualSnap;
         }
         if (isNaN(countVal) || countVal < 1) countVal = 1;
         if (countVal > 52) countVal = 52;
-        if (isNaN(scaleVal)) scaleVal = 100;
-        return { countVal: countVal, scaleVal: scaleVal, vanishVal: vanishVal, snapVal: snapVal };
+        return { countVal: countVal, scaleVal: config.scale, vanishVal: vanishVal, snapVal: snapVal };
     }
 
     // Arrangement: close options, manual layout, edit mode — drag cards on the table
@@ -1300,12 +1397,15 @@
         toggleEditMode(false);
     });
 
-    document.getElementById('opt-scale').addEventListener('input', function() {
-        document.getElementById('scale-val').textContent = this.value;
-        applyLiveScale(parseInt(this.value));
+    document.getElementById('edit-banner-scale').addEventListener('input', function() {
+        var val = parseInt(this.value);
+        var oldScale = config.scale;
+        document.getElementById('edit-banner-scale-val').textContent = val + '%';
+        config.scale = val;
+        applyLiveScale(val, oldScale);
     });
 
-    function applyLiveScale(scaleVal) {
+    function applyLiveScale(scaleVal, oldScaleVal) {
         var scale = scaleVal / 100;
         var cw = 120 * scale;
         var ch = 168 * scale;
@@ -1316,13 +1416,27 @@
         var cs = Math.round(10 * scale);
         var csC = Math.round(42 * scale);
 
-        // Update grid gap if in grid mode
         if (config.arrangement === 'auto') {
             grid.style.gridTemplateColumns = 'repeat(' + getGridTemplate(config.count).cols + ', ' + cw + 'px)';
             grid.style.gap = Math.round(16 * scale) + 'px';
+        } else if (config.arrangement === 'manual' && oldScaleVal && state.cardPositions.length) {
+            var oldP = getSnapGridParams(oldScaleVal, grid.clientWidth, grid.clientHeight);
+            var newP = getSnapGridParams(scaleVal, grid.clientWidth, grid.clientHeight);
+            var slots = grid.querySelectorAll('.card-slot');
+            state.cardPositions.forEach(function(pos, i) {
+                var col = Math.round((pos.x - oldP.cssOffX) / oldP.cellW);
+                var row = Math.round((pos.y - oldP.cssOffY) / oldP.cellH);
+                var nx = Math.round(newP.cssOffX + col * newP.cellW);
+                var ny = Math.round(newP.cssOffY + row * newP.cellH);
+                pos.x = nx;
+                pos.y = ny;
+                if (slots[i]) {
+                    slots[i].style.left = nx + 'px';
+                    slots[i].style.top = ny + 'px';
+                }
+            });
         }
 
-        // Update font sizes on all existing cards
         grid.querySelectorAll('.card-slot').forEach(function(el) {
             applyFontScaling(el, cr, cs, csC);
         });
