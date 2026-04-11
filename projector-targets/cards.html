@@ -108,6 +108,20 @@
             transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.4s ease 0.2s;
         }
 
+        .faceup-mode .card-inner {
+            transform: rotateY(180deg);
+        }
+        .faceup-mode .card-slot.hit .card-inner {
+            transform: rotateY(180deg) scale(0.85);
+            opacity: 0.4;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .faceup-mode .card-slot.hit.vanishing .card-inner {
+            transform: rotateY(180deg) scale(0.01);
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.4s ease 0.2s;
+        }
+
         .card-front, .card-back-face {
             position: absolute;
             inset: 0;
@@ -665,7 +679,7 @@
     </label>
     <label class="edit-banner-scale-label">
         <span>SCALE</span>
-        <input type="range" id="edit-banner-scale" min="50" max="200" value="100" step="5">
+        <input type="range" id="edit-banner-scale" min="25" max="150" value="100" step="5">
         <span id="edit-banner-scale-val" class="edit-banner-scale-val">100%</span>
     </label>
     <button id="btn-back-to-options" class="edit-banner-btn">OPTIONS</button>
@@ -696,6 +710,7 @@
                 <option value="yes" selected>Yes &#8212; flip &amp; vanish</option>
                 <option value="flip">Flip only (stay visible)</option>
                 <option value="no">No animation</option>
+                <option value="faceup">Display card face</option>
             </select>
         </div>
 
@@ -877,13 +892,54 @@
         return slot;
     }
 
-    function snapManualPosition(x, y, scaleVal) {
+    function getOccupiedPositions(excludeIndex) {
+        var occupied = [];
+        state.cardPositions.forEach(function(pos, i) {
+            if (i !== excludeIndex && pos) {
+                occupied.push({ x: Math.round(pos.x), y: Math.round(pos.y) });
+            }
+        });
+        return occupied;
+    }
+
+    function isOccupied(sx, sy, occupied) {
+        for (var i = 0; i < occupied.length; i++) {
+            if (occupied[i].x === sx && occupied[i].y === sy) return true;
+        }
+        return false;
+    }
+
+    function snapManualPosition(x, y, scaleVal, excludeIndex) {
         var p = getSnapGridParams(scaleVal, grid.clientWidth, grid.clientHeight);
         var col = Math.round((x - p.offX) / p.cellW);
         var row = Math.round((y - p.offY) / p.cellH);
         col = Math.max(0, Math.min(col, p.maxCol));
         row = Math.max(0, Math.min(row, p.maxRow));
-        return { x: Math.round(p.offX + col * p.cellW), y: Math.round(p.offY + row * p.cellH) };
+        var sx = Math.round(p.offX + col * p.cellW);
+        var sy = Math.round(p.offY + row * p.cellH);
+
+        if (typeof excludeIndex === 'number') {
+            var occupied = getOccupiedPositions(excludeIndex);
+            if (isOccupied(sx, sy, occupied)) {
+                var best = null, bestDist = Infinity;
+                for (var r = 0; r <= p.maxRow; r++) {
+                    for (var c = 0; c <= p.maxCol; c++) {
+                        var tx = Math.round(p.offX + c * p.cellW);
+                        var ty = Math.round(p.offY + r * p.cellH);
+                        if (isOccupied(tx, ty, occupied)) continue;
+                        var dx = tx - x, dy = ty - y;
+                        var dist = dx * dx + dy * dy;
+                        if (dist < bestDist) {
+                            bestDist = dist;
+                            best = { x: tx, y: ty };
+                        }
+                    }
+                }
+                if (best) return best;
+            }
+        }
+
+        return { x: sx, y: sy };
     }
 
     // ── Drag support for manual mode ──
@@ -925,15 +981,15 @@
             document.removeEventListener('mouseup', onUp);
             document.removeEventListener('touchmove', onMove);
             document.removeEventListener('touchend', onUp);
+            var idx = parseInt(el.getAttribute('data-index'), 10);
             if (config.arrangement === 'manual' && config.manualSnap && moved) {
                 var x = parseFloat(el.style.left) || 0;
                 var y = parseFloat(el.style.top) || 0;
-                var sn = snapManualPosition(x, y, config.scale);
+                var sn = snapManualPosition(x, y, config.scale, idx);
                 el.style.left = sn.x + 'px';
                 el.style.top = sn.y + 'px';
             }
             if (moved && config.arrangement === 'manual') {
-                var idx = parseInt(el.getAttribute('data-index'), 10);
                 if (!isNaN(idx) && state.cardPositions[idx]) {
                     state.cardPositions[idx].x = parseFloat(el.style.left) || 0;
                     state.cardPositions[idx].y = parseFloat(el.style.top) || 0;
@@ -1045,14 +1101,14 @@
         var card = state.cards[index];
         spawnParticles(cx, cy, card.suit.color === 'red' ? '#ff4466' : '#aabbcc');
 
-        if (config.vanish === 'yes') {
+        if (config.vanish === 'yes' || config.vanish === 'faceup') {
             setTimeout(function() { slot.classList.add('vanishing'); }, 500);
         }
 
         broadcast({ action: 'hit', index: index, card: card });
 
         if (state.hits >= state.total) {
-            setTimeout(showAllClear, config.vanish === 'yes' ? 1200 : 600);
+            setTimeout(showAllClear, (config.vanish === 'yes' || config.vanish === 'faceup') ? 1200 : 600);
         }
     }
 
@@ -1063,6 +1119,10 @@
             allClearEl.className = '';
             showResetModal();
         }, 2000);
+    }
+
+    function syncFaceupMode() {
+        grid.classList.toggle('faceup-mode', config.vanish === 'faceup');
     }
 
     // ── Grid layout ──
@@ -1099,6 +1159,7 @@
             layoutGrid(cw, ch, scale, cr, cs, csC);
         }
 
+        syncFaceupMode();
         crtFlash.classList.remove('flash');
         void crtFlash.offsetWidth;
         crtFlash.classList.add('flash');
@@ -1323,6 +1384,7 @@
 
     document.getElementById('opt-vanish').addEventListener('change', function() {
         config.vanish = this.value;
+        syncFaceupMode();
     });
 
     function readArrangeInputs() {
@@ -1397,13 +1459,31 @@
         toggleEditMode(false);
     });
 
-    document.getElementById('edit-banner-scale').addEventListener('input', function() {
-        var val = parseInt(this.value);
+    var scaleSliderEl = document.getElementById('edit-banner-scale');
+    var scaleValEl = document.getElementById('edit-banner-scale-val');
+    var scaleMin = parseInt(scaleSliderEl.min);
+    var scaleMax = parseInt(scaleSliderEl.max);
+    var scaleStep = parseInt(scaleSliderEl.step) || 5;
+
+    function setScale(newVal) {
+        newVal = Math.max(scaleMin, Math.min(scaleMax, newVal));
+        if (newVal === config.scale) return;
         var oldScale = config.scale;
-        document.getElementById('edit-banner-scale-val').textContent = val + '%';
-        config.scale = val;
-        applyLiveScale(val, oldScale);
+        config.scale = newVal;
+        scaleSliderEl.value = newVal;
+        scaleValEl.textContent = newVal + '%';
+        applyLiveScale(newVal, oldScale);
+    }
+
+    scaleSliderEl.addEventListener('input', function() {
+        setScale(parseInt(this.value));
     });
+
+    window.addEventListener('wheel', function(e) {
+        if (!editMode) return;
+        e.preventDefault();
+        setScale(config.scale + (e.deltaY < 0 ? scaleStep : -scaleStep));
+    }, {passive: false});
 
     function applyLiveScale(scaleVal, oldScaleVal) {
         var scale = scaleVal / 100;
@@ -1422,12 +1502,32 @@
         } else if (config.arrangement === 'manual' && oldScaleVal && state.cardPositions.length) {
             var oldP = getSnapGridParams(oldScaleVal, grid.clientWidth, grid.clientHeight);
             var newP = getSnapGridParams(scaleVal, grid.clientWidth, grid.clientHeight);
+            var ratioW = newP.cellW / oldP.cellW;
+            var ratioH = newP.cellH / oldP.cellH;
+
+            var cx = 0, cy = 0, n = state.cardPositions.length;
+            state.cardPositions.forEach(function(pos) { cx += pos.x; cy += pos.y; });
+            cx /= n;
+            cy /= n;
+
+            var scaled = state.cardPositions.map(function(pos) {
+                return {
+                    x: cx + (pos.x - cx) * ratioW,
+                    y: cy + (pos.y - cy) * ratioH
+                };
+            });
+
+            var snapDx = 0, snapDy = 0;
+            if (config.manualSnap) {
+                var ref = snapManualPosition(scaled[0].x, scaled[0].y, scaleVal);
+                snapDx = ref.x - Math.round(scaled[0].x);
+                snapDy = ref.y - Math.round(scaled[0].y);
+            }
+
             var slots = grid.querySelectorAll('.card-slot');
             state.cardPositions.forEach(function(pos, i) {
-                var col = Math.round((pos.x - oldP.cssOffX) / oldP.cellW);
-                var row = Math.round((pos.y - oldP.cssOffY) / oldP.cellH);
-                var nx = Math.round(newP.cssOffX + col * newP.cellW);
-                var ny = Math.round(newP.cssOffY + row * newP.cellH);
+                var nx = Math.round(scaled[i].x) + snapDx;
+                var ny = Math.round(scaled[i].y) + snapDy;
                 pos.x = nx;
                 pos.y = ny;
                 if (slots[i]) {
