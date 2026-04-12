@@ -122,6 +122,21 @@
             transition: transform 0.6s cubic-bezier(0.4, 0.0, 0.2, 1), opacity 0.4s ease 0.2s;
         }
 
+        .card-slot.replacing .card-inner {
+            animation: cardAppear 0.4s ease-out forwards;
+        }
+        .faceup-mode .card-slot.replacing .card-inner {
+            animation: cardAppearFaceup 0.4s ease-out forwards;
+        }
+        @keyframes cardAppear {
+            0% { transform: scale(0.01); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes cardAppearFaceup {
+            0% { transform: rotateY(180deg) scale(0.01); opacity: 0; }
+            100% { transform: rotateY(180deg) scale(1); opacity: 1; }
+        }
+
         .card-front, .card-back-face {
             position: absolute;
             inset: 0;
@@ -159,10 +174,10 @@
         }
         .card-corner.top-left { top: 6px; left: 7px; }
         .card-corner.bottom-right { bottom: 6px; right: 7px; transform: rotate(180deg); }
-        .card-corner .rank { font-size: 11px; font-weight: bold; }
-        .card-corner .suit-icon { font-size: 10px; margin-top: 1px; }
+        .card-corner .rank { font-size: 16px; font-weight: bold; }
+        .card-corner .suit-icon { font-size: 14px; margin-top: 1px; }
         .card-center-suit {
-            font-size: 42px;
+            font-size: 56px;
             line-height: 1;
             filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15));
         }
@@ -707,11 +722,18 @@
         <div class="opt-group">
             <label>Card Behavior</label>
             <select id="opt-vanish">
-                <option value="yes" selected>Yes &#8212; flip &amp; vanish</option>
+                <option value="yes" selected>Flip &amp; vanish</option>
+                <option value="replace">Vanish &amp; replace</option>
                 <option value="flip">Flip only (stay visible)</option>
                 <option value="no">No animation</option>
-                <option value="faceup">Display card face</option>
             </select>
+        </div>
+
+        <div class="opt-group">
+            <div class="opt-check-row">
+                <input type="checkbox" id="opt-faceup">
+                <label class="opt-check-main" for="opt-faceup">Display card face</label>
+            </div>
         </div>
 
         <div class="opt-btn-row">
@@ -754,6 +776,7 @@
         arrangement: 'auto',
         scale: 100,
         vanish: 'yes',
+        faceup: false,
         manualSnap: true
     };
 
@@ -1101,15 +1124,51 @@
         var card = state.cards[index];
         spawnParticles(cx, cy, card.suit.color === 'red' ? '#ff4466' : '#aabbcc');
 
-        if (config.vanish === 'yes' || config.vanish === 'faceup') {
+        if (config.vanish === 'yes' || config.vanish === 'replace') {
             setTimeout(function() { slot.classList.add('vanishing'); }, 500);
+        }
+
+        if (config.vanish === 'replace') {
+            setTimeout(function() { replaceCard(slot, index); }, 1200);
         }
 
         broadcast({ action: 'hit', index: index, card: card });
 
-        if (state.hits >= state.total) {
-            setTimeout(showAllClear, (config.vanish === 'yes' || config.vanish === 'faceup') ? 1200 : 600);
+        if (config.vanish !== 'replace' && state.hits >= state.total) {
+            setTimeout(showAllClear, config.vanish === 'yes' ? 1200 : 600);
         }
+    }
+
+    function replaceCard(oldSlot, index) {
+        var newCard = {
+            suit: SUITS[Math.floor(Math.random() * SUITS.length)],
+            rank: RANKS[Math.floor(Math.random() * RANKS.length)],
+            id: index
+        };
+        state.cards[index] = newCard;
+        state.hits--;
+
+        var scale = config.scale / 100;
+        var cr = Math.round(16 * scale);
+        var cs = Math.round(14 * scale);
+        var csC = Math.round(56 * scale);
+
+        var newEl = createCardEl(newCard, index);
+        applyFontScaling(newEl, cr, cs, csC);
+
+        if (config.arrangement === 'manual') {
+            newEl.style.position = 'absolute';
+            var pos = state.cardPositions[index];
+            if (pos) {
+                newEl.style.left = pos.x + 'px';
+                newEl.style.top = pos.y + 'px';
+            }
+            makeDraggable(newEl);
+        }
+
+        newEl.classList.add('replacing');
+        oldSlot.parentNode.replaceChild(newEl, oldSlot);
+        setTimeout(function() { newEl.classList.remove('replacing'); }, 450);
     }
 
     function showAllClear() {
@@ -1122,7 +1181,7 @@
     }
 
     function syncFaceupMode() {
-        grid.classList.toggle('faceup-mode', config.vanish === 'faceup');
+        grid.classList.toggle('faceup-mode', config.faceup);
     }
 
     // ── Grid layout ──
@@ -1149,9 +1208,9 @@
         document.documentElement.style.setProperty('--card-w', cw + 'px');
         document.documentElement.style.setProperty('--card-h', ch + 'px');
 
-        var cr = Math.round(11 * scale);
-        var cs = Math.round(10 * scale);
-        var csC = Math.round(42 * scale);
+        var cr = Math.round(16 * scale);
+        var cs = Math.round(14 * scale);
+        var csC = Math.round(56 * scale);
 
         if (config.arrangement === 'manual') {
             layoutManual(cw, ch, scale, cr, cs, csC);
@@ -1259,6 +1318,7 @@
         config.count = 5;
         config.arrangement = 'auto';
         config.vanish = 'yes';
+        config.faceup = false;
         config.manualSnap = true;
         deal();
     }
@@ -1291,6 +1351,7 @@
         document.getElementById('opt-count').value = config.count;
         setArrangementChoice(config.arrangement);
         document.getElementById('opt-vanish').value = config.vanish;
+        document.getElementById('opt-faceup').checked = config.faceup;
         syncSnapCheckboxes();
         updateManualOptionsVisibility();
         optOverlay.classList.add('open');
@@ -1309,6 +1370,7 @@
         config.count = countVal;
         config.arrangement = getArrangementChoice();
         config.vanish = document.getElementById('opt-vanish').value;
+        config.faceup = document.getElementById('opt-faceup').checked;
         config.manualSnap = document.getElementById('opt-manual-snap').checked;
         syncSnapCheckboxes();
 
@@ -1384,6 +1446,10 @@
 
     document.getElementById('opt-vanish').addEventListener('change', function() {
         config.vanish = this.value;
+    });
+
+    document.getElementById('opt-faceup').addEventListener('change', function() {
+        config.faceup = this.checked;
         syncFaceupMode();
     });
 
@@ -1492,9 +1558,9 @@
         document.documentElement.style.setProperty('--card-w', cw + 'px');
         document.documentElement.style.setProperty('--card-h', ch + 'px');
 
-        var cr = Math.round(11 * scale);
-        var cs = Math.round(10 * scale);
-        var csC = Math.round(42 * scale);
+        var cr = Math.round(16 * scale);
+        var cs = Math.round(14 * scale);
+        var csC = Math.round(56 * scale);
 
         if (config.arrangement === 'auto') {
             grid.style.gridTemplateColumns = 'repeat(' + getGridTemplate(config.count).cols + ', ' + cw + 'px)';
