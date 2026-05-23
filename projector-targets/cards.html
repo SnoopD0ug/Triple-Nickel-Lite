@@ -934,21 +934,44 @@
 
     function snapManualPosition(x, y, scaleVal, excludeIndex) {
         var p = getSnapGridParams(scaleVal, grid.clientWidth, grid.clientHeight);
-        var col = Math.round((x - p.offX) / p.cellW);
-        var row = Math.round((y - p.offY) / p.cellH);
-        col = Math.max(0, Math.min(col, p.maxCol));
-        row = Math.max(0, Math.min(row, p.maxRow));
-        var sx = Math.round(p.offX + col * p.cellW);
-        var sy = Math.round(p.offY + row * p.cellH);
+
+        var effOffX = p.offX;
+        var effOffY = p.offY;
+        if (typeof excludeIndex === 'number') {
+            var xOffsets = {}, yOffsets = {};
+            var bestXOff = null, bestXCount = 0;
+            var bestYOff = null, bestYCount = 0;
+            for (var i = 0; i < state.cardPositions.length; i++) {
+                if (i === excludeIndex || !state.cardPositions[i]) continue;
+                var xo = Math.round(((state.cardPositions[i].x % p.cellW) + p.cellW) % p.cellW);
+                var yo = Math.round(((state.cardPositions[i].y % p.cellH) + p.cellH) % p.cellH);
+                xOffsets[xo] = (xOffsets[xo] || 0) + 1;
+                yOffsets[yo] = (yOffsets[yo] || 0) + 1;
+                if (xOffsets[xo] > bestXCount) { bestXCount = xOffsets[xo]; bestXOff = xo; }
+                if (yOffsets[yo] > bestYCount) { bestYCount = yOffsets[yo]; bestYOff = yo; }
+            }
+            if (bestXOff !== null) effOffX = bestXOff;
+            if (bestYOff !== null) effOffY = bestYOff;
+        }
+
+        var maxCol = Math.max(0, Math.floor((grid.clientWidth - effOffX - p.cw) / p.cellW));
+        var maxRow = Math.max(0, Math.floor((grid.clientHeight - effOffY - p.ch) / p.cellH));
+
+        var col = Math.round((x - effOffX) / p.cellW);
+        var row = Math.round((y - effOffY) / p.cellH);
+        col = Math.max(0, Math.min(col, maxCol));
+        row = Math.max(0, Math.min(row, maxRow));
+        var sx = Math.round(effOffX + col * p.cellW);
+        var sy = Math.round(effOffY + row * p.cellH);
 
         if (typeof excludeIndex === 'number') {
             var occupied = getOccupiedPositions(excludeIndex);
             if (isOccupied(sx, sy, occupied)) {
                 var best = null, bestDist = Infinity;
-                for (var r = 0; r <= p.maxRow; r++) {
-                    for (var c = 0; c <= p.maxCol; c++) {
-                        var tx = Math.round(p.offX + c * p.cellW);
-                        var ty = Math.round(p.offY + r * p.cellH);
+                for (var r = 0; r <= maxRow; r++) {
+                    for (var c = 0; c <= maxCol; c++) {
+                        var tx = Math.round(effOffX + c * p.cellW);
+                        var ty = Math.round(effOffY + r * p.cellH);
                         if (isOccupied(tx, ty, occupied)) continue;
                         var dx = tx - x, dy = ty - y;
                         var dist = dx * dx + dy * dy;
