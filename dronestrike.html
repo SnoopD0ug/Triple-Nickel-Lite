@@ -1155,18 +1155,27 @@
         }
         if (state.gameState === 'ready') {
             state.gameState = 'flying';
+            updateLaunchButton();
         }
     }
 
     function freeze() {
         if (state.gameState !== 'flying') return;
         state.gameState = 'paused';
+        updateLaunchButton();
     }
 
     function resumeFromMiss() {
         if (state.gameState !== 'paused') return;
         state.gameState = 'flying';
         showMessage('MISS', '#ff6644');
+        updateLaunchButton();
+    }
+
+    function updateLaunchButton() {
+        var btn = document.getElementById('btn-launch');
+        if (!btn) return;
+        btn.textContent = state.gameState === 'flying' ? 'PAUSE' : 'LAUNCH';
     }
 
     // After an armor hit on a multi-health drone: 2…1…GO then resume (Klinko-style)
@@ -1926,6 +1935,7 @@
                     update();
                     speedAccumulator -= 1;
                 }
+                updateLaunchButton();
             }
             draw();
         }
