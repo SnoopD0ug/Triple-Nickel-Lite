@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-QBV6VN2F9G"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){ dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-QBV6VN2F9G');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DroneStrike — Escape the Swarm</title>
+    <link rel="stylesheet" href="shared-sidebar.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+        :root {
+            --bg: #05070d;
+            --panel-bg: #0e1420;
+            --panel-border: #1f3b5c;
+            --accent: #ff2e4d;
+            --accent-glow: rgba(255, 46, 77, 0.7);
+            --cyan: #33d6ff;
+            --cyan-glow: rgba(51, 214, 255, 0.6);
+            --green: #33ff77;
+            --amber: #ffb833;
+            --text-color: #cfe4ff;
+            --scanline: rgba(0,0,0,0.06);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%; height: 100%;
+            background: var(--bg);
+            overflow: hidden;
+            font-family: 'VT323', monospace;
+            user-select: none;
+            cursor: crosshair;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 30%, #0d1a2e 0%, #05070d 70%);
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, var(--scanline) 2px, var(--scanline) 4px);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        #game-container {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        #game-container.main-content {
+            position: absolute;
+            margin-left: clamp(250px, 20vw, 300px);
+            padding: 0;
+            padding-top: 0;
+            min-height: 0;
+            transition: margin-left 0.3s ease;
+        }
+        #game-container.main-content.expanded { margin-left: 0; }
+        body.target-mode #game-container { margin-left: 0; }
+        @media (max-width: 768px) {
+            #game-container.main-content { margin-left: 0; }
+        }
+
+        #header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            width: 92%;
+            max-width: 900px;
+            padding: 10px 0;
+        }
+
+        #title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 22px;
+            color: var(--accent);
+            text-shadow: 0 0 10px var(--accent-glow), 0 2px 4px rgba(0,0,0,0.8);
+            letter-spacing: 3px;
+            white-space: nowrap;
+        }
+
+        #status-bar {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+        }
+        .status-chip { text-align: center; }
+        .status-chip .status-label {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 8px;
+            color: var(--cyan);
+            letter-spacing: 1px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .status-chip .status-value {
+            font-size: 26px;
+            color: var(--green);
+            text-shadow: 0 0 8px rgba(51, 255, 119, 0.5);
+        }
+        #wave-value { color: var(--amber); text-shadow: 0 0 8px rgba(255, 184, 51, 0.5); }
+
+        .mode-toggle {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .mode-btn {
+            font-size: 10px !important;
+            padding: 10px 14px !important;
+            flex: 1;
+        }
+        .mode-btn.active {
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan-glow);
+            background: rgba(51, 214, 255, 0.12);
+        }
+        .mode-hint {
+            font-size: 16px;
+            color: var(--text-color);
+            opacity: 0.65;
+            margin-top: 8px;
+            line-height: 1.3;
+        }
+        body.mode-random .opt-wave-only { opacity: 0.35; pointer-events: none; }
+
+        #board-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 92%;
+            max-width: 950px;
+            justify-content: center;
+        }
+
+        #board-wrapper {
+            position: relative;
+            flex: 1;
+            max-width: 900px;
+            aspect-ratio: 16 / 9;
+            max-height: 74vh;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 10px;
+            border: 3px solid var(--panel-border);
+            box-shadow: 0 0 30px rgba(31, 59, 92, 0.5), inset 0 0 60px rgba(0,0,0,0.6);
+        }
+
+        #message {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 20px;
+            color: var(--amber);
+            text-shadow: 0 0 20px var(--accent-glow);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            text-align: center;
+            z-index: 100;
+        }
+        #message.visible { opacity: 1; }
+
+        #controls {
+            display: flex;
+            gap: 14px;
+            padding: 12px 0;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .btn {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 11px;
+            padding: 10px 20px;
+            border: 2px solid var(--panel-border);
+            background: rgba(14, 20, 32, 0.9);
+            color: var(--text-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: rgba(31, 59, 92, 0.5);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 12px var(--cyan-glow);
+        }
+        .btn-launch {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(255, 46, 77, 0.1);
+        }
+        .btn-launch:hover {
+            background: rgba(255, 46, 77, 0.2);
+            border-color: var(--accent);
+            color: #fff;
+            box-shadow: 0 0 14px var(--accent-glow);
+        }
+
+        #drop-indicator {
+            font-size: 20px;
+            color: var(--text-color);
+            opacity: 0.75;
+        }
+
+        .btn-popout {
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            font-size: 28px;
+            line-height: 1;
+            filter: drop-shadow(0 0 6px var(--cyan-glow));
+            animation: popout-pulse 2s ease-in-out infinite;
+        }
+        .btn-popout:hover {
+            filter: drop-shadow(0 0 12px var(--cyan-glow));
+            animation: none;
+            transform: scale(1.15);
+        }
+        .btn-popout.active {
+            animation: none;
+            filter: drop-shadow(0 0 8px rgba(51, 255, 119, 0.8));
+        }
+        @keyframes popout-pulse {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* Players panel */
+        #players-panel {
+            width: 92%;
+            max-width: 900px;
+            margin-top: 10px;
+        }
+        #players-add {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        #players-add input {
+            flex: 1;
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            padding: 6px 12px;
+            border: 2px solid var(--panel-border);
+            border-radius: 6px;
+            background: rgba(14, 20, 32, 0.9);
+            color: var(--text-color);
+            outline: none;
+        }
+        #players-add input:focus { border-color: var(--cyan); }
+        #players-add input::placeholder { color: rgba(180, 210, 255, 0.4); }
+        #player-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border: 2px solid var(--panel-border);
+            border-radius: 6px;
+            background: rgba(14, 20, 32, 0.9);
+            font-family: 'VT323', monospace;
+            font-size: 18px;
+            color: var(--text-color);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .player-card.active {
+            border-color: var(--accent);
+            background: rgba(255, 46, 77, 0.12);
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        .player-card .player-name { color: #ddd; }
+        .player-card.active .player-name { color: var(--accent); }
+        .player-card .player-score {
+            color: var(--green);
+            font-size: 20px;
+            min-width: 40px;
+            text-align: right;
+        }
+        .player-card .player-remove {
+            cursor: pointer;
+            color: rgba(255, 100, 100, 0.5);
+            font-size: 14px;
+            margin-left: 4px;
+        }
+        .player-card .player-remove:hover { color: #ff4444; }
+
+        /* Control panel (main window when popped out) */
+        #control-panel {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 0;
+        }
+        body.control-mode #control-panel { display: flex; }
+        #panel-game-state {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 12px;
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: 2px solid var(--panel-border);
+            background: rgba(14, 20, 32, 0.9);
+        }
+        #panel-game-state.state-ready { color: var(--green); border-color: var(--green); }
+        #panel-game-state.state-flying { color: var(--cyan); border-color: var(--cyan); }
+        #panel-game-state.state-paused { color: var(--amber); border-color: var(--amber); }
+
+        #keystroke-flash {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--cyan);
+            opacity: 0;
+            transition: opacity 0.05s;
+            z-index: 9998;
+            pointer-events: none;
+        }
+        #keystroke-flash.flash { opacity: 1; transition: opacity 0s; }
+
+        /* Options modal */
+        #modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        #modal-overlay.open { display: flex; }
+        #options-modal {
+            position: relative;
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 520px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 0 40px rgba(31, 59, 92, 0.6);
+        }
+        #options-modal h2 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 24px;
+            text-align: center;
+            text-shadow: 0 0 8px var(--accent-glow);
+            position: relative;
+        }
+        .help-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--cyan);
+            background: rgba(51, 214, 255, 0.12);
+            color: var(--cyan);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            animation: help-glow 1.8s ease-in-out infinite;
+        }
+        .help-btn:hover {
+            background: rgba(51, 214, 255, 0.28);
+            color: #fff;
+            transform: translateY(-50%) scale(1.08);
+        }
+        @keyframes help-glow {
+            0%, 100% { box-shadow: 0 0 6px var(--cyan-glow), 0 0 14px rgba(51, 214, 255, 0.25); }
+            50% { box-shadow: 0 0 12px var(--cyan), 0 0 28px var(--cyan-glow); }
+        }
+
+        #howto-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(5, 7, 13, 0.94);
+            border-radius: 10px;
+            z-index: 5;
+            padding: 24px 22px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        #howto-overlay.open { display: block; }
+        #howto-overlay h3 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            color: var(--cyan);
+            text-align: center;
+            margin-bottom: 18px;
+            text-shadow: 0 0 8px var(--cyan-glow);
+        }
+        #howto-overlay ol {
+            margin: 0 0 18px 1.2em;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 18px;
+            line-height: 1.45;
+        }
+        #howto-overlay li { margin-bottom: 12px; }
+        #howto-overlay .howto-note {
+            font-size: 16px;
+            color: var(--amber);
+            opacity: 0.9;
+            margin-bottom: 18px;
+            line-height: 1.35;
+        }
+        #howto-overlay .btn {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .opt-group { margin-bottom: 20px; }
+        .opt-group label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            color: var(--text-color);
+            margin-bottom: 6px;
+        }
+        .opt-group label span.opt-val {
+            color: var(--green);
+            font-size: 16px;
+            min-width: 50px;
+            text-align: right;
+        }
+        .opt-group input[type="range"] {
+            width: 100%;
+            accent-color: var(--panel-border);
+            height: 6px;
+            cursor: pointer;
+        }
+        .opt-section-title {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 10px;
+            color: var(--cyan);
+            margin: 20px 0 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid rgba(31, 59, 92, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        #modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 24px;
+        }
+
+        /* Target-only mode (pop-out projector window) */
+        body.target-mode #game-container { justify-content: center; align-items: center; }
+        body.target-mode #header,
+        body.target-mode #controls,
+        body.target-mode #control-panel,
+        body.target-mode #players-panel,
+        body.target-mode #keystroke-flash,
+        body.target-mode #modal-overlay,
+        body.target-mode #shared-navigation,
+        body.target-mode .sidebar,
+        body.target-mode .btn-popout { display: none !important; }
+        body.target-mode #board-area {
+            width: 100vw;
+            max-width: 100vw;
+            height: 100vh;
+        }
+        body.target-mode #board-wrapper {
+            width: auto;
+            height: 100vh;
+            max-width: 100vw;
+            max-height: 100vh;
+            flex: none;
+        }
+        body.target-mode canvas {
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+        }
+
+        /* M3 logo + options button (target window only) */
+        .m3-logo-branding,
+        .m3-logo-hint,
+        #target-settings-overlay { display: none; }
+
+        body.target-mode .m3-logo-branding {
+            display: block;
+            position: fixed;
+            bottom: 2vmin;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 6vmin;
+            width: auto;
+            z-index: 10001;
+            cursor: pointer;
+            opacity: 0.85;
+            animation: m3-logo-glow 3.5s ease-out forwards;
+        }
+        body.target-mode .m3-logo-branding:hover { opacity: 1; }
+        body.target-mode .m3-logo-hint {
+            display: block;
+            position: fixed;
+            bottom: 10vmin;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            color: var(--cyan);
+            text-shadow: 0 0 10px var(--cyan-glow);
+            pointer-events: none;
+            white-space: nowrap;
+            z-index: 10001;
+            animation: m3-hint-fade 3.5s ease-out forwards;
+        }
+        @keyframes m3-logo-glow {
+            0%   { filter: drop-shadow(0 0 5px var(--cyan)) drop-shadow(0 0 14px var(--cyan-glow)); }
+            85%  { filter: drop-shadow(0 0 5px var(--cyan)) drop-shadow(0 0 14px var(--cyan-glow)); }
+            100% { filter: none; }
+        }
+        @keyframes m3-hint-fade {
+            0%  { opacity: 1; }
+            85% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        body.target-mode #target-settings-overlay.open {
+            display: flex;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            align-items: center;
+            justify-content: center;
+            z-index: 10002;
+        }
+        #target-settings-modal {
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 420px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(31, 59, 92, 0.6);
+        }
+        #target-settings-modal h2 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 16px;
+            color: var(--cyan);
+            margin-bottom: 24px;
+            text-shadow: 0 0 8px var(--cyan-glow);
+        }
+        #target-settings-modal .opt-group { margin-bottom: 20px; text-align: left; }
+        #target-settings-modal .btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        #target-settings-modal .ts-note {
+            font-size: 18px;
+            color: var(--text-color);
+            opacity: 0.6;
+            margin-top: 8px;
+        }
+
+        /* Target-area controls + drag-select overlay */
+        .opt-check {
+            display: flex !important;
+            align-items: center;
+            gap: 10px;
+            justify-content: flex-start !important;
+            cursor: pointer;
+        }
+        .opt-check input {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--cyan);
+            cursor: pointer;
+        }
+        .ta-status {
+            font-size: 16px;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin: 6px 0 12px;
+            text-align: left;
+        }
+        .ta-buttons { display: flex; gap: 10px; }
+        .ta-buttons .btn { flex: 1; margin-bottom: 0; }
+
+        #area-select-layer {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10050;
+            cursor: crosshair;
+            background: rgba(0, 0, 0, 0.2);
+        }
+        #area-select-layer.active { display: block; }
+        #area-select-box {
+            position: fixed;
+            display: none;
+            border: 2px dashed var(--cyan);
+            background: rgba(51, 214, 255, 0.12);
+            box-shadow: 0 0 16px var(--cyan-glow);
+            pointer-events: none;
+        }
+        #area-select-banner {
+            position: fixed;
+            top: 4vh;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'VT323', monospace;
+            font-size: 22px;
+            color: var(--cyan);
+            background: rgba(5, 7, 13, 0.85);
+            padding: 10px 20px;
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            text-shadow: 0 0 10px var(--cyan-glow);
+            white-space: nowrap;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div id="shared-navigation"></div>
+<div id="game-container" class="main-content">
+    <div id="header">
+        <div id="title">DRONESTRIKE</div>
+        <div id="status-bar">
+            <div class="status-chip"><span class="status-label" id="wave-label">WAVE</span><span class="status-value" id="wave-value">1/10</span></div>
+            <div class="status-chip"><span class="status-label">DOWN</span><span class="status-value" id="down-value">0</span></div>
+            <div class="status-chip"><span class="status-label">SCORE</span><span class="status-value" id="score-value">0</span></div>
+        </div>
+    </div>
+    <div id="board-area">
+        <div id="board-wrapper">
+            <canvas id="board"></canvas>
+            <div id="message"></div>
+        </div>
+        <button class="btn-popout" id="btn-popout" title="Open target on projector">📽️</button>
+    </div>
+    <div id="controls">
+        <span id="drop-indicator">SPACE: LAUNCH / FREEZE — CLICK FROZEN DRONE = HIT</span>
+        <button class="btn btn-launch" id="btn-launch">LAUNCH</button>
+        <button class="btn" id="btn-reset">RESET</button>
+        <button class="btn" id="btn-options">OPTIONS</button>
+    </div>
+    <div id="players-panel">
+        <div id="players-add">
+            <input type="text" id="player-name-input" placeholder="Player name..." maxlength="20">
+            <button class="btn" id="btn-add-player">ADD</button>
+        </div>
+        <div id="player-list"></div>
+    </div>
+    <div id="control-panel">
+        <div id="panel-game-state" class="state-ready">READY</div>
+    </div>
+    <div id="keystroke-flash"></div>
+</div>
+
+<div id="modal-overlay">
+    <div id="options-modal">
+        <h2>OPTIONS <button type="button" class="help-btn" id="btn-help" title="How to play" aria-label="How to play">?</button></h2>
+        <div id="howto-overlay">
+            <h3>HOW TO PLAY</h3>
+            <p class="howto-note">DroneStrike needs a projector and a game admin to run the game for the thrower.</p>
+            <ol>
+                <li>Game admin clicks the <strong>projector icon</strong> to open the target window, then projects that window over the physical targets.</li>
+                <li>On the target window, click the <strong>M3 logo</strong> for projector options (target area, fullscreen, etc.).</li>
+                <li>Game admin clicks <strong>LAUNCH</strong> or presses <strong>Spacebar</strong> to start a drone.</li>
+                <li>When the thrower throws, the game admin presses <strong>Spacebar</strong> as the knife impacts the target — this freezes the drone.</li>
+                <li>If the throw hit the drone, the game admin <strong>clicks the drone on the game control window</strong> (not the target / projector window) to score the hit.</li>
+            </ol>
+            <button type="button" class="btn" id="btn-howto-close">GOT IT</button>
+        </div>
+        <div class="opt-section-title">Game Mode</div>
+        <div class="opt-group">
+            <div class="mode-toggle" id="mode-toggle">
+                <button type="button" class="btn mode-btn active" data-mode="wave">WAVE</button>
+                <button type="button" class="btn mode-btn" data-mode="random">RANDOM</button>
+            </div>
+            <div class="mode-hint" id="mode-hint">Wave 1–10: harder drones and speed as you climb.</div>
+        </div>
+        <div class="opt-section-title">Difficulty</div>
+        <div class="opt-group">
+            <label>Game Speed <span class="opt-val" id="val-speed">1.0</span></label>
+            <input type="range" id="opt-speed" min="0.3" max="2.0" step="0.1" value="1.0">
+        </div>
+        <div class="opt-group opt-wave-only">
+            <label>Difficulty Ramp <span class="opt-val" id="val-ramp">1.0</span></label>
+            <input type="range" id="opt-ramp" min="0.0" max="2.0" step="0.1" value="1.0">
+        </div>
+        <div class="opt-group opt-wave-only">
+            <label>Drones / Wave <span class="opt-val" id="val-perwave">5</span></label>
+            <input type="range" id="opt-perwave" min="3" max="12" step="1" value="5">
+        </div>
+        <div class="opt-section-title">Display</div>
+        <div class="opt-group">
+            <label>Drone Size <span class="opt-val" id="val-dronesize">100%</span></label>
+            <input type="range" id="opt-dronesize" min="60" max="180" step="10" value="100">
+        </div>
+        <div class="opt-section-title">Target Area</div>
+        <div class="opt-group">
+            <label class="opt-check"><input type="checkbox" id="opt-showarea"> Show target-area guide</label>
+            <div class="ta-status" id="ta-status">Not set — drones use full screen</div>
+            <div class="ta-buttons">
+                <button class="btn" id="btn-set-area">SET AREA</button>
+                <button class="btn" id="btn-clear-area">CLEAR</button>
+            </div>
+        </div>
+        <div id="modal-buttons">
+            <button class="btn" id="btn-defaults">DEFAULTS</button>
+            <button class="btn" id="btn-apply">APPLY</button>
+            <button class="btn" id="btn-close">CLOSE</button>
+        </div>
+    </div>
+</div>
+
+<!-- Target window: M3 logo + options -->
+<img class="m3-logo-branding" id="m3-logo-btn" src="assets/m3-logo.png" alt="M3" title="Options">
+<div class="m3-logo-hint">Click the M3 logo for options</div>
+<div id="target-settings-overlay">
+    <div id="target-settings-modal">
+        <h2>OPTIONS</h2>
+        <div class="opt-group">
+            <label>Drone Size <span class="opt-val" id="val-ts-dronesize">100%</span></label>
+            <input type="range" id="opt-ts-dronesize" min="60" max="180" step="10" value="100">
+        </div>
+        <div class="opt-section-title">Target Area</div>
+        <div class="opt-group">
+            <label class="opt-check"><input type="checkbox" id="opt-showarea-ts"> Show target-area guide</label>
+            <div class="ta-status" id="ta-status-ts">Not set — drones use full screen</div>
+            <div class="ta-buttons">
+                <button class="btn" id="btn-set-area-ts">SET AREA</button>
+                <button class="btn" id="btn-clear-area-ts">CLEAR</button>
+            </div>
+        </div>
+        <button class="btn" id="btn-ts-fullscreen">FULLSCREEN</button>
+        <button class="btn" id="btn-ts-close">CLOSE</button>
+        <div class="ts-note">F = fullscreen for projector use</div>
+    </div>
+</div>
+
+<!-- Drag-to-mark target area overlay (both windows) -->
+<div id="area-select-layer">
+    <div id="area-select-box"></div>
+    <div id="area-select-banner">Drag a box over your targets &bull; Enter = save &bull; Esc = cancel</div>
+</div>
+
+<script>
+(function() {
+    var params = new URLSearchParams(window.location.search);
+    var IS_TARGET_MODE = params.get('mode') === 'target';
+    var targetWindow = null;
+    var pollInterval = null;
+
+    if (IS_TARGET_MODE) {
+        document.body.classList.add('target-mode');
+        document.title = 'DroneStrike \u2014 Target Display';
+    }
+
+    function isPopoutActive() { return targetWindow && !targetWindow.closed; }
+    function sendToTarget(msg) {
+        if (!isPopoutActive()) return false;
+        try { targetWindow.postMessage(msg, '*'); return true; } catch (e) { return false; }
+    }
+
+    var canvas = document.getElementById('board');
+    var ctx = canvas.getContext('2d');
+    var wrapper = document.getElementById('board-wrapper');
+    var messageEl = document.getElementById('message');
+    var scoreValEl = document.getElementById('score-value');
+    var waveValEl = document.getElementById('wave-value');
+    var waveLabelEl = document.getElementById('wave-label');
+    var downValEl = document.getElementById('down-value');
+    var pendingMode = 'wave';
+
+    // ---- Drone catalog (increasingly advanced) ----
+    var DRONE_TYPES = {
+        scout:   { name: 'SCOUT',    color: '#4ade80', accent: '#bbf7d0', size: 34, speed: 2.2, amp: 34,  freq: 0.010, armor: 1, points: 100 },
+        recon:   { name: 'RECON',    color: '#38bdf8', accent: '#bae6fd', size: 32, speed: 3.0, amp: 62,  freq: 0.014, armor: 1, points: 150 },
+        fighter: { name: 'FIGHTER',  color: '#facc15', accent: '#fef08a', size: 30, speed: 4.0, amp: 84,  freq: 0.018, armor: 1, points: 250 },
+        ufo:     { name: 'UFO',      color: '#86efac', accent: '#d9f99d', size: 34, speed: 5.5, amp: 20,  freq: 0.04,  armor: 1, points: 350, ufo: true },
+        heavy:   { name: 'HEAVY',    color: '#fb923c', accent: '#fed7aa', size: 48, speed: 1.9, amp: 26,  freq: 0.008, armor: 2, points: 400 },
+        stealth: { name: 'STEALTH',  color: '#c084fc', accent: '#e9d5ff', size: 30, speed: 5.0, amp: 108, freq: 0.022, armor: 1, points: 500, stealth: true },
+        command: { name: 'COMMAND',  color: '#f43f5e', accent: '#fecdd3', size: 66, speed: 2.6, amp: 54,  freq: 0.012, armor: 3, points: 1000, boss: true }
+    };
+
+    // Wave mode pools — index 0 = wave 1 … index 9 = wave 10
+    var WAVE_POOLS = [
+        ['scout'],
+        ['scout', 'recon'],
+        ['scout', 'recon', 'fighter'],
+        ['recon', 'fighter', 'ufo'],
+        ['fighter', 'heavy', 'ufo'],
+        ['fighter', 'heavy', 'stealth', 'ufo'],
+        ['heavy', 'stealth', 'ufo', 'command'],
+        ['heavy', 'stealth', 'ufo', 'command'],
+        ['stealth', 'ufo', 'command', 'heavy'],
+        ['stealth', 'ufo', 'command', 'heavy', 'fighter']
+    ];
+    var MAX_WAVE = 10;
+    var ALL_DRONE_TYPES = Object.keys(DRONE_TYPES);
+
+    var DEFAULTS = {
+        gameMode: 'wave',      // 'wave' | 'random'
+        gameSpeed: 1.0,
+        difficultyRamp: 1.0,
+        dronesPerWave: 5,
+        droneSize: 100,
+        targetArea: null,      // normalized {x,y,w,h} zone drones must clear during pass; null = unconstrained
+        showTargetArea: false  // draw the dashed target-area guide
+    };
+    var config = JSON.parse(JSON.stringify(DEFAULTS));
+
+    var CONFIG_STORAGE_KEY = 'dronestrike_config';
+    function saveConfigLocal() {
+        try { localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(config)); } catch (e) {}
+    }
+    function loadConfigLocal() {
+        try {
+            var s = localStorage.getItem(CONFIG_STORAGE_KEY);
+            if (!s) return;
+            var c = JSON.parse(s);
+            for (var k in c) { if (c.hasOwnProperty(k) && DEFAULTS.hasOwnProperty(k)) config[k] = c[k]; }
+        } catch (e) {}
+    }
+
+    // Marked physical-target region in canvas pixels. Null area => full board (legacy behavior).
+    function getTargetRect() {
+        var a = config.targetArea;
+        if (!a) return { x: 0, y: 0, w: W, h: H, full: true };
+        return { x: a.x * W, y: a.y * H, w: a.w * W, h: a.h * H, full: false };
+    }
+
+    // Approx. half-extent of the drawn drone (arms + rotors).
+    function droneGraphicRadius(size) {
+        return size * 1.4;
+    }
+
+    // Choose amp / baseY so that for a stretch of the horizontal pass through the
+    // target zone, the full graphic stays inside the box with margin. Drones still
+    // spawn and escape off-screen beyond the zone.
+    function pickFlightBand(typeDef, size) {
+        var desiredAmp = typeDef.amp * DRAW_SCALE;
+        var box = getTargetRect();
+        if (box.full) {
+            return {
+                amp: desiredAmp,
+                baseY: H * (0.16 + Math.random() * 0.44)
+            };
+        }
+        var margin = size * 0.3;
+        var r = droneGraphicRadius(size);
+        // Vertical room for (graphic + margin) on both sides of the bob envelope
+        var usableH = box.h - 2 * (r + margin);
+        var maxPeak = Math.max(0, usableH * 0.5);
+        var amp = Math.min(desiredAmp, maxPeak / 1.3);
+        var peak = amp * 1.3;
+        var minBaseY = box.y + r + margin + peak;
+        var maxBaseY = box.y + box.h - r - margin - peak;
+        var baseY;
+        if (maxBaseY < minBaseY) {
+            baseY = box.y + box.h * 0.5;
+            amp = 0;
+        } else {
+            baseY = minBaseY + Math.random() * (maxBaseY - minBaseY);
+        }
+        return { amp: amp, baseY: baseY };
+    }
+
+    // Random hover point. Prefers the target zone (full graphic + margin) when set.
+    function pickUfoHoverPoint(size) {
+        var r = droneGraphicRadius(size);
+        var margin = size * 0.3;
+        var box = getTargetRect();
+        var minX, maxX, minY, maxY;
+        if (!box.full) {
+            minX = box.x + r + margin;
+            maxX = box.x + box.w - r - margin;
+            minY = box.y + r + margin;
+            maxY = box.y + box.h - r - margin;
+            if (maxX < minX) { minX = maxX = box.x + box.w * 0.5; }
+            if (maxY < minY) { minY = maxY = box.y + box.h * 0.5; }
+        } else {
+            minX = W * 0.12;
+            maxX = W * 0.88;
+            minY = H * 0.14;
+            maxY = H * 0.58;
+        }
+        return {
+            x: minX + Math.random() * (maxX - minX),
+            y: minY + Math.random() * (maxY - minY)
+        };
+    }
+
+    // Keep the full UFO graphic inside the target zone during hover bobble.
+    function clampUfoToZone(d) {
+        var box = getTargetRect();
+        if (box.full) return;
+        var r = droneGraphicRadius(d.size);
+        var margin = d.size * 0.3;
+        var minX = box.x + r + margin;
+        var maxX = box.x + box.w - r - margin;
+        var minY = box.y + r + margin;
+        var maxY = box.y + box.h - r - margin;
+        if (maxX < minX) { minX = maxX = box.x + box.w * 0.5; }
+        if (maxY < minY) { minY = maxY = box.y + box.h * 0.5; }
+        d.x = Math.max(minX, Math.min(maxX, d.x));
+        d.y = Math.max(minY, Math.min(maxY, d.y));
+        d.baseY = Math.max(minY, Math.min(maxY, d.baseY));
+    }
+
+    function startUfoDash(d, tx, ty, exiting) {
+        d.ufoMode = 'dash';
+        d.ufoFromX = d.x;
+        d.ufoFromY = d.y;
+        d.ufoTx = tx;
+        d.ufoTy = ty;
+        d.ufoDashT = 0;
+        var dist = Math.sqrt((tx - d.x) * (tx - d.x) + (ty - d.y) * (ty - d.y));
+        var dashSpeed = DRONE_TYPES.ufo.speed * DRAW_SCALE * speedMultiplier() * config.gameSpeed * 1.35;
+        d.ufoDashDur = Math.max(14, Math.min(48, dist / Math.max(0.5, dashSpeed)));
+        d.ufoExiting = !!exiting;
+    }
+
+    function beginUfoHover(d) {
+        d.ufoMode = 'hover';
+        d.ufoHoverT = 0;
+        // Linger longer early, shorter later — keeps pressure up
+        d.ufoHoverDur = 36 + Math.floor(Math.random() * 40) - Math.min(20, d.ufoHops * 4);
+        d.baseY = d.y;
+        d.ufoHops++;
+    }
+
+    var state = {
+        score: 0,
+        wave: 1,
+        downed: 0,
+        drone: null,
+        queue: [],
+        gameState: 'ready', // ready | flying | paused | countdown | hit | escaped | wavecleared | victory
+        countdown: null,
+        countdownStart: 0,
+        t: 0
+    };
+
+    var W = 0, H = 0, DRAW_SCALE = 1;
+    var REF_WIDTH = 900;
+    var GRAVITY = 0.5;
+
+    function resize() {
+        var rect = wrapper.getBoundingClientRect();
+        if (rect.width < 1 || rect.height < 1) return;
+        var dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        W = rect.width;
+        H = rect.height;
+        DRAW_SCALE = W / REF_WIDTH;
+        GRAVITY = 0.5 * DRAW_SCALE;
+    }
+
+    function applyConfig() {
+        if (IS_TARGET_MODE) {
+            wrapper.style.height = '100vh';
+            wrapper.style.maxWidth = '100vw';
+        }
+        void wrapper.offsetHeight;
+        resize();
+        requestAnimationFrame(function() { resize(); });
+    }
+
+    function speedMultiplier() {
+        // Random mode: flat difficulty (drone variety is the challenge)
+        if (config.gameMode === 'random') return 1;
+        return 1 + (state.wave - 1) * 0.08 * config.difficultyRamp;
+    }
+
+    function poolForWave(wave) {
+        var idx = Math.max(0, Math.min(WAVE_POOLS.length - 1, wave - 1));
+        return WAVE_POOLS[idx];
+    }
+
+    function buildQueue() {
+        if (config.gameMode === 'random') {
+            state.queue = [ALL_DRONE_TYPES[Math.floor(Math.random() * ALL_DRONE_TYPES.length)]];
+            return;
+        }
+        var pool = poolForWave(state.wave);
+        var count = config.dronesPerWave + Math.floor((state.wave - 1) / 3);
+        var q = [];
+        for (var i = 0; i < count; i++) {
+            q.push(pool[Math.floor(Math.random() * pool.length)]);
+        }
+        // Boss accent on waves 5, 7, 10 once command is in the pool
+        if ((state.wave === 5 || state.wave === 7 || state.wave === 10) &&
+            pool.indexOf('command') !== -1) {
+            q.push('command');
+        }
+        state.queue = q;
+    }
+
+    function spawnNext() {
+        if (state.queue.length === 0) {
+            if (config.gameMode === 'random') {
+                state.wave++;
+                buildQueue();
+                // Fall through and spawn the next random drone
+            } else {
+                // Wave cleared
+                state.drone = null;
+                state.gameState = 'wavecleared';
+                updateHud();
+                if (state.wave >= MAX_WAVE) {
+                    state.gameState = 'victory';
+                    showMessage('WAVE 10 CLEARED — VICTORY!', '#33ff77');
+                    return;
+                }
+                showMessage('WAVE ' + state.wave + ' CLEARED', '#33ff77');
+                var clearedWave = state.wave;
+                setTimeout(function() {
+                    if (state.wave !== clearedWave || config.gameMode !== 'wave') return;
+                    state.wave++;
+                    buildQueue();
+                    state.gameState = 'ready';
+                    state.drone = null;
+                    updateHud();
+                    showMessage('WAVE ' + state.wave + ' / ' + MAX_WAVE, '#ffb833');
+                }, 1800);
+                return;
+            }
+        }
+        var type = state.queue.shift();
+        var t = DRONE_TYPES[type];
+        var dir = Math.random() < 0.5 ? 1 : -1;
+        var size = t.size * DRAW_SCALE * (config.droneSize / 100);
+        var amp, baseY, startX, startY;
+        var spd = t.speed * DRAW_SCALE * speedMultiplier() * config.gameSpeed;
+
+        if (t.ufo) {
+            // Enter from off-screen toward a first hover that clears the target zone
+            var first = pickUfoHoverPoint(size);
+            startX = dir === 1 ? -size * 2.5 : W + size * 2.5;
+            startY = first.y + (Math.random() - 0.5) * size;
+            state.drone = {
+                type: type,
+                x: startX,
+                y: startY,
+                baseY: first.y,
+                dir: dir,
+                vx: 0,
+                amp: t.amp * DRAW_SCALE,
+                freq: t.freq,
+                phase: Math.random() * Math.PI * 2,
+                rotor: 0,
+                armor: t.armor,
+                maxArmor: t.armor,
+                size: size,
+                localT: 0,
+                spawnTime: performance.now(),
+                vy: 0,
+                rot: 0,
+                animT: 0,
+                smoke: [],
+                ufoMode: 'dash',
+                ufoHops: 0,
+                ufoMaxHops: 3 + Math.floor(Math.random() * 3),
+                ufoExiting: false,
+                ufoHoverT: 0,
+                ufoHoverDur: 40
+            };
+            startUfoDash(state.drone, first.x, first.y, false);
+        } else {
+            // Enter / exit off-screen; band clears the target zone during the pass
+            startX = dir === 1 ? -size * 2 : W + size * 2;
+            var band = pickFlightBand(t, size);
+            amp = band.amp;
+            baseY = band.baseY;
+            state.drone = {
+                type: type,
+                x: startX,
+                y: baseY,
+                baseY: baseY,
+                dir: dir,
+                vx: dir * spd,
+                amp: amp,
+                freq: t.freq,
+                phase: Math.random() * Math.PI * 2,
+                rotor: 0,
+                armor: t.armor,
+                maxArmor: t.armor,
+                size: size,
+                localT: 0,
+                spawnTime: performance.now(),
+                vy: 0,
+                rot: 0,
+                animT: 0,
+                smoke: [],
+                baseAmp: amp,
+                baseFreq: t.freq,
+                baseVx: dir * spd
+            };
+        }
+        state.gameState = 'ready';
+        updateHud();
+    }
+
+    function launchDrone() {
+        if (state.gameState === 'wavecleared' || state.gameState === 'victory') return;
+        if (!state.drone) {
+            spawnNext();
+            if (!state.drone) return;
+        }
+        if (state.gameState === 'ready') {
+            state.gameState = 'flying';
+        }
+    }
+
+    function freeze() {
+        if (state.gameState !== 'flying') return;
+        state.gameState = 'paused';
+    }
+
+    function resumeFromMiss() {
+        if (state.gameState !== 'paused') return;
+        state.gameState = 'flying';
+        showMessage('MISS', '#ff6644');
+    }
+
+    // After an armor hit on a multi-health drone: 2…1…GO then resume (Klinko-style)
+    function startResumeCountdown() {
+        state.gameState = 'countdown';
+        state.countdown = 2;
+        state.countdownStart = performance.now();
+    }
+
+    function clearCountdown() {
+        state.countdown = null;
+        state.countdownStart = 0;
+    }
+
+    function tickCountdown() {
+        if (state.countdown === null) return;
+        var remaining = state.countdown - (performance.now() - state.countdownStart) / 1000;
+        if (remaining <= 0) {
+            clearCountdown();
+            state.gameState = 'flying';
+        }
+    }
+
+    function getCountdownDisplay() {
+        if (state.countdown === null) return null;
+        var remaining = state.countdown - (performance.now() - state.countdownStart) / 1000;
+        if (remaining > 1) return { text: '2', go: false, remaining: remaining };
+        if (remaining > 0) return { text: '1', go: false, remaining: remaining };
+        return { text: 'GO!', go: true, remaining: remaining };
+    }
+
+    // 0 = pristine, 1 = one hit from dead (multi-armor drones only)
+    function armorDamage(d) {
+        if (!d || !d.maxArmor || d.maxArmor <= 1) return 0;
+        return (d.maxArmor - d.armor) / d.maxArmor;
+    }
+
+    // After an armor hit: less stable flight + slightly faster = harder to pin down
+    function destabilizeDrone(d) {
+        var loss = armorDamage(d);
+        if (loss <= 0) return;
+        var baseAmp = d.baseAmp != null ? d.baseAmp : d.amp;
+        var baseFreq = d.baseFreq != null ? d.baseFreq : d.freq;
+        var baseVx = d.baseVx != null ? d.baseVx : d.vx;
+        d.amp = baseAmp * (1 + 0.65 * loss);
+        d.freq = baseFreq * (1 + 0.85 * loss);
+        var dir = baseVx >= 0 ? 1 : -1;
+        d.vx = dir * Math.abs(baseVx) * (1 + 0.14 * loss);
+        // Burst of smoke on the hit
+        for (var i = 0; i < 4 + Math.floor(loss * 4); i++) {
+            d.smoke.push({
+                x: d.x + (Math.random() - 0.5) * d.size,
+                y: d.y + (Math.random() - 0.5) * d.size,
+                r: d.size * (0.25 + Math.random() * 0.3),
+                life: 0.9 + Math.random() * 0.4,
+                vx: (Math.random() - 0.5) * 1.5 * DRAW_SCALE
+            });
+        }
+    }
+
+    function emitDamageSmoke(d) {
+        var loss = armorDamage(d);
+        if (loss <= 0) return;
+        var interval = Math.max(2, Math.round(7 - loss * 5));
+        if (d.localT % interval !== 0) return;
+        d.smoke.push({
+            x: d.x + (Math.random() - 0.5) * d.size * 0.6,
+            y: d.y + d.size * 0.15,
+            r: d.size * (0.2 + loss * 0.25),
+            life: 0.7 + loss * 0.4,
+            vx: (Math.random() - 0.5) * DRAW_SCALE - (d.vx || 0) * 0.08
+        });
+    }
+
+    function tickSmoke(d) {
+        for (var s = 0; s < d.smoke.length; s++) {
+            d.smoke[s].life -= 0.028;
+            d.smoke[s].y -= 0.45 * DRAW_SCALE;
+            d.smoke[s].x += d.smoke[s].vx;
+            d.smoke[s].r += 0.55 * DRAW_SCALE;
+        }
+        // Drop dead puffs so the array doesn't grow forever
+        if (d.smoke.length > 40) {
+            d.smoke = d.smoke.filter(function(sm) { return sm.life > 0; });
+        }
+    }
+
+    function registerHit(clickX, clickY) {
+        if (state.gameState !== 'paused' || !state.drone) return false;
+        var d = state.drone;
+        var dx = clickX - d.x;
+        var dy = clickY - d.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var hitR = DRONE_TYPES[d.type].ufo ? d.size * 1.35 : d.size * 1.15;
+        if (dist > hitR) return false;
+
+        var t = DRONE_TYPES[d.type];
+        d.armor--;
+        if (d.armor > 0) {
+            var partial = Math.round(t.points * 0.25);
+            addScore(partial);
+            showMessage('ARMOR HIT +' + partial, '#ffb833');
+            destabilizeDrone(d);
+            startResumeCountdown();
+            return true;
+        }
+        // Destroyed
+        var elapsed = (performance.now() - d.spawnTime) / 1000;
+        var timeBonus = Math.max(0, Math.round((4 - elapsed) * 40));
+        var total = Math.round(t.points * speedMultiplier()) + timeBonus;
+        addScore(total);
+        state.downed++;
+        d.animT = 0;
+        d.vy = -3 * DRAW_SCALE;
+        d.vx *= 0.3;
+        d.rot = 0;
+        d.smoke = [];
+        state.gameState = 'hit';
+        showMessage(t.name + ' DOWN +' + total, '#33ff77');
+        updateHud();
+        return true;
+    }
+
+    function addScore(pts) {
+        state.score += pts;
+        if (activePlayerIndex >= 0 && activePlayerIndex < players.length) {
+            players[activePlayerIndex].score += pts;
+            renderPlayers();
+        }
+        updateHud();
+    }
+
+    function updateHud() {
+        scoreValEl.textContent = state.score;
+        downValEl.textContent = state.downed;
+        if (config.gameMode === 'random') {
+            waveLabelEl.textContent = 'ROUND';
+            waveValEl.textContent = state.wave;
+        } else {
+            waveLabelEl.textContent = 'WAVE';
+            waveValEl.textContent = state.wave + '/' + MAX_WAVE;
+        }
+    }
+
+    function syncModeUI() {
+        var mode = pendingMode || config.gameMode;
+        document.body.classList.toggle('mode-random', mode === 'random');
+        var btns = document.querySelectorAll('.mode-btn');
+        for (var i = 0; i < btns.length; i++) {
+            btns[i].classList.toggle('active', btns[i].getAttribute('data-mode') === mode);
+        }
+        var hint = document.getElementById('mode-hint');
+        if (hint) {
+            hint.textContent = mode === 'random'
+                ? 'Random: one random drone each round — any type can appear.'
+                : 'Wave 1–10: harder drones and speed as you climb.';
+        }
+    }
+
+    function showMessage(text, color) {
+        messageEl.textContent = text;
+        messageEl.style.color = color || '#ffb833';
+        messageEl.style.textShadow = '0 0 20px ' + (color || '#ffb833');
+        messageEl.classList.add('visible');
+        clearTimeout(showMessage._t);
+        showMessage._t = setTimeout(function() { messageEl.classList.remove('visible'); }, 1400);
+    }
+
+    function resolveDrone() {
+        // called after hit fall or escape; rotate player and queue next
+        nextPlayer();
+        spawnNext();
+    }
+
+    // ---------- UFO hover / dash movement ----------
+    function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function updateUfo(d) {
+        d.rotor += 0.35;
+        if (d.ufoMode === 'dash') {
+            d.ufoDashT++;
+            var p = Math.min(1, d.ufoDashT / d.ufoDashDur);
+            var e = easeInOutCubic(p);
+            d.x = d.ufoFromX + (d.ufoTx - d.ufoFromX) * e;
+            d.y = d.ufoFromY + (d.ufoTy - d.ufoFromY) * e;
+            // Slight tilt toward travel direction while darting
+            d.rot = (d.ufoTx - d.ufoFromX) * 0.0008 * (1 - p) * Math.sin(p * Math.PI);
+            if (p >= 1) {
+                d.x = d.ufoTx;
+                d.y = d.ufoTy;
+                d.rot = 0;
+                if (d.ufoExiting) {
+                    state.gameState = 'escaped';
+                    d.animT = 0;
+                    showMessage('DRONE ESCAPED', '#ff6644');
+                    return;
+                }
+                beginUfoHover(d);
+            }
+        } else {
+            // Hover: idle bobble + tiny lateral drift, clamped inside the target zone
+            d.ufoHoverT++;
+            d.y = d.baseY
+                + Math.sin(d.localT * d.freq + d.phase) * d.amp * 0.45
+                + Math.sin(d.localT * 0.11 + d.phase) * d.amp * 0.2;
+            d.x += Math.sin(d.localT * 0.07 + d.phase) * 0.35 * DRAW_SCALE;
+            d.rot = Math.sin(d.localT * 0.05) * 0.06;
+            clampUfoToZone(d);
+            if (d.ufoHoverT >= d.ufoHoverDur) {
+                if (d.ufoHops >= d.ufoMaxHops) {
+                    // Zip off-screen after enough hops
+                    var exitDir = d.dir || (Math.random() < 0.5 ? 1 : -1);
+                    var exitX = exitDir === 1 ? W + d.size * 3 : -d.size * 3;
+                    var exitY = d.y + (Math.random() - 0.5) * H * 0.2;
+                    startUfoDash(d, exitX, exitY, true);
+                } else {
+                    // Next hop stays inside the target zone
+                    var next = pickUfoHoverPoint(d.size);
+                    startUfoDash(d, next.x, next.y, false);
+                }
+            }
+        }
+        // Safety: if somehow far off-screen while not exiting, treat as escaped
+        var m = d.size * 3;
+        if (!d.ufoExiting && (d.x < -m || d.x > W + m || d.y < -m || d.y > H + m)) {
+            state.gameState = 'escaped';
+            d.animT = 0;
+            showMessage('DRONE ESCAPED', '#ff6644');
+        }
+    }
+
+    // ---------- Update ----------
+    function update() {
+        var d = state.drone;
+        if (!d) return;
+
+        if (state.gameState === 'flying') {
+            d.localT += 1;
+            if (DRONE_TYPES[d.type].ufo) {
+                updateUfo(d);
+            } else {
+                var loss = armorDamage(d);
+                d.x += d.vx;
+                d.y = d.baseY
+                    + Math.sin(d.localT * d.freq + d.phase) * d.amp
+                    + Math.sin(d.localT * d.freq * 0.43 + d.phase) * d.amp * 0.3;
+                // Damaged: erratic secondary motion — less control, harder to track
+                if (loss > 0) {
+                    d.y += Math.sin(d.localT * 0.21 + d.phase) * d.amp * 0.55 * loss
+                        + Math.sin(d.localT * 0.37) * d.size * 0.35 * loss;
+                    d.x += Math.sin(d.localT * 0.15 + d.phase) * DRAW_SCALE * (2.2 * loss)
+                        + Math.sin(d.localT * 0.29) * DRAW_SCALE * (1.4 * loss);
+                    d.rot = Math.sin(d.localT * 0.11) * 0.35 * loss
+                        + Math.sin(d.localT * 0.27) * 0.22 * loss;
+                    d.rotor += 0.5 + loss * 0.45;
+                    emitDamageSmoke(d);
+                    tickSmoke(d);
+                } else {
+                    d.rot = 0;
+                    d.rotor += 0.5;
+                }
+                var margin = d.size * 2.2;
+                if (d.x < -margin || d.x > W + margin) {
+                    state.gameState = 'escaped';
+                    d.animT = 0;
+                    showMessage('DRONE ESCAPED', '#ff6644');
+                }
+            }
+        } else if (state.gameState === 'hit') {
+            d.animT++;
+            d.vy += GRAVITY;
+            d.x += d.vx * 0.4;
+            d.y += d.vy;
+            d.rot += 0.18;
+            d.rotor += 0.15;
+            if (d.animT % 2 === 0) {
+                d.smoke.push({ x: d.x, y: d.y, r: d.size * 0.4, life: 1, vx: (Math.random() - 0.5) * DRAW_SCALE });
+            }
+            tickSmoke(d);
+            if (d.y - d.size > H) {
+                resolveDrone();
+            }
+        } else if (state.gameState === 'countdown') {
+            tickSmoke(d);
+        } else if (state.gameState === 'escaped') {
+            d.animT++;
+            if (d.animT > 45) {
+                resolveDrone();
+            }
+        }
+    }
+
+    // ---------- Draw ----------
+    function drawBackground() {
+        ctx.clearRect(0, 0, W, H);
+        var grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#0a1424');
+        grad.addColorStop(0.55, '#0a0f1a');
+        grad.addColorStop(1, '#05070d');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Perspective floor grid (containment facility)
+        var horizon = H * 0.62;
+        ctx.strokeStyle = 'rgba(51, 214, 255, 0.10)';
+        ctx.lineWidth = 1;
+        var cx = W / 2;
+        for (var i = -10; i <= 10; i++) {
+            ctx.beginPath();
+            ctx.moveTo(cx + i * (W * 0.06), horizon);
+            ctx.lineTo(cx + i * (W * 0.5), H);
+            ctx.stroke();
+        }
+        for (var r = 0; r < 8; r++) {
+            var yy = horizon + Math.pow(r / 8, 2) * (H - horizon);
+            ctx.beginPath();
+            ctx.moveTo(0, yy);
+            ctx.lineTo(W, yy);
+            ctx.globalAlpha = 0.5;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+        // horizon glow
+        var hg = ctx.createLinearGradient(0, horizon - 30 * DRAW_SCALE, 0, horizon + 30 * DRAW_SCALE);
+        hg.addColorStop(0, 'rgba(51, 214, 255, 0)');
+        hg.addColorStop(0.5, 'rgba(51, 214, 255, 0.12)');
+        hg.addColorStop(1, 'rgba(51, 214, 255, 0)');
+        ctx.fillStyle = hg;
+        ctx.fillRect(0, horizon - 30 * DRAW_SCALE, W, 60 * DRAW_SCALE);
+    }
+
+    function drawUfo(d, frozen) {
+        var t = DRONE_TYPES.ufo;
+        var s = d.size;
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        if (d.rot) ctx.rotate(d.rot);
+
+        // Soft under-glow / tractor haze
+        var glowPulse = 0.55 + Math.sin(d.localT * 0.12) * 0.25;
+        var under = ctx.createRadialGradient(0, s * 0.35, 0, 0, s * 0.6, s * 1.4);
+        under.addColorStop(0, 'rgba(134, 239, 172, ' + (0.35 * glowPulse) + ')');
+        under.addColorStop(1, 'rgba(134, 239, 172, 0)');
+        ctx.fillStyle = under;
+        ctx.beginPath();
+        ctx.ellipse(0, s * 0.55, s * 0.9, s * 0.7, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Saucer rim (wide ellipse)
+        var rimGrad = ctx.createLinearGradient(0, -s * 0.25, 0, s * 0.35);
+        rimGrad.addColorStop(0, '#e2e8f0');
+        rimGrad.addColorStop(0.45, t.color);
+        rimGrad.addColorStop(1, shade(t.color, -0.45));
+        ctx.beginPath();
+        ctx.ellipse(0, s * 0.05, s * 1.15, s * 0.38, 0, 0, Math.PI * 2);
+        ctx.fillStyle = rimGrad;
+        ctx.shadowColor = t.color;
+        ctx.shadowBlur = (frozen ? 22 : 12) * DRAW_SCALE;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = shade(t.color, -0.55);
+        ctx.lineWidth = Math.max(1, s * 0.05);
+        ctx.stroke();
+
+        // Metallic band
+        ctx.beginPath();
+        ctx.ellipse(0, s * 0.05, s * 1.0, s * 0.22, 0, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = Math.max(1, s * 0.04);
+        ctx.stroke();
+
+        // Dome canopy
+        var dome = ctx.createLinearGradient(0, -s * 0.7, 0, s * 0.1);
+        dome.addColorStop(0, 'rgba(240, 253, 244, 0.95)');
+        dome.addColorStop(0.5, t.accent);
+        dome.addColorStop(1, shade(t.color, -0.2));
+        ctx.beginPath();
+        ctx.ellipse(0, -s * 0.12, s * 0.55, s * 0.48, 0, Math.PI, 0, true);
+        ctx.fillStyle = dome;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = Math.max(1, s * 0.04);
+        ctx.stroke();
+
+        // Cockpit highlight
+        ctx.beginPath();
+        ctx.ellipse(-s * 0.15, -s * 0.35, s * 0.16, s * 0.1, -0.4, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.55)';
+        ctx.fill();
+
+        // Rim lights
+        var lights = 6;
+        for (var i = 0; i < lights; i++) {
+            var ang = (i / lights) * Math.PI * 2 + d.rotor * 0.15;
+            var lx = Math.cos(ang) * s * 0.85;
+            var ly = s * 0.05 + Math.sin(ang) * s * 0.22;
+            var on = (Math.floor(d.localT / 8 + i) % 3) !== 0;
+            ctx.beginPath();
+            ctx.arc(lx, ly, s * 0.07, 0, Math.PI * 2);
+            ctx.fillStyle = on ? (state.gameState === 'paused' ? '#ffcc33' : '#4ade80') : 'rgba(80,100,90,0.5)';
+            if (on) {
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 8 * DRAW_SCALE;
+            }
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+
+        // Belly antenna / emitter
+        ctx.beginPath();
+        ctx.arc(0, s * 0.28, s * 0.1, 0, Math.PI * 2);
+        ctx.fillStyle = state.gameState === 'paused' ? '#ff3355' : '#bbf7d0';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 10 * DRAW_SCALE * glowPulse;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.restore();
+    }
+
+    function drawDrone(d, frozen) {
+        var t = DRONE_TYPES[d.type];
+        if (t.ufo) {
+            drawUfo(d, frozen);
+            return;
+        }
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        if (d.rot) ctx.rotate(d.rot);
+        var s = d.size;
+
+        if (t.stealth && !frozen && state.gameState === 'flying') {
+            ctx.globalAlpha = 0.55 + Math.sin(d.localT * 0.15) * 0.2;
+        }
+
+        var armSpan = s * 0.95;
+        // Arms (X frame)
+        ctx.strokeStyle = 'rgba(180,200,230,0.85)';
+        ctx.lineWidth = Math.max(2, s * 0.10);
+        var arms = [[-1,-1],[1,-1],[-1,1],[1,1]];
+        for (var a = 0; a < 4; a++) {
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(arms[a][0] * armSpan, arms[a][1] * armSpan);
+            ctx.stroke();
+        }
+        // Rotors
+        for (var a2 = 0; a2 < 4; a2++) {
+            var rx = arms[a2][0] * armSpan;
+            var ry = arms[a2][1] * armSpan;
+            ctx.beginPath();
+            ctx.arc(rx, ry, s * 0.42, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(51, 214, 255, 0.10)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(120,140,170,0.7)';
+            ctx.lineWidth = Math.max(1, s * 0.05);
+            ctx.stroke();
+            // spinning blades
+            ctx.save();
+            ctx.translate(rx, ry);
+            ctx.rotate(d.rotor + a2);
+            ctx.strokeStyle = t.accent;
+            ctx.lineWidth = Math.max(1, s * 0.06);
+            for (var b = 0; b < 2; b++) {
+                ctx.rotate(Math.PI / 2);
+                ctx.beginPath();
+                ctx.moveTo(-s * 0.4, 0);
+                ctx.lineTo(s * 0.4, 0);
+                ctx.stroke();
+            }
+            // hub
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.08, 0, Math.PI * 2);
+            ctx.fillStyle = '#334';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Body
+        ctx.beginPath();
+        var bw = s * 0.9, bh = s * 0.62, br = s * 0.22;
+        roundRect(ctx, -bw / 2, -bh / 2, bw, bh, br);
+        var bodyGrad = ctx.createLinearGradient(0, -bh / 2, 0, bh / 2);
+        var loss = armorDamage(d);
+        var bodyTop = loss > 0 ? shade(t.accent, -0.25 * loss) : t.accent;
+        var bodyMid = loss > 0 ? shade(t.color, -0.35 * loss) : t.color;
+        bodyGrad.addColorStop(0, bodyTop);
+        bodyGrad.addColorStop(0.5, bodyMid);
+        bodyGrad.addColorStop(1, shade(t.color, -0.4 - 0.2 * loss));
+        ctx.fillStyle = bodyGrad;
+        ctx.shadowColor = loss > 0 ? '#ff6644' : t.color;
+        ctx.shadowBlur = (frozen ? 18 : 10) * DRAW_SCALE * (1 + loss * 0.5);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = shade(t.color, -0.5);
+        ctx.lineWidth = Math.max(1, s * 0.04);
+        ctx.stroke();
+
+        if (t.boss) {
+            // extra armor plating for the command drone
+            ctx.strokeStyle = t.accent;
+            ctx.lineWidth = Math.max(1, s * 0.05);
+            ctx.beginPath();
+            roundRect(ctx, -bw * 0.36, -bh * 0.34, bw * 0.72, bh * 0.68, br * 0.5);
+            ctx.stroke();
+        }
+
+        // Visible damage: scorch, cracks, sparks (multi-hit drones after armor hits)
+        if (loss > 0 && state.gameState !== 'hit') {
+            ctx.save();
+            // Scorch blotches
+            ctx.globalAlpha = 0.35 + loss * 0.4;
+            ctx.fillStyle = '#1a0a08';
+            ctx.beginPath();
+            ctx.ellipse(-bw * 0.15, bh * 0.05, bw * 0.28 * loss, bh * 0.22, -0.3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.ellipse(bw * 0.2, -bh * 0.08, bw * 0.18 * loss, bh * 0.16, 0.5, 0, Math.PI * 2);
+            ctx.fill();
+            // Cracks
+            ctx.globalAlpha = 0.7 + loss * 0.3;
+            ctx.strokeStyle = 'rgba(40, 20, 15, 0.9)';
+            ctx.lineWidth = Math.max(1, s * 0.045);
+            ctx.beginPath();
+            ctx.moveTo(-bw * 0.25, -bh * 0.15);
+            ctx.lineTo(-bw * 0.05, bh * 0.05);
+            ctx.lineTo(-bw * 0.18, bh * 0.28);
+            ctx.stroke();
+            if (loss > 0.4) {
+                ctx.beginPath();
+                ctx.moveTo(bw * 0.1, -bh * 0.25);
+                ctx.lineTo(bw * 0.28, bh * 0.1);
+                ctx.stroke();
+            }
+            // Sparks / ember flashes
+            var sparkN = 2 + Math.floor(loss * 4);
+            for (var sp = 0; sp < sparkN; sp++) {
+                if (Math.sin(d.localT * 0.4 + sp * 1.7) < 0.2) continue;
+                var sx = Math.sin(d.localT * 0.17 + sp) * bw * 0.4;
+                var sy = Math.cos(d.localT * 0.23 + sp * 0.9) * bh * 0.35;
+                ctx.beginPath();
+                ctx.arc(sx, sy, s * (0.04 + loss * 0.04), 0, Math.PI * 2);
+                ctx.fillStyle = sp % 2 ? '#ffb833' : '#ff6644';
+                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 6 * DRAW_SCALE;
+                ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+            ctx.restore();
+
+            // Damaged rotor: stutter one motor
+            var badArm = Math.min(3, Math.floor(loss * 4));
+            ctx.save();
+            ctx.translate(arms[badArm][0] * armSpan, arms[badArm][1] * armSpan);
+            ctx.strokeStyle = 'rgba(255, 100, 40, 0.7)';
+            ctx.lineWidth = Math.max(1, s * 0.05);
+            ctx.beginPath();
+            ctx.arc(0, 0, s * 0.42, 0, Math.PI * 1.2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Sensor eye
+        var eyePulse = 0.6 + Math.sin(d.localT * 0.2) * 0.4;
+        ctx.beginPath();
+        ctx.arc(0, 0, s * 0.20, 0, Math.PI * 2);
+        var eyeColor = loss > 0.3 ? '#ff6644' : (t.boss ? '#ff2e4d' : '#ff3355');
+        ctx.fillStyle = eyeColor;
+        ctx.shadowColor = eyeColor;
+        ctx.shadowBlur = 14 * DRAW_SCALE * eyePulse * (1 + loss);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(-s * 0.06, -s * 0.06, s * 0.07, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.fill();
+
+        // Status LEDs — flicker amber/red when damaged
+        var ledOk = state.gameState === 'paused' ? '#ffcc33' : '#33ff77';
+        var ledBad = Math.sin(d.localT * 0.35) > 0 ? '#ff6644' : '#ffb833';
+        ctx.fillStyle = loss > 0 ? ledBad : ledOk;
+        ctx.beginPath(); ctx.arc(-bw * 0.4, bh * 0.28, s * 0.05, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = loss > 0.5 && Math.sin(d.localT * 0.5) < 0 ? '#442222' : (loss > 0 ? ledBad : ledOk);
+        ctx.beginPath(); ctx.arc(bw * 0.4, bh * 0.28, s * 0.05, 0, Math.PI * 2); ctx.fill();
+
+        ctx.globalAlpha = 1;
+
+        // Armor pips (multi-hit drones)
+        if (d.maxArmor > 1 && state.gameState !== 'hit') {
+            var pipW = s * 0.22;
+            var totalW = d.maxArmor * pipW + (d.maxArmor - 1) * (pipW * 0.4);
+            var startPX = -totalW / 2;
+            for (var p = 0; p < d.maxArmor; p++) {
+                ctx.fillStyle = p < d.armor ? '#33ff77' : '#ff6644';
+                ctx.globalAlpha = p < d.armor ? 1 : 0.55;
+                ctx.fillRect(startPX + p * (pipW * 1.4), -s * 1.05, pipW, s * 0.09);
+            }
+            ctx.globalAlpha = 1;
+        }
+        ctx.restore();
+    }
+
+    function drawReticle(d) {
+        // Blinking targeting reticle around a frozen drone (admin aid, main window only)
+        var blink = Math.sin(state.t * 0.25) > -0.3;
+        if (!blink) return;
+        var r = d.size * 1.25;
+        ctx.save();
+        ctx.translate(d.x, d.y);
+        ctx.strokeStyle = 'rgba(255, 46, 77, 0.9)';
+        ctx.lineWidth = 2 * DRAW_SCALE;
+        ctx.shadowColor = 'rgba(255, 46, 77, 0.6)';
+        ctx.shadowBlur = 10 * DRAW_SCALE;
+        var seg = r * 0.5;
+        // corners
+        var corners = [[-1,-1],[1,-1],[-1,1],[1,1]];
+        for (var c = 0; c < 4; c++) {
+            var sx = corners[c][0] * r, sy = corners[c][1] * r;
+            ctx.beginPath();
+            ctx.moveTo(sx, sy - corners[c][1] * seg);
+            ctx.lineTo(sx, sy);
+            ctx.lineTo(sx - corners[c][0] * seg, sy);
+            ctx.stroke();
+        }
+        ctx.shadowBlur = 0;
+        // center dot
+        ctx.beginPath();
+        ctx.arc(0, 0, 3 * DRAW_SCALE, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,46,77,0.9)';
+        ctx.fill();
+        ctx.restore();
+    }
+
+    function drawSmoke(d) {
+        for (var s = 0; s < d.smoke.length; s++) {
+            var sm = d.smoke[s];
+            if (sm.life <= 0) continue;
+            ctx.beginPath();
+            ctx.arc(sm.x, sm.y, sm.r, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(120, 120, 130, ' + (sm.life * 0.4) + ')';
+            ctx.fill();
+        }
+    }
+
+    function drawExplosion(d) {
+        var t = d.animT;
+        if (t > 40) return;
+        var maxR = d.size * 2.2;
+        for (var w = 0; w < 3; w++) {
+            var wt = t - w * 6;
+            if (wt > 0 && wt < 34) {
+                var wr = (wt / 34) * maxR;
+                var wa = Math.max(0, 1 - wt / 34) * 0.8;
+                ctx.beginPath();
+                ctx.arc(d.hitX || d.x, d.hitY || d.y, wr, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(255, ' + (120 + w * 40) + ', 40, ' + wa + ')';
+                ctx.lineWidth = (4 - w) * DRAW_SCALE;
+                ctx.stroke();
+            }
+        }
+        if (t < 14) {
+            var fa = (1 - t / 14) * 0.9;
+            ctx.beginPath();
+            ctx.arc(d.hitX || d.x, d.hitY || d.y, d.size * (0.6 + t * 0.1), 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 220, 120, ' + fa + ')';
+            ctx.fill();
+        }
+    }
+
+    function drawTargetArea() {
+        if (!config.showTargetArea || !config.targetArea) return;
+        var b = getTargetRect();
+        ctx.save();
+        ctx.setLineDash([12 * DRAW_SCALE, 8 * DRAW_SCALE]);
+        ctx.strokeStyle = 'rgba(51, 214, 255, 0.6)';
+        ctx.lineWidth = 2 * DRAW_SCALE;
+        ctx.shadowColor = 'rgba(51, 214, 255, 0.5)';
+        ctx.shadowBlur = 8 * DRAW_SCALE;
+        ctx.strokeRect(b.x, b.y, b.w, b.h);
+        ctx.shadowBlur = 0;
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(51, 214, 255, 0.85)';
+        ctx.font = Math.round(10 * DRAW_SCALE) + 'px "Press Start 2P", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('TARGET AREA', b.x + 8 * DRAW_SCALE, b.y + 18 * DRAW_SCALE);
+        ctx.restore();
+    }
+
+    function draw() {
+        drawBackground();
+        drawTargetArea();
+
+        var d = state.drone;
+        if (d) {
+            if (state.gameState === 'hit') {
+                drawSmoke(d);
+                drawDrone(d, false);
+                if (d.animT === 0) { d.hitX = d.x; d.hitY = d.y; }
+                drawExplosion(d);
+            } else if (state.gameState === 'escaped') {
+                ctx.save();
+                ctx.globalAlpha = Math.max(0, 1 - d.animT / 45);
+                drawDrone(d, false);
+                ctx.restore();
+            } else {
+                if (armorDamage(d) > 0) drawSmoke(d);
+                var frozen = state.gameState === 'paused' || state.gameState === 'countdown';
+                drawDrone(d, frozen);
+                if (!IS_TARGET_MODE && state.gameState === 'paused') {
+                    drawReticle(d);
+                }
+            }
+        }
+
+        drawCountdown();
+
+        // Ready / victory prompts
+        if (!IS_TARGET_MODE && (state.gameState === 'ready' || state.gameState === 'victory')) {
+            ctx.font = Math.round(16 * DRAW_SCALE) + 'px "Press Start 2P", monospace';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'rgba(207, 228, 255, ' + (0.4 + Math.sin(state.t * 0.1) * 0.3) + ')';
+            var prompt = state.gameState === 'victory'
+                ? 'VICTORY — PRESS RESET'
+                : (state.drone ? 'PRESS SPACE TO LAUNCH' : 'PRESS SPACE TO BEGIN');
+            ctx.fillText(prompt, W / 2, H * 0.9);
+        }
+    }
+
+    function drawCountdown() {
+        var cd = getCountdownDisplay();
+        if (!cd) return;
+        var cdScale = 1 + (1 - (Math.max(0, cd.remaining) % 1)) * 0.3;
+        ctx.save();
+        ctx.font = 'bold ' + Math.round(60 * DRAW_SCALE * cdScale) + 'px "Press Start 2P", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = cd.go ? '#33ff77' : '#ffb833';
+        ctx.shadowColor = cd.go ? 'rgba(51, 255, 119, 0.8)' : 'rgba(255, 184, 51, 0.8)';
+        ctx.shadowBlur = 20 * DRAW_SCALE;
+        ctx.fillText(cd.text, W / 2, H / 2);
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+
+    // ---------- Loop ----------
+    var speedAccumulator = 0;
+    var mirrorMode = false;
+    function gameLoop() {
+        state.t++;
+        if (W > 0 && H > 0) {
+            if (!mirrorMode) {
+                if (state.countdown !== null) tickCountdown();
+                speedAccumulator += 1;
+                while (speedAccumulator >= 1) {
+                    update();
+                    speedAccumulator -= 1;
+                }
+            }
+            draw();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ---------- Helpers ----------
+    function roundRect(c, x, y, w, h, r) {
+        c.beginPath();
+        c.moveTo(x + r, y);
+        c.arcTo(x + w, y, x + w, y + h, r);
+        c.arcTo(x + w, y + h, x, y + h, r);
+        c.arcTo(x, y + h, x, y, r);
+        c.arcTo(x, y, x + w, y, r);
+        c.closePath();
+    }
+    function shade(hex, pct) {
+        var n = parseInt(hex.slice(1), 16);
+        var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+        r = Math.max(0, Math.min(255, Math.round(r + r * pct)));
+        g = Math.max(0, Math.min(255, Math.round(g + g * pct)));
+        b = Math.max(0, Math.min(255, Math.round(b + b * pct)));
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+
+    function flashKeystroke() {
+        var el = document.getElementById('keystroke-flash');
+        if (!el) return;
+        el.classList.add('flash');
+        setTimeout(function() { el.classList.remove('flash'); }, 100);
+    }
+
+    function reset() {
+        state.score = 0;
+        state.wave = 1;
+        state.downed = 0;
+        state.drone = null;
+        state.gameState = 'ready';
+        clearCountdown();
+        buildQueue();
+        for (var i = 0; i < players.length; i++) players[i].score = 0;
+        renderPlayers();
+        updateHud();
+        spawnNext();
+    }
+
+    // ---------- Players ----------
+    var players = [];
+    var activePlayerIndex = -1;
+    var playerListEl = document.getElementById('player-list');
+    var playerNameInput = document.getElementById('player-name-input');
+
+    function addPlayer(name) {
+        name = name.trim();
+        if (!name) return;
+        players.push({ name: name, score: 0 });
+        if (activePlayerIndex < 0) activePlayerIndex = 0;
+        renderPlayers();
+    }
+    function removePlayer(index) {
+        players.splice(index, 1);
+        if (players.length === 0) activePlayerIndex = -1;
+        else if (activePlayerIndex >= players.length) activePlayerIndex = 0;
+        renderPlayers();
+    }
+    function nextPlayer() {
+        if (players.length === 0) return;
+        activePlayerIndex = (activePlayerIndex + 1) % players.length;
+        renderPlayers();
+    }
+    function renderPlayers() {
+        playerListEl.innerHTML = '';
+        for (var i = 0; i < players.length; i++) {
+            var card = document.createElement('div');
+            card.className = 'player-card' + (i === activePlayerIndex ? ' active' : '');
+            card.innerHTML = '<span class="player-name">' + escapeHtml(players[i].name) + '</span>' +
+                '<span class="player-score">' + players[i].score + '</span>' +
+                '<span class="player-remove" data-idx="' + i + '">&times;</span>';
+            playerListEl.appendChild(card);
+        }
+    }
+    function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    document.getElementById('btn-add-player').addEventListener('click', function() {
+        addPlayer(playerNameInput.value);
+        playerNameInput.value = '';
+        playerNameInput.focus();
+    });
+    playerNameInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { addPlayer(playerNameInput.value); playerNameInput.value = ''; }
+        e.stopPropagation();
+    });
+    playerListEl.addEventListener('click', function(e) {
+        var removeBtn = e.target.closest('.player-remove');
+        if (removeBtn) { removePlayer(parseInt(removeBtn.dataset.idx)); return; }
+        var card = e.target.closest('.player-card');
+        if (card) {
+            activePlayerIndex = Array.prototype.indexOf.call(playerListEl.children, card);
+            renderPlayers();
+        }
+    });
+
+    // ---------- Input ----------
+    canvas.addEventListener('click', function(e) {
+        if (IS_TARGET_MODE) return;
+        if (state.gameState === 'countdown') return;
+        var rect = canvas.getBoundingClientRect();
+        var cx = (e.clientX - rect.left) * (W / rect.width);
+        var cy = (e.clientY - rect.top) * (H / rect.height);
+        if (state.gameState === 'paused') {
+            registerHit(cx, cy);
+        }
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (areaSelectActive()) return;
+        if (document.getElementById('modal-overlay').classList.contains('open')) {
+            if (e.key === 'Escape') {
+                if (howtoOverlay.classList.contains('open')) closeHowTo();
+                else closeOptions();
+            }
+            return;
+        }
+        if (IS_TARGET_MODE) return;
+        if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+        if (state.gameState === 'countdown') return;
+
+        if (e.key === ' ' || e.key === 'Enter') {
+            e.preventDefault();
+            flashKeystroke();
+            if (state.gameState === 'flying') freeze();
+            else if (state.gameState === 'paused') resumeFromMiss();
+            else if (state.gameState === 'ready') launchDrone();
+        } else if (e.key === 'r' || e.key === 'R') {
+            reset();
+        }
+    });
+
+    document.getElementById('btn-launch').addEventListener('click', function() {
+        if (state.gameState === 'countdown') return;
+        if (state.gameState === 'ready') launchDrone();
+        else if (state.gameState === 'flying') freeze();
+        else if (state.gameState === 'paused') resumeFromMiss();
+    });
+    document.getElementById('btn-reset').addEventListener('click', reset);
+
+    // ---------- Options ----------
+    var overlay = document.getElementById('modal-overlay');
+    var howtoOverlay = document.getElementById('howto-overlay');
+    function openHowTo() { howtoOverlay.classList.add('open'); }
+    function closeHowTo() { howtoOverlay.classList.remove('open'); }
+    function openOptions() {
+        pendingMode = config.gameMode;
+        document.getElementById('opt-speed').value = config.gameSpeed;
+        document.getElementById('opt-ramp').value = config.difficultyRamp;
+        document.getElementById('opt-perwave').value = config.dronesPerWave;
+        document.getElementById('opt-dronesize').value = config.droneSize;
+        syncSliderLabels();
+        syncModeUI();
+        refreshAreaUI();
+        closeHowTo();
+        overlay.classList.add('open');
+    }
+    function closeOptions() {
+        pendingMode = config.gameMode;
+        syncModeUI();
+        closeHowTo();
+        overlay.classList.remove('open');
+    }
+    function syncSliderLabels() {
+        document.getElementById('val-speed').textContent = parseFloat(document.getElementById('opt-speed').value).toFixed(1);
+        document.getElementById('val-ramp').textContent = parseFloat(document.getElementById('opt-ramp').value).toFixed(1);
+        document.getElementById('val-perwave').textContent = document.getElementById('opt-perwave').value;
+        document.getElementById('val-dronesize').textContent = document.getElementById('opt-dronesize').value + '%';
+    }
+    ['speed', 'ramp', 'perwave', 'dronesize'].forEach(function(id) {
+        document.getElementById('opt-' + id).addEventListener('input', syncSliderLabels);
+    });
+    document.getElementById('mode-toggle').addEventListener('click', function(e) {
+        var btn = e.target.closest('.mode-btn');
+        if (!btn) return;
+        pendingMode = btn.getAttribute('data-mode');
+        syncModeUI();
+    });
+    function applyOptions() {
+        var modeChanged = pendingMode !== config.gameMode;
+        config.gameMode = pendingMode;
+        config.gameSpeed = parseFloat(document.getElementById('opt-speed').value);
+        config.difficultyRamp = parseFloat(document.getElementById('opt-ramp').value);
+        config.dronesPerWave = parseInt(document.getElementById('opt-perwave').value);
+        config.droneSize = parseInt(document.getElementById('opt-dronesize').value);
+        saveConfigLocal();
+        sendToTarget({ cmd: 'applyRemoteConfig', value: config });
+        syncModeUI();
+        updateHud();
+        closeOptions();
+        if (modeChanged) reset();
+    }
+    document.getElementById('btn-options').addEventListener('click', openOptions);
+    document.getElementById('btn-apply').addEventListener('click', applyOptions);
+    document.getElementById('btn-defaults').addEventListener('click', function() {
+        var keptArea = config.targetArea;
+        var keptShow = config.showTargetArea;
+        config = JSON.parse(JSON.stringify(DEFAULTS));
+        config.targetArea = keptArea;
+        config.showTargetArea = keptShow;
+        pendingMode = config.gameMode;
+        openOptions();
+    });
+    document.getElementById('btn-close').addEventListener('click', closeOptions);
+    document.getElementById('btn-help').addEventListener('click', function(e) {
+        e.stopPropagation();
+        openHowTo();
+    });
+    document.getElementById('btn-howto-close').addEventListener('click', closeHowTo);
+    overlay.addEventListener('click', function(e) { if (e.target === overlay) closeOptions(); });
+
+    // ---------- Target area (drag-to-mark region) ----------
+    var areaLayer = document.getElementById('area-select-layer');
+    var areaBox = document.getElementById('area-select-box');
+    var selStart = null, selRect = null, selecting = false;
+
+    function areaSelectActive() { return areaLayer.classList.contains('active'); }
+
+    function refreshAreaUI() {
+        var txt = config.targetArea
+            ? 'Target area set — drones pass through the zone'
+            : 'Not set — drones use full screen';
+        ['ta-status', 'ta-status-ts'].forEach(function(id) {
+            var el = document.getElementById(id); if (el) el.textContent = txt;
+        });
+        ['opt-showarea', 'opt-showarea-ts'].forEach(function(id) {
+            var el = document.getElementById(id); if (el) el.checked = !!config.showTargetArea;
+        });
+    }
+
+    // Share the target-area settings with the other window and persist locally.
+    function propagateConfig() {
+        saveConfigLocal();
+        if (!IS_TARGET_MODE) {
+            sendToTarget({ cmd: 'applyRemoteConfig', value: config });
+        } else if (window.opener && !window.opener.closed) {
+            try {
+                window.opener.postMessage({
+                    cmd: 'targetConfigUpdate',
+                    value: { targetArea: config.targetArea, showTargetArea: config.showTargetArea }
+                }, '*');
+            } catch (e) {}
+        }
+    }
+
+    function startAreaSelect() {
+        overlay.classList.remove('open');
+        var tso = document.getElementById('target-settings-overlay');
+        if (tso) tso.classList.remove('open');
+        selecting = false; selRect = null;
+        areaBox.style.display = 'none';
+        areaLayer.classList.add('active');
+    }
+    function endAreaSelect() {
+        areaLayer.classList.remove('active');
+        selecting = false; selRect = null;
+    }
+    function updateSelBox(cx, cy) {
+        var x = Math.min(selStart.x, cx), y = Math.min(selStart.y, cy);
+        var w = Math.abs(cx - selStart.x), h = Math.abs(cy - selStart.y);
+        areaBox.style.left = x + 'px';
+        areaBox.style.top = y + 'px';
+        areaBox.style.width = w + 'px';
+        areaBox.style.height = h + 'px';
+        selRect = { x: x, y: y, w: w, h: h };
+    }
+    function finalizeSelection() {
+        var r = canvas.getBoundingClientRect();
+        if (!selRect || selRect.w < 12 || selRect.h < 12 || r.width < 1 || r.height < 1) {
+            endAreaSelect();
+            return;
+        }
+        var nx = (selRect.x - r.left) / r.width;
+        var ny = (selRect.y - r.top) / r.height;
+        var nw = selRect.w / r.width;
+        var nh = selRect.h / r.height;
+        // Clamp to the canvas bounds
+        nx = Math.max(0, Math.min(1, nx));
+        ny = Math.max(0, Math.min(1, ny));
+        nw = Math.max(0.02, Math.min(nw, 1 - nx));
+        nh = Math.max(0.02, Math.min(nh, 1 - ny));
+        config.targetArea = { x: nx, y: ny, w: nw, h: nh };
+        config.showTargetArea = true;
+        endAreaSelect();
+        refreshAreaUI();
+        propagateConfig();
+    }
+    function clearArea() {
+        config.targetArea = null;
+        config.showTargetArea = false;
+        refreshAreaUI();
+        propagateConfig();
+    }
+
+    areaLayer.addEventListener('mousedown', function(e) {
+        selStart = { x: e.clientX, y: e.clientY };
+        selecting = true;
+        areaBox.style.display = 'block';
+        updateSelBox(e.clientX, e.clientY);
+        e.preventDefault();
+    });
+    areaLayer.addEventListener('mousemove', function(e) {
+        if (selecting) updateSelBox(e.clientX, e.clientY);
+    });
+    areaLayer.addEventListener('mouseup', function(e) {
+        if (!selecting) return;
+        selecting = false;
+        finalizeSelection();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (!areaSelectActive()) return;
+        if (e.key === 'Escape') { endAreaSelect(); e.stopPropagation(); e.preventDefault(); }
+        else if (e.key === 'Enter') {
+            if (selRect) finalizeSelection(); else endAreaSelect();
+            e.stopPropagation(); e.preventDefault();
+        }
+    }, true);
+
+    // Wire the target-area buttons in whichever modal(s) exist
+    ['btn-set-area', 'btn-set-area-ts'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.addEventListener('click', startAreaSelect);
+    });
+    ['btn-clear-area', 'btn-clear-area-ts'].forEach(function(id) {
+        var el = document.getElementById(id); if (el) el.addEventListener('click', clearArea);
+    });
+    ['opt-showarea', 'opt-showarea-ts'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('change', function() {
+            config.showTargetArea = el.checked;
+            refreshAreaUI();
+            propagateConfig();
+        });
+    });
+
+    window.addEventListener('resize', function() { resize(); });
+
+    // ---------- Boot ----------
+    loadConfigLocal();
+    refreshAreaUI();
+    applyConfig();
+    pendingMode = config.gameMode;
+    syncModeUI();
+    buildQueue();
+    if (!IS_TARGET_MODE) spawnNext();
+    gameLoop();
+
+    // ---------- Pop-out projector mirror ----------
+    function serializeDrone() {
+        var d = state.drone;
+        if (!d) return null;
+        return {
+            type: d.type,
+            nx: d.x / W, ny: d.y / H,
+            rotor: d.rotor, rot: d.rot,
+            armor: d.armor, maxArmor: d.maxArmor,
+            localT: d.localT, animT: d.animT,
+            hitNx: (d.hitX || d.x) / W, hitNy: (d.hitY || d.y) / H
+        };
+    }
+
+    if (IS_TARGET_MODE) {
+        mirrorMode = true;
+        window.addEventListener('message', function(e) {
+            var m = e.data;
+            if (!m) return;
+            if (m.type === 'dronestrike-mirror') {
+                var s = m.state;
+                state.score = s.score;
+                state.wave = s.wave;
+                state.downed = s.downed;
+                state.gameState = s.gameState;
+                if (s.countdownRemaining != null) {
+                    state.countdown = s.countdownRemaining;
+                    state.countdownStart = performance.now();
+                } else {
+                    clearCountdown();
+                }
+                updateHud();
+                if (s.message) showMessage(s.message.text, s.message.color);
+                if (s.drone) {
+                    var t = DRONE_TYPES[s.drone.type];
+                    var size = t.size * DRAW_SCALE * (config.droneSize / 100);
+                    state.drone = {
+                        type: s.drone.type,
+                        x: s.drone.nx * W, y: s.drone.ny * H,
+                        rotor: s.drone.rotor, rot: s.drone.rot,
+                        armor: s.drone.armor, maxArmor: s.drone.maxArmor,
+                        localT: s.drone.localT, animT: s.drone.animT,
+                        size: size, baseY: s.drone.ny * H, smoke: state.drone ? state.drone.smoke : [],
+                        vy: 0, vx: 0, freq: t.freq, phase: 0,
+                        hitX: s.drone.hitNx * W, hitY: s.drone.hitNy * H
+                    };
+                    // Cosmetic smoke: falling, or damaged while still flying
+                    if (s.gameState === 'hit' && s.drone.animT % 2 === 0) {
+                        state.drone.smoke.push({ x: state.drone.x, y: state.drone.y, r: size * 0.4, life: 1, vx: (Math.random() - 0.5) * DRAW_SCALE });
+                    } else if ((s.gameState === 'flying' || s.gameState === 'paused' || s.gameState === 'countdown') &&
+                               s.drone.maxArmor > 1 && s.drone.armor < s.drone.maxArmor &&
+                               s.drone.localT % 4 === 0) {
+                        state.drone.smoke.push({
+                            x: state.drone.x + (Math.random() - 0.5) * size * 0.5,
+                            y: state.drone.y + size * 0.15,
+                            r: size * 0.25, life: 0.8,
+                            vx: (Math.random() - 0.5) * DRAW_SCALE
+                        });
+                    }
+                    for (var i = 0; i < state.drone.smoke.length; i++) {
+                        state.drone.smoke[i].life -= 0.03;
+                        state.drone.smoke[i].y -= 0.4 * DRAW_SCALE;
+                        state.drone.smoke[i].x += state.drone.smoke[i].vx || 0;
+                        state.drone.smoke[i].r += 0.55 * DRAW_SCALE;
+                    }
+                } else {
+                    state.drone = null;
+                }
+            } else if (m.cmd === 'applyRemoteConfig') {
+                var cfg = m.value;
+                for (var k in cfg) { if (cfg.hasOwnProperty(k)) config[k] = cfg[k]; }
+                syncTargetSettings();
+                refreshAreaUI();
+                saveConfigLocal();
+            }
+        });
+
+        // ---------- Target window options (M3 logo) ----------
+        var tsOverlay = document.getElementById('target-settings-overlay');
+        var tsDroneSize = document.getElementById('opt-ts-dronesize');
+        var tsDroneVal = document.getElementById('val-ts-dronesize');
+        function syncTargetSettings() {
+            tsDroneSize.value = config.droneSize;
+            tsDroneVal.textContent = config.droneSize + '%';
+        }
+        function openTargetSettings() { syncTargetSettings(); refreshAreaUI(); tsOverlay.classList.add('open'); }
+        function closeTargetSettings() { tsOverlay.classList.remove('open'); }
+        tsDroneSize.addEventListener('input', function() {
+            config.droneSize = parseInt(tsDroneSize.value);
+            tsDroneVal.textContent = config.droneSize + '%';
+            saveConfigLocal();
+        });
+        document.getElementById('m3-logo-btn').addEventListener('click', openTargetSettings);
+        document.getElementById('btn-ts-close').addEventListener('click', closeTargetSettings);
+        tsOverlay.addEventListener('click', function(e) { if (e.target === tsOverlay) closeTargetSettings(); });
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+        document.getElementById('btn-ts-fullscreen').addEventListener('click', toggleFullscreen);
+        document.addEventListener('keydown', function(e) {
+            if (areaSelectActive()) return;
+            if (e.key === 'Escape') { closeTargetSettings(); }
+            else if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); }
+        });
+    }
+
+    if (!IS_TARGET_MODE) {
+        var popoutBtn = document.getElementById('btn-popout');
+        var panelStateEl = document.getElementById('panel-game-state');
+        var broadcastInterval = null;
+        var lastMessage = null;
+
+        // Target area marked on the projector window flows back to the control window
+        window.addEventListener('message', function(e) {
+            var m = e.data;
+            if (!m || m.cmd !== 'targetConfigUpdate') return;
+            config.targetArea = m.value.targetArea;
+            config.showTargetArea = m.value.showTargetArea;
+            saveConfigLocal();
+            refreshAreaUI();
+        });
+
+        var origShowMessage = showMessage;
+        showMessage = function(text, color) {
+            lastMessage = { text: text, color: color, ts: Date.now() };
+            origShowMessage(text, color);
+        };
+
+        function broadcastState() {
+            if (!isPopoutActive()) return;
+            var msg = (lastMessage && Date.now() - lastMessage.ts < 300) ? lastMessage : null;
+            try {
+                targetWindow.postMessage({
+                    type: 'dronestrike-mirror',
+                    state: {
+                        score: state.score,
+                        wave: state.wave,
+                        downed: state.downed,
+                        gameState: state.gameState,
+                        countdownRemaining: state.countdown === null ? null
+                            : state.countdown - (performance.now() - state.countdownStart) / 1000,
+                        drone: serializeDrone(),
+                        message: msg
+                    }
+                }, '*');
+            } catch (e) {}
+        }
+
+        function enterControlMode() {
+            document.body.classList.add('control-mode');
+            popoutBtn.textContent = '📺';
+            popoutBtn.classList.add('active');
+            popoutBtn.title = 'Close target display';
+            if (broadcastInterval) clearInterval(broadcastInterval);
+            broadcastInterval = setInterval(broadcastState, 33);
+            startStateSync();
+        }
+        function exitControlMode() {
+            document.body.classList.remove('control-mode');
+            popoutBtn.textContent = '📽️';
+            popoutBtn.classList.remove('active');
+            popoutBtn.title = 'Open target on projector';
+            if (broadcastInterval) { clearInterval(broadcastInterval); broadcastInterval = null; }
+            if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+            targetWindow = null;
+        }
+        function startStateSync() {
+            if (pollInterval) clearInterval(pollInterval);
+            pollInterval = setInterval(function() {
+                if (!isPopoutActive()) { exitControlMode(); return; }
+                panelStateEl.classList.remove('state-ready', 'state-flying', 'state-paused');
+                if (state.gameState === 'countdown') {
+                    var cd = getCountdownDisplay();
+                    panelStateEl.textContent = cd ? ('RESUME IN ' + cd.text) : 'RESUMING…';
+                    panelStateEl.classList.add('state-paused');
+                } else if (state.gameState === 'paused') {
+                    panelStateEl.textContent = 'FROZEN — CLICK TO HIT';
+                    panelStateEl.classList.add('state-paused');
+                } else if (state.gameState === 'flying') {
+                    panelStateEl.textContent = 'IN FLIGHT';
+                    panelStateEl.classList.add('state-flying');
+                } else {
+                    panelStateEl.textContent = 'READY';
+                    panelStateEl.classList.add('state-ready');
+                }
+            }, 100);
+        }
+
+        popoutBtn.addEventListener('click', function() {
+            if (isPopoutActive()) { targetWindow.close(); exitControlMode(); return; }
+            var targetUrl = window.location.href.split('?')[0] + '?mode=target';
+            targetWindow = window.open(targetUrl, 'DroneStrikeTarget',
+                'width=' + screen.width + ',height=' + screen.height + ',menubar=no,toolbar=no,location=no,status=no');
+            if (!targetWindow) { alert('Pop-up was blocked. Please allow pop-ups for this page.'); return; }
+            setTimeout(function() {
+                if (isPopoutActive()) {
+                    sendToTarget({ cmd: 'applyRemoteConfig', value: config });
+                    enterControlMode();
+                }
+            }, 1000);
+        });
+    }
+})();
+</script>
+<script src="shared-sidebar.js"></script>
+</body>
+</html>
