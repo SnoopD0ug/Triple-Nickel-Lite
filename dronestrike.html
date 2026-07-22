@@ -121,30 +121,89 @@
         }
         #wave-value { color: var(--amber); text-shadow: 0 0 8px rgba(255, 184, 51, 0.5); }
 
-        .mode-toggle {
-            display: flex;
-            gap: 8px;
-            margin-top: 6px;
+        .mode-select-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.88);
+            z-index: 10020;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
-        .mode-btn {
-            font-size: 10px !important;
-            padding: 10px 14px !important;
-            flex: 1;
+        .mode-select-overlay.open { display: flex; }
+        #mode-select-modal {
+            background: var(--panel-bg);
+            border: 2px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 32px 28px;
+            width: 90%;
+            max-width: 560px;
+            text-align: center;
+            box-shadow: 0 0 50px rgba(31, 59, 92, 0.7);
         }
-        .mode-btn.active {
-            border-color: var(--cyan);
-            color: var(--cyan);
-            box-shadow: 0 0 12px var(--cyan-glow);
-            background: rgba(51, 214, 255, 0.12);
-        }
-        .mode-hint {
+        #mode-select-modal h2 {
+            font-family: 'Press Start 2P', monospace;
             font-size: 16px;
-            color: var(--text-color);
-            opacity: 0.65;
-            margin-top: 8px;
-            line-height: 1.3;
+            color: var(--accent);
+            margin-bottom: 10px;
+            text-shadow: 0 0 8px var(--accent-glow);
         }
-        body.mode-random .opt-wave-only { opacity: 0.35; pointer-events: none; }
+        #mode-select-modal .mode-select-sub {
+            font-size: 18px;
+            color: var(--text-color);
+            opacity: 0.7;
+            margin-bottom: 24px;
+        }
+        .mode-select-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .mode-select-card {
+            font-family: 'VT323', monospace;
+            text-align: left;
+            padding: 18px 20px;
+            border: 2px solid var(--panel-border);
+            border-radius: 10px;
+            background: rgba(14, 20, 32, 0.95);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .mode-select-card:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 0 18px var(--cyan-glow);
+            transform: translateY(-1px);
+        }
+        .mode-select-card .mode-select-name {
+            display: block;
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            color: var(--cyan);
+            margin-bottom: 8px;
+            text-shadow: 0 0 8px var(--cyan-glow);
+        }
+        .mode-select-card[data-mode="random"] .mode-select-name {
+            color: var(--amber);
+            text-shadow: 0 0 8px rgba(255, 184, 51, 0.5);
+        }
+        .mode-select-card .mode-select-desc {
+            display: block;
+            font-size: 18px;
+            line-height: 1.35;
+            opacity: 0.85;
+        }
+        #options-mode-badge {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 9px;
+            color: var(--cyan);
+            text-align: center;
+            letter-spacing: 1px;
+            margin: -8px 0 18px;
+            text-transform: uppercase;
+        }
+        body.mode-random #options-mode-badge { color: var(--amber); }
+        body.mode-random .opt-wave-only { display: none !important; }
 
         #board-area {
             display: flex;
@@ -500,7 +559,8 @@
         body.target-mode #modal-overlay,
         body.target-mode #shared-navigation,
         body.target-mode .sidebar,
-        body.target-mode .btn-popout { display: none !important; }
+        body.target-mode .btn-popout,
+        body.target-mode #mode-select-overlay { display: none !important; }
         body.target-mode #board-area {
             width: 100vw;
             max-width: 100vw;
@@ -698,6 +758,23 @@
     <div id="keystroke-flash"></div>
 </div>
 
+<div id="mode-select-overlay" class="mode-select-overlay">
+    <div id="mode-select-modal">
+        <h2>SELECT MODE</h2>
+        <p class="mode-select-sub">Choose how you want to play</p>
+        <div class="mode-select-cards">
+            <button type="button" class="mode-select-card" data-mode="wave">
+                <span class="mode-select-name">SURVIVAL</span>
+                <span class="mode-select-desc">Wave mode — clear 10 escalating waves of drones. Difficulty climbs as you progress.</span>
+            </button>
+            <button type="button" class="mode-select-card" data-mode="random">
+                <span class="mode-select-name">INFINITE</span>
+                <span class="mode-select-desc">Endless rounds — a random drone every time. Any type can appear.</span>
+            </button>
+        </div>
+    </div>
+</div>
+
 <div id="modal-overlay">
     <div id="options-modal">
         <h2>OPTIONS <button type="button" class="help-btn" id="btn-help" title="How to play" aria-label="How to play">?</button></h2>
@@ -713,13 +790,9 @@
             </ol>
             <button type="button" class="btn" id="btn-howto-close">GOT IT</button>
         </div>
-        <div class="opt-section-title">Game Mode</div>
-        <div class="opt-group">
-            <div class="mode-toggle" id="mode-toggle">
-                <button type="button" class="btn mode-btn active" data-mode="wave">WAVE</button>
-                <button type="button" class="btn mode-btn" data-mode="random">RANDOM</button>
-            </div>
-            <div class="mode-hint" id="mode-hint">Wave 1–10: harder drones and speed as you climb.</div>
+        <div id="options-mode-badge">Mode: Survival</div>
+        <div class="opt-group" style="margin-top: -8px; margin-bottom: 18px;">
+            <button type="button" class="btn" id="btn-switch-mode" style="width: 100%;">SWITCH MODE</button>
         </div>
         <div class="opt-section-title">Difficulty</div>
         <div class="opt-group">
@@ -813,7 +886,8 @@
     var waveValEl = document.getElementById('wave-value');
     var waveLabelEl = document.getElementById('wave-label');
     var downValEl = document.getElementById('down-value');
-    var pendingMode = 'wave';
+    var modeSelectOverlay = document.getElementById('mode-select-overlay');
+    var modeChosen = false;
 
     // ---- Drone catalog (increasingly advanced) ----
     var DRONE_TYPES = {
@@ -1148,6 +1222,7 @@
     }
 
     function launchDrone() {
+        if (!modeChosen) return;
         if (state.gameState === 'wavecleared' || state.gameState === 'victory') return;
         if (!state.drone) {
             spawnNext();
@@ -1320,19 +1395,46 @@
         }
     }
 
+    function modeDisplayName(mode) {
+        return mode === 'random' ? 'Infinite' : 'Survival';
+    }
+
     function syncModeUI() {
-        var mode = pendingMode || config.gameMode;
-        document.body.classList.toggle('mode-random', mode === 'random');
-        var btns = document.querySelectorAll('.mode-btn');
-        for (var i = 0; i < btns.length; i++) {
-            btns[i].classList.toggle('active', btns[i].getAttribute('data-mode') === mode);
-        }
-        var hint = document.getElementById('mode-hint');
-        if (hint) {
-            hint.textContent = mode === 'random'
-                ? 'Random: one random drone each round — any type can appear.'
-                : 'Wave 1–10: harder drones and speed as you climb.';
-        }
+        document.body.classList.toggle('mode-random', config.gameMode === 'random');
+        var badge = document.getElementById('options-mode-badge');
+        if (badge) badge.textContent = 'Mode: ' + modeDisplayName(config.gameMode);
+    }
+
+    function openModeSelect() {
+        modeChosen = false;
+        state.drone = null;
+        state.queue = [];
+        state.gameState = 'ready';
+        clearCountdown();
+        if (modeSelectOverlay) modeSelectOverlay.classList.add('open');
+        updateHud();
+        updateLaunchButton();
+    }
+
+    function chooseGameMode(mode) {
+        config.gameMode = mode === 'random' ? 'random' : 'wave';
+        modeChosen = true;
+        if (modeSelectOverlay) modeSelectOverlay.classList.remove('open');
+        saveConfigLocal();
+        syncModeUI();
+        state.score = 0;
+        state.wave = 1;
+        state.downed = 0;
+        state.drone = null;
+        state.gameState = 'ready';
+        clearCountdown();
+        for (var i = 0; i < players.length; i++) players[i].score = 0;
+        renderPlayers();
+        buildQueue();
+        spawnNext();
+        updateHud();
+        updateLaunchButton();
+        showMessage(modeDisplayName(config.gameMode).toUpperCase() + ' MODE', config.gameMode === 'random' ? '#ffb833' : '#33d6ff');
     }
 
     function showMessage(text, color) {
@@ -1969,17 +2071,7 @@
     }
 
     function reset() {
-        state.score = 0;
-        state.wave = 1;
-        state.downed = 0;
-        state.drone = null;
-        state.gameState = 'ready';
-        clearCountdown();
-        buildQueue();
-        for (var i = 0; i < players.length; i++) players[i].score = 0;
-        renderPlayers();
-        updateHud();
-        spawnNext();
+        openModeSelect();
     }
 
     // ---------- Players ----------
@@ -2043,7 +2135,7 @@
     // ---------- Input ----------
     canvas.addEventListener('click', function(e) {
         if (IS_TARGET_MODE) return;
-        if (state.gameState === 'countdown') return;
+        if (!modeChosen || state.gameState === 'countdown') return;
         var rect = canvas.getBoundingClientRect();
         var cx = (e.clientX - rect.left) * (W / rect.width);
         var cy = (e.clientY - rect.top) * (H / rect.height);
@@ -2054,6 +2146,7 @@
 
     document.addEventListener('keydown', function(e) {
         if (areaSelectActive()) return;
+        if (modeSelectOverlay && modeSelectOverlay.classList.contains('open')) return;
         if (document.getElementById('modal-overlay').classList.contains('open')) {
             if (e.key === 'Escape') {
                 if (howtoOverlay.classList.contains('open')) closeHowTo();
@@ -2063,7 +2156,7 @@
         }
         if (IS_TARGET_MODE) return;
         if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
-        if (state.gameState === 'countdown') return;
+        if (!modeChosen || state.gameState === 'countdown') return;
 
         if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
@@ -2077,7 +2170,7 @@
     });
 
     document.getElementById('btn-launch').addEventListener('click', function() {
-        if (state.gameState === 'countdown') return;
+        if (!modeChosen || state.gameState === 'countdown') return;
         if (state.gameState === 'ready') launchDrone();
         else if (state.gameState === 'flying') freeze();
         else if (state.gameState === 'paused') resumeFromMiss();
@@ -2090,7 +2183,7 @@
     function openHowTo() { howtoOverlay.classList.add('open'); }
     function closeHowTo() { howtoOverlay.classList.remove('open'); }
     function openOptions() {
-        pendingMode = config.gameMode;
+        if (!modeChosen) return;
         document.getElementById('opt-speed').value = config.gameSpeed;
         document.getElementById('opt-ramp').value = config.difficultyRamp;
         document.getElementById('opt-perwave').value = config.dronesPerWave;
@@ -2102,8 +2195,6 @@
         overlay.classList.add('open');
     }
     function closeOptions() {
-        pendingMode = config.gameMode;
-        syncModeUI();
         closeHowTo();
         overlay.classList.remove('open');
     }
@@ -2116,15 +2207,7 @@
     ['speed', 'ramp', 'perwave', 'dronesize'].forEach(function(id) {
         document.getElementById('opt-' + id).addEventListener('input', syncSliderLabels);
     });
-    document.getElementById('mode-toggle').addEventListener('click', function(e) {
-        var btn = e.target.closest('.mode-btn');
-        if (!btn) return;
-        pendingMode = btn.getAttribute('data-mode');
-        syncModeUI();
-    });
     function applyOptions() {
-        var modeChanged = pendingMode !== config.gameMode;
-        config.gameMode = pendingMode;
         config.gameSpeed = parseFloat(document.getElementById('opt-speed').value);
         config.difficultyRamp = parseFloat(document.getElementById('opt-ramp').value);
         config.dronesPerWave = parseInt(document.getElementById('opt-perwave').value);
@@ -2134,26 +2217,39 @@
         syncModeUI();
         updateHud();
         closeOptions();
-        if (modeChanged) reset();
     }
     document.getElementById('btn-options').addEventListener('click', openOptions);
     document.getElementById('btn-apply').addEventListener('click', applyOptions);
     document.getElementById('btn-defaults').addEventListener('click', function() {
+        var keptMode = config.gameMode;
         var keptArea = config.targetArea;
         var keptShow = config.showTargetArea;
         config = JSON.parse(JSON.stringify(DEFAULTS));
+        config.gameMode = keptMode;
         config.targetArea = keptArea;
         config.showTargetArea = keptShow;
-        pendingMode = config.gameMode;
         openOptions();
     });
     document.getElementById('btn-close').addEventListener('click', closeOptions);
+    document.getElementById('btn-switch-mode').addEventListener('click', function() {
+        closeOptions();
+        openModeSelect();
+    });
     document.getElementById('btn-help').addEventListener('click', function(e) {
         e.stopPropagation();
         openHowTo();
     });
     document.getElementById('btn-howto-close').addEventListener('click', closeHowTo);
     overlay.addEventListener('click', function(e) { if (e.target === overlay) closeOptions(); });
+
+    // Mode select cards
+    if (modeSelectOverlay) {
+        modeSelectOverlay.addEventListener('click', function(e) {
+            var card = e.target.closest('.mode-select-card');
+            if (!card) return;
+            chooseGameMode(card.getAttribute('data-mode'));
+        });
+    }
 
     // ---------- Target area (drag-to-mark region) ----------
     var areaLayer = document.getElementById('area-select-layer');
@@ -2284,11 +2380,14 @@
     loadConfigLocal();
     refreshAreaUI();
     applyConfig();
-    pendingMode = config.gameMode;
     syncModeUI();
-    buildQueue();
-    if (!IS_TARGET_MODE) spawnNext();
     gameLoop();
+    if (!IS_TARGET_MODE) {
+        openModeSelect();
+    } else {
+        modeChosen = true;
+        buildQueue();
+    }
 
     // ---------- Pop-out projector mirror ----------
     function serializeDrone() {
