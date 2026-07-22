@@ -8,7 +8,8 @@ const NAVIGATION_CONFIG = {
     items: [
         { href: 'index.html', icon: '🏠', text: 'Home' },
         { href: 'walkbackspec.html', icon: '📏', text: 'Walkback', matchPages: ['walkbackspec.html', 'walkback.html'] },
-        { href: 'side-games.html', icon: '🎲', text: 'Side Games' },
+        { href: 'quickdraw.html', icon: '⚡', text: 'Quick Draw' },
+        { href: 'side-games.html', icon: '🎲', text: 'Games', matchPages: ['side-games.html', 'Klinko.html', 'klinko.html', 'golf.html', 'custom.html', 'dronestrike.html'] },
         { href: 'training.html', icon: '🎯', text: 'Training' },
         { href: 'resources.html', icon: '📚', text: 'Resources' }
     ]
