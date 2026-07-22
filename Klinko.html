@@ -216,6 +216,7 @@
         }
 
         #options-modal {
+            position: relative;
             background: var(--modal-bg);
             border: 2px solid var(--board-border);
             border-radius: 12px;
@@ -234,6 +235,76 @@
             margin-bottom: 24px;
             text-align: center;
             text-shadow: 0 0 8px var(--ring-glow);
+            position: relative;
+        }
+
+        .help-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            background: rgba(255, 215, 0, 0.12);
+            color: var(--gold);
+            font-family: 'Press Start 2P', monospace;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0;
+            animation: help-glow 1.8s ease-in-out infinite;
+        }
+        .help-btn:hover {
+            background: rgba(255, 215, 0, 0.28);
+            color: #fff;
+            transform: translateY(-50%) scale(1.08);
+        }
+        @keyframes help-glow {
+            0%, 100% { box-shadow: 0 0 6px var(--ring-glow), 0 0 14px rgba(255, 215, 0, 0.25); }
+            50% { box-shadow: 0 0 12px var(--gold), 0 0 28px var(--ring-glow); }
+        }
+
+        #howto-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 15, 0.96);
+            border-radius: 10px;
+            z-index: 5;
+            padding: 24px 22px;
+            overflow-y: auto;
+            text-align: left;
+        }
+        #howto-overlay.open { display: block; }
+        #howto-overlay h3 {
+            font-family: 'Press Start 2P', monospace;
+            font-size: 13px;
+            color: var(--gold);
+            text-align: center;
+            margin-bottom: 18px;
+            text-shadow: 0 0 8px var(--ring-glow);
+        }
+        #howto-overlay ol {
+            margin: 0 0 18px 1.2em;
+            padding: 0;
+            color: var(--text-color);
+            font-size: 18px;
+            line-height: 1.45;
+        }
+        #howto-overlay li { margin-bottom: 12px; }
+        #howto-overlay .howto-note {
+            font-size: 16px;
+            color: var(--gold);
+            opacity: 0.9;
+            margin-bottom: 18px;
+            line-height: 1.35;
+        }
+        #howto-overlay .btn {
+            display: block;
+            width: 100%;
+            margin-top: 8px;
         }
 
         .opt-group {
@@ -696,7 +767,20 @@
 
 <div id="modal-overlay">
     <div id="options-modal">
-        <h2>OPTIONS</h2>
+        <h2>OPTIONS <button type="button" class="help-btn" id="btn-help" title="How to play" aria-label="How to play">?</button></h2>
+        <div id="howto-overlay">
+            <h3>HOW TO PLAY</h3>
+            <p class="howto-note">Klinko needs a projector and a game admin to run the game for the thrower.</p>
+            <ol>
+                <li>Game admin clicks the <strong>projector icon</strong> to open the target window, then projects that window over the physical targets.</li>
+                <li>On the target window, click the <strong>M3 logo</strong> for settings (alignment, fullscreen, etc.).</li>
+                <li>Game admin clicks <strong>DROP</strong> or presses <strong>Spacebar</strong> to release a ring through the pegs.</li>
+                <li>When the thrower throws, the game admin presses <strong>Spacebar</strong> (or clicks <strong>PAUSE</strong>) as the knife impacts — this freezes the ring.</li>
+                <li>If the throw hit the ring, the game admin <strong>clicks the frozen ring on the game control window</strong> (not the target / projector window) to score the pin.</li>
+                <li>Faster pins score more points. A miss resumes the ring after a short countdown.</li>
+            </ol>
+            <button type="button" class="btn" id="btn-howto-close">GOT IT</button>
+        </div>
 
         <div class="opt-section-title">Physics</div>
         <div class="opt-group">
@@ -1996,7 +2080,11 @@
 
     // Options modal
     var overlay = document.getElementById('modal-overlay');
+    var howtoOverlay = document.getElementById('howto-overlay');
     var sliderIds = ['speed', 'gravity', 'bounce', 'random', 'density', 'pegsize', 'ringsize', 'boardsize'];
+
+    function openHowTo() { howtoOverlay.classList.add('open'); }
+    function closeHowTo() { howtoOverlay.classList.remove('open'); }
 
     function openOptions() {
         document.getElementById('opt-speed').value = config.gameSpeed;
@@ -2015,6 +2103,7 @@
         syncThemeButtons();
         document.getElementById('opt-ringcolor').value = /^#[0-9a-fA-F]{6}$/.test(config.ringColor || '') ? config.ringColor : '#ffd700';
         enforceFitConstraint();
+        closeHowTo();
         overlay.classList.add('open');
     }
 
@@ -2050,6 +2139,7 @@
     });
 
     function closeOptions() {
+        closeHowTo();
         overlay.classList.remove('open');
     }
 
@@ -2146,13 +2236,19 @@
         openOptions();
     });
     document.getElementById('btn-close').addEventListener('click', closeOptions);
+    document.getElementById('btn-help').addEventListener('click', function(e) {
+        e.stopPropagation();
+        openHowTo();
+    });
+    document.getElementById('btn-howto-close').addEventListener('click', closeHowTo);
     overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeOptions();
     });
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && overlay.classList.contains('open')) {
-            closeOptions();
+            if (howtoOverlay.classList.contains('open')) closeHowTo();
+            else closeOptions();
         }
     });
 
