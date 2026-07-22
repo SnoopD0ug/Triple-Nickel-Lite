@@ -11,7 +11,7 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Side Games - Triple Nickel</title>
+    <title>Games - Triple Nickel</title>
     <link rel="stylesheet" href="shared-sidebar.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -347,7 +347,70 @@
             box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4); 
         }
 
+        /* Klinko Game Styling */
+        .klinko-game .game-icon-wrapper { 
+            background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(8, 145, 178, 0.3));
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+        .klinko-game:hover { 
+            border-color: rgba(6, 182, 212, 0.3); 
+            box-shadow: 
+                0 20px 40px rgba(6, 182, 212, 0.15),
+                0 0 0 1px rgba(6, 182, 212, 0.1) inset;
+        }
+        .klinko-game .game-title { 
+            background: linear-gradient(135deg, #06b6d4, #67e8f9); 
+            background-clip: text; 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .klinko-game .start-button { 
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+        }
+        .klinko-game .start-button:hover { 
+            box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4); 
+        }
 
+        /* DroneStrike Game Styling */
+        .dronestrike-game .game-icon-wrapper { 
+            background: linear-gradient(135deg, rgba(244, 63, 94, 0.2), rgba(190, 18, 60, 0.3));
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+        .dronestrike-game:hover { 
+            border-color: rgba(244, 63, 94, 0.3); 
+            box-shadow: 
+                0 20px 40px rgba(244, 63, 94, 0.15),
+                0 0 0 1px rgba(244, 63, 94, 0.1) inset;
+        }
+        .dronestrike-game .game-title { 
+            background: linear-gradient(135deg, #f43f5e, #fb7185); 
+            background-clip: text; 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+        }
+        .dronestrike-game .start-button { 
+            background: linear-gradient(135deg, #f43f5e, #be123c);
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+        }
+        .dronestrike-game .start-button:hover { 
+            box-shadow: 0 8px 24px rgba(244, 63, 94, 0.4); 
+        }
+
+        .game-requirement {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: 8px;
+            padding: 4px 10px;
+            margin-top: 8px;
+            width: fit-content;
+        }
 
         /* Responsive overrides for shared styles */
 
@@ -528,7 +591,7 @@
         <div class="content-wrapper main-content" id="contentWrapper">
             <div class="top-section">
                 <div class="header">
-                    <h1 class="title title-text">Side Games</h1>
+                    <h1 class="title title-text">Games</h1>
                     <p class="subtitle">
                         Traditional knife throwing games and custom formats perfect for practice, casual play, and competition. Choose a format below to get started.
                     </p>
@@ -599,6 +662,72 @@
                             Create your own knife throwing game with fully customizable rounds, scoring, distances, and tiebreaker rules. Perfect for unique challenges and training.
                         </p>
                         <div class="start-button">Create Game</div>
+                    </a>
+
+                    <a href="Klinko.html" class="game-card klinko-game">
+                        <div class="game-header">
+                            <div class="game-icon-wrapper">📺</div>
+                            <div class="game-title-section">
+                                <h3 class="game-title">Klinko</h3>
+                                <span class="game-tagline">Ring-drop scoring</span>
+                            </div>
+                        </div>
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <span class="stat-label">Rounds</span>
+                                <span class="stat-value purple">Configurable</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Throws/Round</span>
+                                <span class="stat-value green">1</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Scoring</span>
+                                <span class="stat-value orange">Ring Drop</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Players</span>
+                                <span class="stat-value yellow">1 - ∞</span>
+                            </div>
+                        </div>
+                        <p class="game-description">
+                            A ring drops through a field of pegs — throw your knife to pin it before it reaches the bottom! The faster you catch it, the more points you earn.
+                        </p>
+                        <div class="game-requirement">📽️ Projector Required</div>
+                        <div class="start-button" style="margin-top: 16px;">Play Klinko</div>
+                    </a>
+
+                    <a href="dronestrike.html" class="game-card dronestrike-game">
+                        <div class="game-header">
+                            <div class="game-icon-wrapper">🚁</div>
+                            <div class="game-title-section">
+                                <h3 class="game-title">DroneStrike</h3>
+                                <span class="game-tagline">Escape the swarm</span>
+                            </div>
+                        </div>
+                        <div class="game-stats">
+                            <div class="game-stat">
+                                <span class="stat-label">Waves</span>
+                                <span class="stat-value red">Endless</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Drones</span>
+                                <span class="stat-value orange">6 Types</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Scoring</span>
+                                <span class="stat-value green">Hit + Speed</span>
+                            </div>
+                            <div class="game-stat">
+                                <span class="stat-label">Players</span>
+                                <span class="stat-value yellow">1 - ∞</span>
+                            </div>
+                        </div>
+                        <p class="game-description">
+                            You've been captured by the swarm — throw your way to freedom! Drones fly across the screen; hit one and the admin freezes it, then clicks to confirm the strike. Survive increasingly advanced drones wave after wave.
+                        </p>
+                        <div class="game-requirement">📽️ Projector Required</div>
+                        <div class="start-button" style="margin-top: 16px;">Play DroneStrike</div>
                     </a>
 
                 </div>
