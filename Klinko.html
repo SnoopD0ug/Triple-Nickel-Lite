@@ -1690,6 +1690,7 @@
                 if (state.paused) {
                     state.throwAnimTimer++;
                 }
+                updateDropButton();
             }
             draw();
         }
@@ -1818,6 +1819,18 @@
         state.paused = true;
         state.throwResult = null;
         state.throwAnimTimer = 0;
+        updateDropButton();
+    }
+
+    function updateDropButton() {
+        var btn = document.getElementById('btn-drop');
+        if (!btn) return;
+        // Ring in flight (not frozen) → PAUSE; otherwise ready to DROP
+        if (!state.settled && !state.paused && state.countdown === null) {
+            btn.textContent = 'PAUSE';
+        } else {
+            btn.textContent = 'DROP';
+        }
     }
 
     function getElapsedSeconds(ring) {
@@ -1973,7 +1986,11 @@
     });
 
     document.getElementById('btn-drop').addEventListener('click', function() {
-        if (state.settled) dropRing();
+        if (!state.settled && !state.paused && state.countdown === null) {
+            pauseForThrow();
+        } else if (state.settled && state.countdown === null) {
+            dropRing();
+        }
     });
     document.getElementById('btn-reset').addEventListener('click', reset);
 
