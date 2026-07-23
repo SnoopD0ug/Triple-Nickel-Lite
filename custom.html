@@ -95,6 +95,31 @@
             min-width: 0 !important;
             flex-shrink: 0 !important;
             overflow: hidden;
+            outline: none;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+        }
+
+        .player-card.keyboard-focused {
+            overflow: visible;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.45), 0 10px 28px rgba(59, 130, 246, 0.25) !important;
+            z-index: 2;
+        }
+
+        .player-card.keyboard-focused::after {
+            content: '⌨ Type score · Tab next';
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #93c5fd;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(59, 130, 246, 0.5);
+            border-radius: 999px;
+            padding: 3px 8px;
+            pointer-events: none;
+            letter-spacing: 0.02em;
         }
         
         .player-card * {
@@ -920,6 +945,9 @@
         var leaderboardOffset = { x: 0, y: 0 };
         var settingsVisible = false;
         var leaderboardWindow = null; // Reference to the separate leaderboard window
+        var keyboardFocusPlayerId = null;
+        var keyboardScoreBuffer = '';
+        var keyboardScoreBufferTimer = null;
 
         // Helper functions for event type display
         function getEventIcon(eventType) {
@@ -1499,6 +1527,7 @@
         window.onload = function() {
             initializeSidebar(); // Initialize shared sidebar
             initializeCommonFeatures();
+            document.addEventListener('keydown', handlePlayerCardKeyboard);
             
             // Try to load saved game state first
             var stateLoaded = loadGameState();
@@ -1672,14 +1701,255 @@
             playersToShow.forEach(function(player) {
                 var playerCard = document.createElement('div');
                 playerCard.className = 'player-card';
+                playerCard.dataset.playerId = String(player.id);
+                playerCard.tabIndex = 0;
+                playerCard.setAttribute('role', 'group');
+                playerCard.setAttribute('aria-label', 'Score entry for ' + player.name);
                 
                 renderRegularPlayer(playerCard, player);
+
+                playerCard.addEventListener('click', function(e) {
+                    if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA')) {
+                        return;
+                    }
+                    setKeyboardFocusPlayer(player.id, false);
+                });
+                playerCard.addEventListener('focus', function() {
+                    setKeyboardFocusPlayer(player.id, false);
+                });
                 
                 grid.appendChild(playerCard);
             });
+
+            restoreKeyboardFocusUI();
             
             // Update pagination controls after rendering players
             updatePaginationControls();
+        }
+
+        function setKeyboardFocusPlayer(playerId, scrollIntoView) {
+            keyboardFocusPlayerId = playerId;
+            clearKeyboardScoreBuffer(false);
+            document.querySelectorAll('#playersGrid .player-card.keyboard-focused').forEach(function(card) {
+                card.classList.remove('keyboard-focused');
+            });
+            var card = document.querySelector('#playersGrid .player-card[data-player-id="' + String(playerId) + '"]');
+            if (card) {
+                card.classList.add('keyboard-focused');
+                if (document.activeElement !== card &&
+                    !(document.activeElement && document.activeElement.classList && document.activeElement.classList.contains('player-name'))) {
+                    try {
+                        card.focus({ preventScroll: true });
+                    } catch (e) {
+                        card.focus();
+                    }
+                }
+                if (scrollIntoView) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
+            }
+        }
+
+        function clearKeyboardFocus() {
+            keyboardFocusPlayerId = null;
+            clearKeyboardScoreBuffer(false);
+            document.querySelectorAll('#playersGrid .player-card.keyboard-focused').forEach(function(card) {
+                card.classList.remove('keyboard-focused');
+            });
+        }
+
+        function clearKeyboardScoreBuffer(commitPending) {
+            if (keyboardScoreBufferTimer) {
+                clearTimeout(keyboardScoreBufferTimer);
+                keyboardScoreBufferTimer = null;
+            }
+            if (commitPending && keyboardScoreBuffer !== '') {
+                var value = parseInt(keyboardScoreBuffer, 10);
+                keyboardScoreBuffer = '';
+                if (!isNaN(value)) {
+                    submitKeyboardScore(value);
+                }
+                return;
+            }
+            keyboardScoreBuffer = '';
+        }
+
+        function restoreKeyboardFocusUI() {
+            if (keyboardFocusPlayerId === null || keyboardFocusPlayerId === undefined) return;
+            var card = document.querySelector('#playersGrid .player-card[data-player-id="' + String(keyboardFocusPlayerId) + '"]');
+            if (!card) return;
+            card.classList.add('keyboard-focused');
+            if (!(document.activeElement && (
+                document.activeElement.tagName === 'INPUT' ||
+                document.activeElement.tagName === 'SELECT' ||
+                document.activeElement.tagName === 'TEXTAREA'
+            ))) {
+                try {
+                    card.focus({ preventScroll: true });
+                } catch (e) {
+                    card.focus();
+                }
+            }
+        }
+
+        function getVisiblePlayerCardIds() {
+            return Array.prototype.map.call(
+                document.querySelectorAll('#playersGrid .player-card[data-player-id]'),
+                function(el) { return el.dataset.playerId; }
+            );
+        }
+
+        function focusNextPlayerCard(forward) {
+            var ids = getVisiblePlayerCardIds();
+            if (!ids.length) return;
+
+            var current = keyboardFocusPlayerId !== null && keyboardFocusPlayerId !== undefined
+                ? String(keyboardFocusPlayerId)
+                : null;
+            var index = current ? ids.indexOf(current) : -1;
+
+            if (forward) {
+                index = index < 0 ? 0 : (index + 1) % ids.length;
+            } else {
+                index = index < 0 ? ids.length - 1 : (index - 1 + ids.length) % ids.length;
+            }
+
+            var nextIdStr = ids[index];
+            var player = gameState.players.find(function(p) { return String(p.id) === nextIdStr; });
+            setKeyboardFocusPlayer(player ? player.id : nextIdStr, true);
+        }
+
+        function ensureKeyboardFocusPlayer() {
+            if (keyboardFocusPlayerId !== null && keyboardFocusPlayerId !== undefined) {
+                var existing = document.querySelector('#playersGrid .player-card[data-player-id="' + String(keyboardFocusPlayerId) + '"]');
+                if (existing) return true;
+            }
+            var ids = getVisiblePlayerCardIds();
+            if (!ids.length) return false;
+            var player = gameState.players.find(function(p) { return String(p.id) === ids[0]; });
+            setKeyboardFocusPlayer(player ? player.id : ids[0], false);
+            return true;
+        }
+
+        function isKeyboardScoringBlocked(target) {
+            if (!target) return false;
+            var tag = target.tagName;
+            if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+            if (tag === 'INPUT') return true;
+            if (target.isContentEditable) return true;
+            if (settingsVisible) return true;
+            return false;
+        }
+
+        function submitKeyboardScore(score) {
+            if (!ensureKeyboardFocusPlayer()) return;
+            var maxScore = gameState.maxScore || 5;
+            if (score < 0 || score > maxScore) return;
+            if (gameState.targetRings && gameState.targetRings.indexOf(score) === -1) return;
+            addScore(keyboardFocusPlayerId, score);
+        }
+
+        function handleKeyboardScoreDigit(digitChar) {
+            if (!ensureKeyboardFocusPlayer()) return;
+            var maxScore = gameState.maxScore || 5;
+            var digit = parseInt(digitChar, 10);
+            if (isNaN(digit)) return;
+
+            if (maxScore <= 9) {
+                if (digit > maxScore) return;
+                clearKeyboardScoreBuffer(false);
+                submitKeyboardScore(digit);
+                return;
+            }
+
+            var nextBuffer = keyboardScoreBuffer + digitChar;
+            var value = parseInt(nextBuffer, 10);
+            if (value > maxScore) {
+                nextBuffer = digitChar;
+                value = digit;
+                if (value > maxScore) {
+                    clearKeyboardScoreBuffer(false);
+                    return;
+                }
+            }
+            keyboardScoreBuffer = nextBuffer;
+
+            if (keyboardScoreBufferTimer) {
+                clearTimeout(keyboardScoreBufferTimer);
+            }
+
+            var canExtend = false;
+            for (var d = 0; d <= 9; d++) {
+                if (parseInt(keyboardScoreBuffer + String(d), 10) <= maxScore) {
+                    canExtend = true;
+                    break;
+                }
+            }
+
+            if (!canExtend) {
+                submitKeyboardScore(value);
+                keyboardScoreBuffer = '';
+                return;
+            }
+
+            keyboardScoreBufferTimer = setTimeout(function() {
+                if (keyboardScoreBuffer !== '') {
+                    var buffered = parseInt(keyboardScoreBuffer, 10);
+                    keyboardScoreBuffer = '';
+                    keyboardScoreBufferTimer = null;
+                    if (!isNaN(buffered)) {
+                        submitKeyboardScore(buffered);
+                    }
+                }
+            }, 700);
+        }
+
+        function handlePlayerCardKeyboard(e) {
+            if (e.key === 'Tab' && e.target && e.target.classList && e.target.classList.contains('player-name')) {
+                e.preventDefault();
+                focusNextPlayerCard(!e.shiftKey);
+                return;
+            }
+
+            if (isKeyboardScoringBlocked(e.target)) {
+                return;
+            }
+
+            if (e.key === 'Tab') {
+                var inGrid = e.target && e.target.closest && e.target.closest('#playersGrid');
+                if (!inGrid) return;
+                e.preventDefault();
+                focusNextPlayerCard(!e.shiftKey);
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                clearKeyboardFocus();
+                return;
+            }
+
+            if (e.key === 'Enter') {
+                if (keyboardScoreBuffer !== '') {
+                    e.preventDefault();
+                    clearKeyboardScoreBuffer(true);
+                } else if (keyboardFocusPlayerId !== null) {
+                    e.preventDefault();
+                    focusNextPlayerCard(true);
+                }
+                return;
+            }
+
+            var digit = null;
+            if (e.key >= '0' && e.key <= '9') {
+                digit = e.key;
+            } else if (e.code && e.code.indexOf('Numpad') === 0 && e.key >= '0' && e.key <= '9') {
+                digit = e.key;
+            }
+
+            if (digit !== null) {
+                e.preventDefault();
+                handleKeyboardScoreDigit(digit);
+            }
         }
 
         function renderRegularPlayer(playerCard, player) {
@@ -1748,17 +2018,6 @@
                     return '<button style="' + buttonStyle + '" onclick="addScore(' + player.id + ', ' + score + ')">' + score + '</button>';
                 }).join('');
             }
-            
-            // Add manual score input for custom scores (always visible)
-            var manualInputHtml = '<div style="grid-column: span 6; margin-top: 10px; display: flex; gap: 10px; align-items: center;">' +
-                '<input type="number" id="manualScore' + player.id + '" placeholder="Enter score" min="0" max="99" ' +
-                'style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; flex: 1;" ' +
-                'onkeypress="if(event.key===\'Enter\') addManualScore(' + player.id + ')">' +
-                '<button onclick="addManualScore(' + player.id + ')" ' +
-                'style="background: linear-gradient(45deg, #8b5cf6, #7c3aed); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">' +
-                '✓ Add</button></div>';
-            
-            scoreButtonsHtml += manualInputHtml;
 
             var roundNavButtons = Array(gameState.rounds).fill(null).map(function(_, roundIndex) {
                 var roundNum = roundIndex + 1;
@@ -1965,17 +2224,6 @@
                     return '<button style="' + buttonStyle + '" onclick="addScore(' + player.id + ', ' + score + ')">' + score + '</button>';
                 }).join('');
             }
-            
-            // Add manual score input (always visible)
-            var manualInputHtml = '<div style="grid-column: span 6; margin-top: 10px; display: flex; gap: 10px; align-items: center;">' +
-                '<input type="number" id="manualScore' + player.id + '" placeholder="Enter score" min="0" max="99" ' +
-                'style="background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; font-size: 1rem; outline: none; flex: 1;" ' +
-                'onkeypress="if(event.key===\'Enter\') addManualScore(' + player.id + ')">' +
-                '<button onclick="addManualScore(' + player.id + ')" ' +
-                'style="background: linear-gradient(45deg, #8b5cf6, #7c3aed); border: none; color: white; padding: 10px 20px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s ease;">' +
-                '✓ Add</button></div>';
-            
-            scoreButtonsHtml += manualInputHtml;
 
             var throwDisplayHtml = '';
             for (var i = 0; i < throwsPerRound; i++) {
@@ -2050,6 +2298,7 @@
         }
 
         function addScore(playerId, score) {
+            keyboardFocusPlayerId = playerId;
             // Handle tiebreaker scoring
             if (gameState.inTiebreaker) {
                 var player = gameState.players.find(function(p) { return p.id === playerId; });
@@ -2196,32 +2445,6 @@
             broadcastLeaderboardUpdate();
             
             saveGameState(); // Auto-save after every score entry
-        }
-
-        function addManualScore(playerId) {
-            var input = document.getElementById('manualScore' + playerId);
-            var score = parseInt(input.value);
-            
-            if (isNaN(score)) {
-                alert('Please enter a valid number!');
-                input.focus();
-                return;
-            }
-            
-            if (score < 0) {
-                alert('Score cannot be negative!');
-                input.focus();
-                return;
-            }
-            
-            if (score > 99) {
-                alert('Score cannot exceed 99!');
-                input.focus();
-                return;
-            }
-            
-            addScore(playerId, score);
-            input.value = '';
         }
 
         function navigateToThrow(playerId, roundNumber, throwNumber) {
